@@ -293,6 +293,7 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 					GET_PLAYER(m_ePlayer).GetNotifications()->Add(NOTIFICATION_PLAYER_DEAL_RESOLVED, strMessage.toUTF8(), strSummary.toUTF8(), iter->m_eFromPlayer, -1, -1);
 
 					iter = m_aRequests.erase(iter);
+					continue;
 				}
 			}
 			++iter;
