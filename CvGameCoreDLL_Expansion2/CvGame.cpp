@@ -9087,6 +9087,10 @@ void CvGame::updateMoves()
 
 	int currentTurn = getGameTurn();
 	bool activatePlayers = playersToProcess.empty() && m_lastTurnAICivsProcessed != currentTurn;
+	
+	//Need to know this later to work around a loading issue with simultaneous MP
+	bool firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
+
 	// If no AI with an active turn, check humans.
 	if(playersToProcess.empty())
 	{
@@ -9364,6 +9368,17 @@ void CvGame::updateMoves()
 				if(!player.isTurnActive() && player.isHuman() && player.isAlive() && player.isSimultaneousTurns())
 				{
 					player.setTurnActive(true);
+					if (firstActivationOfPlayersAfterLoad)
+					{												
+						// DN: There is a strange issue with players missing their turns after loading a game, with the AI getting two turns in a row.
+						// It seems *to me* that Civ is incorrectly thinking telling us that the players have already indicated they have finished their turns
+						// A hacky solution to this is to tell Civ to cancel the player turn complete state.
+						// Otherwise they get their turn ended in the next call to updateMoves after the condition (!player.isEndTurn() && gDLL->HasReceivedTurnComplete(player.GetID()) && player.isHuman())
+						// This could probably be better done somewhere else (upon loading?) but I am more unsure about introducing errors as I need to mess with the active player and that seems dicey
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : After player first activated HasReceivedTurnComplete(" << player.GetID() << ") returned " << gDLL->HasReceivedTurnComplete(player.GetID()));
+						bool unreadied = gDLL->sendTurnUnready();
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : sendTurnUnready() returned " << unreadied << " and now HasReceivedTurnComplete(" << player.GetID()  << ") returned " << gDLL->HasReceivedTurnComplete(player.GetID()));
+					}
 				}
 			}
 		}
