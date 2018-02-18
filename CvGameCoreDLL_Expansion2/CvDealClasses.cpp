@@ -20,7 +20,7 @@
 
 // must be included after all other headers
 #include "LintFree.h"
-
+#include <sstream>
 //=====================================
 // TradeableItems
 //====================================
@@ -2859,11 +2859,27 @@ void CvGameDeals::AddProposedDeal(CvDeal kDeal)
 				FinalizeMPDeal(kRemovedDeal, false);
 			}
 		}
+		
+		// Store Deal away
+		m_ProposedDeals.push_back(kDeal);
+		//TODO?: ADD some sort of check for simultaneous turns? assuming that feature alreasy works in other modes since no complaints
+		if (1) {
+			if (CvPreGame::isHuman(eFrom) && CvPreGame::isHuman(eTo)) {
+				CvPlayerAI& kto = GET_PLAYER(eTo);
+				CvPlayerAI& kFrom = GET_PLAYER(eFrom);
+				//NO_LEADERHEAD_ANIM
+				GET_PLAYER(eTo).GetDiplomacyRequests()->Add(eFrom, DIPLO_UI_STATE_TRADE, "yo yo yo whaddup, u wan dis shiz?", LEADERHEAD_ANIM_DEFEATED, -1);
+				//This is happening twice for each deal and both are from/to the same players (not one each)
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("AddProposedDeal() : forcing request from "  << eFrom << " to " << eTo);
+			}
+		}
 	}
-#endif
+#else
 	// Store Deal away
 	m_ProposedDeals.push_back(kDeal);
-
+#endif
+	
+	
 	// Update UI if we were involved in the deal
 	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
 	if(kDeal.m_eFromPlayer == eActivePlayer || kDeal.m_eToPlayer == eActivePlayer)

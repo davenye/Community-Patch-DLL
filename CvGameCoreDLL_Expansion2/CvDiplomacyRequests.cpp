@@ -20,6 +20,7 @@
 // Include this after all other headers.
 #include "LintFree.h"
 
+#include <sstream>
 /// Serialization read
 FDataStream& operator>>(FDataStream& loadFrom, CvDiplomacyRequests::Request& writeTo)
 {
@@ -202,10 +203,12 @@ void CvDiplomacyRequests::BeginTurn(void)
 				if (iter->m_iLookupIndex < 0)
 				{
 					CvPlayer& kFrom = GET_PLAYER(iter->m_eFromPlayer);
-					CvString leaderMessage = CvString::format("%s: %s", kFrom.getName(), iter->m_strMessage.c_str());
-					Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_MP_DIPLO_CONTACT_SUMMARY");
-					strSummary << kFrom.getCivilizationShortDescriptionKey();
-					iter->m_iLookupIndex = pNotifications->Add(NOTIFICATION_PLAYER_DEAL_RECEIVED, leaderMessage, strSummary.toUTF8(), iter->m_eFromPlayer, -2, GET_TEAM(kFrom.getTeam()).getLeaderID(), -1);
+					if (!kFrom.isHuman()) {
+						CvString leaderMessage = CvString::format("%s: %s", kFrom.getName(), iter->m_strMessage.c_str());
+						Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_MP_DIPLO_CONTACT_SUMMARY");
+						strSummary << kFrom.getCivilizationShortDescriptionKey();
+						iter->m_iLookupIndex = pNotifications->Add(NOTIFICATION_PLAYER_DEAL_RECEIVED, leaderMessage, strSummary.toUTF8(), iter->m_eFromPlayer, -2, GET_TEAM(kFrom.getTeam()).getLeaderID(), -1);
+					}
 				}
 			}
 		}
@@ -260,6 +263,13 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 		RequestList::iterator iter = m_aRequests.begin();
 		while (iter != m_aRequests.end())
 		{
+
+			if (CvPreGame::isHuman(iter->m_eFromPlayer) && CvPreGame::isHuman(m_ePlayer))
+			{
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDiplomacyRequests::CheckRemainingNotifications(): Removing dummy human-human deal request");
+				iter = m_aRequests.erase(iter);
+				continue;
+			}
 			if (iter->m_iLookupIndex >= 0)
 			{
 				CvDeal* pDeal = GC.getGame().GetGameDeals().GetProposedMPDeal(iter->m_eFromPlayer, m_ePlayer, false);
@@ -290,6 +300,20 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 					strSummary = Localization::Lookup("TXT_KEY_DEAL_WITHDRAWN");
 					strMessage = Localization::Lookup("TXT_KEY_DEAL_WITHDRAWN_BY_THEM");
 					strMessage << kFromPlayer.getNickName();
+
+					if (!kFromPlayer.getNickName() || !*kFromPlayer.getNickName()) {
+						
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDiplomacyRequests::CheckRemainingNotifications(): null/empty nickname on deal");
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("requ from: " << iter->m_eFromPlayer);
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("deal from: " << pDeal->m_eFromPlayer);
+
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("player to: " << m_ePlayer);
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("deal to: " << pDeal->m_eToPlayer);
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("deal cancelled: " << pDeal->m_bDealCancelled);
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("deal items count: " << pDeal->GetNumItems());
+						
+					}
+
 					GET_PLAYER(m_ePlayer).GetNotifications()->Add(NOTIFICATION_PLAYER_DEAL_RESOLVED, strMessage.toUTF8(), strSummary.toUTF8(), iter->m_eFromPlayer, -1, -1);
 
 					iter = m_aRequests.erase(iter);
