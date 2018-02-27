@@ -7843,30 +7843,6 @@ void CvUnit::doHeal()
 		if(!canHeal(plot()))
 			return;
 
-#if defined(MOD_BALANCE_CORE_MILITARY_RESISTANCE)
-		if(MOD_BALANCE_CORE_MILITARY_RESISTANCE && !GET_PLAYER(getOwner()).isMinorCiv())
-		{
-			CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
-
-			// Loop through all resources
-			ResourceTypes eResource;
-			int iNumResourceInfos = GC.getNumResourceInfos();
-			for(int iResourceLoop = 0; iResourceLoop < iNumResourceInfos; iResourceLoop++)
-			{
-				eResource = (ResourceTypes) iResourceLoop;
-
-				if(m_pUnitInfo->GetResourceQuantityRequirement(eResource) > 0)
-				{
-					int iAvailable = kPlayer.getNumResourceAvailable(eResource);
-					if(iAvailable < 0)
-					{
-						return;
-					}
-				}
-			}
-		}
-#endif
-
 		int iHealRate = healRate(plot());
 		if (iHealRate==0)
 			return;
