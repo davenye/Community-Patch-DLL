@@ -43,6 +43,8 @@
 #include "CvGameQueries.h"
 #include "CvBarbarians.h"
 
+#include <sstream>
+
 #if !defined(FINAL_RELEASE)
 #include <sstream>
 
@@ -29086,8 +29088,15 @@ void CvUnit::SetMissionTimer(int iNewValue)
 
 		if(iNewTimer == 0)
 		{
-			auto_ptr<ICvUnit1> pDllUnit(new CvDllUnit(this));
-			gDLL->GameplayUnitMissionEnd(pDllUnit.get());
+			if (GetLengthMissionQueue() > 0)
+			{
+				auto_ptr<ICvUnit1> pDllUnit(new CvDllUnit(this));
+				gDLL->GameplayUnitMissionEnd(pDllUnit.get());
+			}
+			else
+			{
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvUnit::SetMissionTimer GetLengthMissionQueue hack in effect, player " << getOwner() << " unit " << GetID());
+			}
 		}
 	}
 }
