@@ -9088,7 +9088,7 @@ void CvGame::updateMoves()
 	int currentTurn = getGameTurn();
 	bool activatePlayers = playersToProcess.empty() && m_lastTurnAICivsProcessed != currentTurn;
 
-#ifdef MOD_BUGFIX_MINOR
+#if defined(MOD_BUGFIX_MINOR)
 	//Need to know this later to work around a loading issue with simultaneous MP
 	bool firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
 #endif
@@ -9369,7 +9369,7 @@ void CvGame::updateMoves()
 				if(!player.isTurnActive() && player.isHuman() && player.isAlive() && player.isSimultaneousTurns())
 				{
 					player.setTurnActive(true);
-#ifdef MOD_BUGFIX_MINOR
+#if defined(MOD_BUGFIX_MINOR)
 					if (firstActivationOfPlayersAfterLoad && player.isLocalPlayer()) // or maybe only on host? Is this a race condition? 
 					{
 						// DN: There is a strange issue with players missing their turns after loading a game, with the AI getting two turns in a row.
