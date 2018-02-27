@@ -9087,6 +9087,10 @@ void CvGame::updateMoves()
 
 	int currentTurn = getGameTurn();
 	bool activatePlayers = playersToProcess.empty() && m_lastTurnAICivsProcessed != currentTurn;
+	
+	//Need to know this later to work around a loading issue with simultaneous MP
+	bool firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
+
 	// If no AI with an active turn, check humans.
 	if(playersToProcess.empty())
 	{
@@ -9360,10 +9364,25 @@ void CvGame::updateMoves()
 			// KWG: This code should go into CheckPlayerTurnDeactivate
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
-				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
-				if(!player.isTurnActive() && player.isHuman() && player.isAlive() && player.isSimultaneousTurns())
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
+				if(!kPlayer.isTurnActive() && kPlayer.isHuman() && kPlayer.isAlive() && kPlayer.isSimultaneousTurns())
 				{
-					player.setTurnActive(true);
+					kPlayer.setTurnActive(true);
+					if (firstActivationOfPlayersAfterLoad && kPlayer.isLocalPlayer()) // or maybe only on host? Is this a race condition? 
+					{
+						// DN: There is a strange issue with players missing their turns after loading a game, with the AI getting two turns in a row.
+						// It seems *to me* that Civ is incorrectly thinking telling us that the players have already indicated they have finished their turns
+						// A hacky solution to this is to tell Civ to cancel the player turn complete state.
+						// Otherwise they get their turn ended in the next call to updateMoves after the condition (!player.isEndTurn() && gDLL->HasReceivedTurnComplete(player.GetID()) && player.isHuman())
+						// This could probably be better done somewhere else (upon loading?) but I am more unsure about introducing errors as I need to mess with the active player and that seems dicey
+						if (gDLL->HasReceivedTurnComplete(kPlayer.GetID()))
+						{
+							bool unreadied = gDLL->sendTurnUnready();
+							bool turnComplete = gDLL->HasReceivedTurnComplete(kPlayer.GetID());
+							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : Attempting to fix skipped first turn issue - HasReceivedTurnComplete(" << kPlayer.GetID() << ") returned true, sendTurnUnready() returned "
+								<< unreadied << " and now HasReceivedTurnComplete(" << kPlayer.GetID() << ") returned " << turnComplete);
+						}
+					}
 				}
 			}
 		}
