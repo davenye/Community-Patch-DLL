@@ -748,6 +748,9 @@ CvPlayer::CvPlayer() :
 	, m_iMilitaryAirMight("CvPlayer::m_iMilitaryAirMight", m_syncArchive)
 	, m_iMilitaryLandMight("CvPlayer::m_iMilitaryLandMight", m_syncArchive)
 #endif
+#if defined(MOD_BUGFIX_TURNZ)
+	, m_bApplySkippedTurnFix(false)
+#endif
 {
 	m_pPlayerPolicies = FNEW(CvPlayerPolicies, c_eCiv5GameplayDLL, 0);
 	m_pEconomicAI = FNEW(CvEconomicAI, c_eCiv5GameplayDLL, 0);
@@ -32823,8 +32826,20 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 
 			setEndTurn(false);
 
-			DoUnitAttrition();
+#if defined(MOD_BUGFIX_TURNZ)
+			if (m_bApplySkippedTurnFix) {
+				m_bApplySkippedTurnFix = false;
+				if (gDLL->HasReceivedTurnComplete(GetID())) {
+					bool unreadied = gDLL->sendTurnUnready();
+					bool complete = gDLL->HasReceivedTurnComplete(GetID());					
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::setTurnActive(): player=" << GetID() << " HasReceivedTurnComplete() return 1, sendTurnUnready() returned " << unreadied << ", HasReceivedTurnComplete now returns " << complete);
+					
+				}
+			}
+			
+#endif
 
+			DoUnitAttrition();
 #if defined(MOD_CORE_DELAYED_VISIBILITY)
 			//force update in case one of our units was killed or moved
 			for (int iI = 0; iI < theMap.numPlots(); iI++)
@@ -44274,6 +44289,11 @@ void CvPlayer::Read(FDataStream& kStream)
 		}
 	}
 	kStream >> m_noSettlingPlots;
+#endif
+#if defined(MOD_BUGFIX_TURNZ)
+	if (isHuman() & isLocalPlayer() && GC.getGame().isNetworkMultiPlayer()) {
+		m_bApplySkippedTurnFix = true;
+	}
 #endif
 }
 

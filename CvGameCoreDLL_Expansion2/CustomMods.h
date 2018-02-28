@@ -955,6 +955,8 @@
 #define MOD_BUGFIX_NO_HOVERING_REBELS               gCustomMods.isBUGFIX_NO_HOVERING_REBELS()
 // Fixes some bugs/regressions that disable the effect of IsNoMinorCivs of some strategies
 #define MOD_BUGFIX_MINOR_CIV_STRATEGIES				gCustomMods.isBUGFIX_MINOR_CIV_STRATEGIES()
+// Fixes turnz
+#define MOD_BUGFIX_TURNZ							(true)
 
 #endif // ACHIEVEMENT_HACKS
 

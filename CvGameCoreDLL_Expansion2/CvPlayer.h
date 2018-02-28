@@ -3682,6 +3682,9 @@ protected:
 	FAutoVariable<int, CvPlayer> m_iMilitaryAirMight;
 	FAutoVariable<int, CvPlayer> m_iMilitaryLandMight;
 #endif
+#if defined(MOD_BUGFIX_TURNZ)
+	bool m_bApplySkippedTurnFix;
+#endif
 
 };
 
