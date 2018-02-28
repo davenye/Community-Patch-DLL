@@ -9369,7 +9369,7 @@ void CvGame::updateMoves()
 				{
 					player.setTurnActive(true);
 #if defined(MOD_BUGFIX_SKIPPED_HUMAN_TURN_ON_MP_LOAD)
-					if (firstActivationOfPlayersAfterLoad && player.isLocalPlayer()) // or maybe only on host? Is this a race condition? 
+					if (firstActivationOfPlayersAfterLoad && player.isLocalPlayer()) // Is this a race condition though? 
 					{
 						// DN: There is a strange issue with players missing their turns after loading a game, with the AI getting two turns in a row.
 						// It seems *to me* that Civ is incorrectly thinking telling us that the players have already indicated they have finished their turns
@@ -9379,7 +9379,7 @@ void CvGame::updateMoves()
 						{
 							bool unreadied = gDLL->sendTurnUnready();
 							bool turnComplete = gDLL->HasReceivedTurnComplete(player.GetID());
-							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : Attempting to fix skipped first turn issue - HasReceivedTurnComplete(" << player.GetID() << ") returned true, sendTurnUnready() returned "
+							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : Attempting to fix skipped first turn issue - HasReceivedTurnComplete(" << player.GetID() << ") returned 1, sendTurnUnready() returned "
 								<< unreadied << " and now HasReceivedTurnComplete(" << player.GetID() << ") returned " << turnComplete);
 						}
 					}
