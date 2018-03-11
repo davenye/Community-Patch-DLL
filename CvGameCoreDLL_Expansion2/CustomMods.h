@@ -960,6 +960,8 @@
 #define MOD_BUGFIX_NO_HOVERING_REBELS               gCustomMods.isBUGFIX_NO_HOVERING_REBELS()
 // Fixes some bugs/regressions that disable the effect of IsNoMinorCivs of some strategies
 #define MOD_BUGFIX_MINOR_CIV_STRATEGIES				gCustomMods.isBUGFIX_MINOR_CIV_STRATEGIES()
+// Fixes the bug where war initiated by AI diplomacy during human turn in simul MP caused desync due to no war state message being sent to other players
+#define MOD_BUGFIX_MP_CHANGEWAR_MSG					(true)
 
 #endif // ACHIEVEMENT_HACKS
 
