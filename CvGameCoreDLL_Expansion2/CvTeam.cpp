@@ -4819,6 +4819,28 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 	GC.getMap().verifyUnitValidPlot();
 #endif
 
+#if defined(MOD_BUGFIX_MP_CHANGEWAR_MSG)
+	// DN: The existing call to GameplayWarStateChanged wasn't resulting in any war state messages being sent to the other players in MP (this does) when war was a result taunting AI during diplo requests (at least), causing desyncs, so:
+	if (GET_PLAYER(GC.getGame().getActivePlayer()).getTeam() == eIndex)
+	{
+		if(!isHuman() && GC.getGame().isNetworkMultiPlayer())
+		{
+			if(GET_PLAYER(GC.getGame().getActivePlayer()).isSimultaneousTurns()) // might be more specific than necessary but I have only seen the issue in this mode
+			{
+				if(GC.getGame().isFinalInitialized()) // crashes UpdateDangerPlots if called on game creation, so just gonna skip it until later since it isn't required at that point
+				{					
+					if (getPlayers().size() == 1 && GET_TEAM(GET_PLAYER(GC.getGame().getActivePlayer()).getTeam()).getPlayers().size() == 1) // Fix has not been tested with teams of >1. Might work but I haven't tested so rather than potentially introduce a new bug...Remove if adventurous!
+					{						
+						// Sending a negative team number so the aggressor can be correctly sent since I can't get this message to send as an AI aggressor. There is enum NO_TEAM == -1 but that shouldn't be a problem here.
+						// Will be interpreted and handled as team "GetID()" declaring war on team "eIndex" in the corresponding message handler, respondChangeWar.					
+						gDLL->sendChangeWar((TeamTypes)-GetID(), bNewValue);
+					}
+				}
+			}
+		}
+	}
+#endif
+
 	gDLL->GameplayWarStateChanged(GetID(), eIndex, bNewValue);
 
 #ifndef FINAL_RELEASE
