@@ -270,12 +270,7 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 				}
 
 				bool bDealOk = pDeal->AreAllTradeItemsValid();
-				if (bDealOk && !CvPreGame::isHuman(iter->m_eFromPlayer))
-				{
-					int iDealValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer;
-					bool bCantMatchOffer;
-					bDealOk = GET_PLAYER(iter->m_eFromPlayer).GetDealAI()->IsDealWithHumanAcceptable(pDeal, m_ePlayer, /*Passed by reference*/ iDealValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, &bCantMatchOffer, false);
-				}
+
 				if (!bDealOk)
 				{
 					GC.getGame().GetGameDeals().RemoveProposedDeal(iter->m_eFromPlayer, m_ePlayer, NULL, false);
@@ -300,6 +295,7 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 		}
 	}
 }
+
 //	----------------------------------------------------------------------------
 void CvDiplomacyRequests::ActivateNext()
 {
@@ -326,7 +322,8 @@ void CvDiplomacyRequests::ActivateNext()
 foundRequest:
 	static CvDeal kDeal;
 	PlayerTypes eFrom = requestIter->m_eFromPlayer;
-	
+	PlayerTypes eTo = m_ePlayer;
+
 	// we remove the first proposed deal and use it as the scratch deal ...
 	if (!(CvPreGame::isHuman(m_ePlayer) && CvPreGame::isHuman(eFrom)))
 	{
@@ -340,14 +337,73 @@ foundRequest:
 		}
 	}
 
-	auto_ptr<ICvDeal1> pDeal = GC.WrapDealPointer(&kDeal);
-	DLLUI->SetScratchDeal(pDeal.get());
 
 	if (requestIter->m_iLookupIndex >= 0)
 	{
 		// we had a notification: Cancel it
 		GET_PLAYER(m_ePlayer).GetNotifications()->Dismiss(requestIter->m_iLookupIndex, false);
 	}
+
+	if (requestIter->m_eDiploType == DIPLO_UI_STATE_TRADE_AI_MAKES_OFFER) {
+				
+		bool bCancelDeal = false;		
+		if (!kDeal.AreAllTradeItemsValid())
+		{
+			bCancelDeal = true;
+		}
+		else if (!kDeal.m_bConsideringForRenewal) // doesn't make sense to alter deals that are being renewed, leads to confusion
+		{						
+			CvDealAI* dealAI = GET_PLAYER(eFrom).GetDealAI();
+			int iTotalValueToMe = 0, iValueImOffering = 0, iValueTheyreOffering = 0;
+			int iAmountOverWeWillRequest = 0, iAmountUnderWeWillOffer = 0;
+			bool bCantMatch = false;
+			bool bAcceptable = dealAI->IsDealWithHumanAcceptable(&kDeal, eTo, iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, &bCantMatch, false);
+
+			if (!bAcceptable)
+			{
+				bool bGoodToBeginWith = true;
+				bool bCantMatchOffer = false;
+
+				// DoEqualizeDealWithHuman won't update the cached peace value so I have split out it here
+				// Otherwise equalizing the deal in the UI won't work. I do not understand why the cached peace value is the way it is.
+				if (!kDeal.IsPeaceTreatyTrade(eTo))
+				{
+					// just try modify gold to start off iwth since it could maybe be possible that the AI had something in mind at the time
+					bAcceptable = dealAI->DoEqualizeDealWithHuman(&kDeal, eTo, true, true, bGoodToBeginWith, bCantMatchOffer);
+					if(!bAcceptable) // now try harder to get a deal to avoid an improptu withdrawl
+						bAcceptable = dealAI->DoEqualizeDealWithHuman(&kDeal, eTo, false, false, bGoodToBeginWith, bCantMatchOffer);
+				}
+				else {
+					// This could change the deal signifcantly from the original but it is better than the current behaviour and probably not an issue given how offers are generated currently
+					kDeal.ClearItems();
+					bAcceptable = dealAI->IsOfferPeace(eTo, &kDeal, false);					
+				}
+				if (!bAcceptable) // well, we tried
+					bCancelDeal = true;
+			}				
+		}
+		if (bCancelDeal)
+		{
+			// Cancelling the deal now works but means the left click on the notifcation just makes the deal mysteriously disappear(or withdrawn) and looks like kinda a bug despite getting a new notification.
+			// It would be better if deals were checked/adjusted more frequently but I have not been willing to test enough (desyncs, cached peace values, etc) and deals shouldn't be getting withdrawn as much now anyway.
+			// Just clearing and bringing up an empty trade will still have text relating to the original trade. Could make a completely new deal but not today.
+			CvPlayerAI& kFromPlayer = GET_PLAYER(eFrom);
+			Localization::String strMessage;
+			Localization::String strSummary;
+
+			strSummary = Localization::Lookup("TXT_KEY_DEAL_WITHDRAWN");
+			strMessage = Localization::Lookup("TXT_KEY_DEAL_WITHDRAWN_BY_THEM");
+			strMessage << kFromPlayer.getName();
+			GET_PLAYER(m_ePlayer).GetNotifications()->Add(NOTIFICATION_PLAYER_DEAL_RESOLVED, strMessage.toUTF8(), strSummary.toUTF8(), eFrom, -1, -1);
+
+			m_aRequests.erase(requestIter);
+			
+			return;
+		}
+	}
+
+	auto_ptr<ICvDeal1> pDeal = GC.WrapDealPointer(&kDeal);
+	DLLUI->SetScratchDeal(pDeal.get());
 
 	// Send the request
 	m_bRequestActive = true;
