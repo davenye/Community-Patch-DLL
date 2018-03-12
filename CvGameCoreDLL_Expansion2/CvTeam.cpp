@@ -32,6 +32,7 @@
 
 #include "CvDllUnit.h"
 
+#include <sstream>
 #include "LintFree.h"
 
 // statics
@@ -1332,7 +1333,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bDefensivePact)
 #else
 	DoDeclareWar(eTeam, bDefensivePact);
 #endif
-
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvTeam::declareWar["<< GetID() << " ](TeamTypes " << eTeam << ", bool , " << bDefensivePact << ", PlayerTypes " << eOriginatingPlayer << ") - refreshing data;");
 	CvPlayerManager::Refresh(true);
 
 	//refresh tactical AI as well!
@@ -4833,8 +4834,11 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 					{						
 						// Sending a negative team number so the aggressor can be correctly sent since I can't get this message to send as an AI aggressor. There is enum NO_TEAM == -1 but that shouldn't be a problem here.
 						// Will be interpreted and handled as team "GetID()" declaring war on team "eIndex" in the corresponding message handler, respondChangeWar.					
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("gDLL->sendChangeWar((TeamTypes) " << -GetID() << ", " << bNewValue << ");");
 						gDLL->sendChangeWar((TeamTypes)-GetID(), bNewValue);
 					}
+					else 
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("ACTUAL TEAM!;");
 				}
 			}
 		}

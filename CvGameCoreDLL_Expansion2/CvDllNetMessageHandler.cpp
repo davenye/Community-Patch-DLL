@@ -13,6 +13,7 @@
 #include "CvTypes.h"
 #include "CvGameCoreUtils.h"
 
+#include <sstream>
 CvDllNetMessageHandler::CvDllNetMessageHandler()
 {
 }
@@ -101,13 +102,17 @@ void CvDllNetMessageHandler::ResponseChangeWar(PlayerTypes ePlayer, TeamTypes eR
 	// DN: Hijacked this message to get AI initiated wars in MP to not cause desyncs due to other player not being notified.
 	// The message cannot be sent by an AI and the sender is always the aggressor, so I am sending the a negated team ID to work around this.
 	// If we have a negative team ID here then we are to intercept, revert the sign and switch the parties so the aggressor is correct then effectively resend to self
-	if(eRivalTeam < 0)
+	if (eRivalTeam < 0)
 	{
 		eRivalTeam = (TeamTypes)-eRivalTeam;
 		CvTeam& kRivalTeam = GET_TEAM(eRivalTeam);
 		const std::vector<PlayerTypes>& rivalPlayers = kRivalTeam.getPlayers();
 		for (std::vector<PlayerTypes>::const_iterator it = rivalPlayers.begin(); it != rivalPlayers.end(); it++)
+		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("ResponseChangeWar(" << *it << ", " << eTeam << ", " << bWar << ");");
 			ResponseChangeWar(*it, eTeam, bWar); // Not really sure if this is correct for teams of more than 1 member
+			
+		}
 		return;
 	}
 #endif

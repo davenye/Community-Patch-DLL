@@ -78,7 +78,7 @@ public:
 	static bool HasActiveDiploRequestWithHuman(PlayerTypes eSourcePlayer);
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
-protected:
+//protected:
 #if defined(MOD_ACTIVE_DIPLOMACY)
 	void ActivateNext();
 #endif

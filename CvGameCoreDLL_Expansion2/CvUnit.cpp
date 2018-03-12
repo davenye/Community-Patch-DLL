@@ -29095,7 +29095,7 @@ void CvUnit::SetMissionTimer(int iNewValue)
 			}
 			else
 			{
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvUnit::SetMissionTimer GetLengthMissionQueue hack in effect, player " << getOwner() << " unit " << GetID());
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvUnit::SetMissionTimer GetLengthMissionQueue hack in effect, player " << getOwner() << " unit " << GetID() << ";");
 			}
 		}
 	}
