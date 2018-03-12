@@ -17,6 +17,7 @@
 #include "CvDealAI.h"
 #endif
 
+#include <sstream>
 // Include this after all other headers.
 #include "LintFree.h"
 
@@ -286,7 +287,7 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 					strMessage = Localization::Lookup("TXT_KEY_DEAL_WITHDRAWN_BY_THEM");
 					strMessage << kFromPlayer.getName();
 					GET_PLAYER(m_ePlayer).GetNotifications()->Add(NOTIFICATION_PLAYER_DEAL_RESOLVED, strMessage.toUTF8(), strSummary.toUTF8(), iter->m_eFromPlayer, -1, -1);
-
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("CheckRemainingNotifications " << iter->m_eFromPlayer << " -> " << m_ePlayer << ": " << " invalid deal!");
 					iter = m_aRequests.erase(iter);
 					continue;
 				}
@@ -349,6 +350,7 @@ foundRequest:
 		bool bCancelDeal = false;		
 		if (!kDeal.AreAllTradeItemsValid())
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " invalid deal!");
 			bCancelDeal = true;
 		}
 		else if (!kDeal.m_bConsideringForRenewal) // doesn't make sense to alter deals that are being renewed, leads to confusion
@@ -361,6 +363,7 @@ foundRequest:
 
 			if (!bAcceptable)
 			{
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " unacceptable deal!");
 				bool bGoodToBeginWith = true;
 				bool bCantMatchOffer = false;
 
@@ -370,16 +373,19 @@ foundRequest:
 				{
 					// just try modify gold to start off iwth since it could maybe be possible that the AI had something in mind at the time
 					bAcceptable = dealAI->DoEqualizeDealWithHuman(&kDeal, eTo, true, true, bGoodToBeginWith, bCantMatchOffer);
-					if(!bAcceptable) // now try harder to get a deal to avoid an improptu withdrawl
+					if (!bAcceptable) // now try harder to get a deal to avoid an improptu withdrawl
 						bAcceptable = dealAI->DoEqualizeDealWithHuman(&kDeal, eTo, false, false, bGoodToBeginWith, bCantMatchOffer);
 				}
 				else {
 					// This could change the deal signifcantly from the original but it is better than the current behaviour and probably not an issue given how offers are generated currently
 					kDeal.ClearItems();
-					bAcceptable = dealAI->IsOfferPeace(eTo, &kDeal, false);					
+					bAcceptable = dealAI->IsOfferPeace(eTo, &kDeal, false);
 				}
 				if (!bAcceptable) // well, we tried
+				{
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " impossible deal!");
 					bCancelDeal = true;
+				}
 			}				
 		}
 		if (bCancelDeal)
