@@ -5072,6 +5072,62 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 	output += " : " + why;
 	gDLL->netMessageDebugLog(output);
 	CvAssert(getNumGameTurnActive() >= 0);
+
+	////////////////////////////////////////////
+	if (getNumGameTurnActive() == 0 && isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
+	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Engage anit-desync hacks!");
+		// Can probably skip non-humans, non-alive and maybe even the host (not sure how to determine the host though)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		{
+			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
+			// War seemed to be causing desyncs relating to TR calculations. I don't know what i am doing.
+			// I think it is only necessary to do this for humans that have just changes their war but for the moment...
+			//if (kPlayer.isHuman() && kPlayer.isAlive())
+			GC.getGame().GetGameTrade()->UpdateTradePathCache(iI);
+
+			//there is some caching of economic value going on so gonna force update
+			//if (kPlayer.isHuman() && kPlayer.isAlive())
+			{
+				int iLoop = 0; //wats dis?
+				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+				{
+					pLoopCity->updateEconomicValue();
+				}
+			}
+
+			//More caching issues?
+			//if (kPlayer.isHuman() && kPlayer.isAlive())
+			{
+				//might be harmful to ai?
+				//kPlayer.UpdateDangerPlots(false);
+			}
+
+			//if (kPlayer.isHuman() && kPlayer.isAlive())
+			{
+
+				kPlayer.CalculateNetHappiness();
+			}
+
+			//if (kPlayer.isHuman() && kPlayer.isAlive())
+			{
+
+				//kPlayer.updateMightStatistics();
+				kPlayer.getPower();
+			}
+			if (kPlayer.GetDiplomacyRequests()) {
+				if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has pending requests");
+				}
+				if (kPlayer.GetDiplomacyRequests()->m_aRequests.size()) {
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has " << kPlayer.GetDiplomacyRequests()->m_aRequests.size() << " requests");
+				}
+			}
+
+		}
+	}
+
+	//////////////////////////////////////////////
 }
 
 
@@ -8081,61 +8137,7 @@ void CvGame::doTurn()
 	//create an autosave
 	if(!isNetworkMultiPlayer())
 		gDLL->AutoSave(false, false);
-	////////////////////////////////////////////
-	if (1 && isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
-	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Engage anit-desync hacks!");
-		// Can probably skip non-humans, non-alive and maybe even the host (not sure how to determine the host though)
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
-			// War seemed to be causing desyncs relating to TR calculations. I don't know what i am doing.
-			// I think it is only necessary to do this for humans that have just changes their war but for the moment...
-			//if (kPlayer.isHuman() && kPlayer.isAlive())
-				GC.getGame().GetGameTrade()->UpdateTradePathCache(iI);
-
-			//there is some caching of economic value going on so gonna force update
-			//if (kPlayer.isHuman() && kPlayer.isAlive())
-			{
-				int iLoop = 0; //wats dis?
-				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
-				{
-					pLoopCity->updateEconomicValue();
-				}
-			}
-
-			//More caching issues?
-			//if (kPlayer.isHuman() && kPlayer.isAlive())
-			{
-				//might be harmful to ai?
-				//kPlayer.UpdateDangerPlots(false);
-			}
-
-			//if (kPlayer.isHuman() && kPlayer.isAlive())
-			{
-
-				kPlayer.CalculateNetHappiness();
-			}
-
-			//if (kPlayer.isHuman() && kPlayer.isAlive())
-			{
-
-				//kPlayer.updateMightStatistics();
-				kPlayer.getPower();
-			}
-			if (kPlayer.GetDiplomacyRequests()) {
-				if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has pending requests");
-				}
-				if (kPlayer.GetDiplomacyRequests()->m_aRequests.size()) {
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has " << kPlayer.GetDiplomacyRequests()->m_aRequests.size() << " requests");
-				}
-			}
-
-		}
-	}
-
-	//////////////////////////////////////////////
+	
 	// END OF TURN
 
 	//We reset the turn timer now so that we know that the turn timer has been reset at least once for
@@ -9393,9 +9395,12 @@ void CvGame::updateMoves()
 					if(!player.hasBusyUnitOrCity())
 					{
 						player.setEndTurn(true);
-						if(player.isEndTurn())
+						if (player.isEndTurn())
 						{//If the player's turn ended, indicate it in the log.  We only do so when the end turn state has changed to prevent useless log spamming in multiplayer. 
 							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player.setEndTurn(true) called for player " << player.GetID() << " " << player.getName());
+
+														
+							
 						}
 					}
 					else

@@ -338,7 +338,7 @@ foundRequest:
 		}
 	}
 
-
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " begin");
 	if (requestIter->m_iLookupIndex >= 0)
 	{
 		// we had a notification: Cancel it

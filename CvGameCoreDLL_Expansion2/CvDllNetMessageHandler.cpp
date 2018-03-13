@@ -104,14 +104,20 @@ void CvDllNetMessageHandler::ResponseChangeWar(PlayerTypes ePlayer, TeamTypes eR
 	// If we have a negative team ID here then we are to intercept, revert the sign and switch the parties so the aggressor is correct then effectively resend to self
 	if (eRivalTeam < 0)
 	{
-		eRivalTeam = (TeamTypes)-eRivalTeam;
-		CvTeam& kRivalTeam = GET_TEAM(eRivalTeam);
-		const std::vector<PlayerTypes>& rivalPlayers = kRivalTeam.getPlayers();
-		for (std::vector<PlayerTypes>::const_iterator it = rivalPlayers.begin(); it != rivalPlayers.end(); it++)
+		if (!kPlayer.isLocalPlayer()) // We know about this already, skipping to avoid needless refreshing of data
 		{
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS("ResponseChangeWar(" << *it << ", " << eTeam << ", " << bWar << ");");
-			ResponseChangeWar(*it, eTeam, bWar); // Not really sure if this is correct for teams of more than 1 member
-			
+			eRivalTeam = (TeamTypes)-eRivalTeam;
+			CvTeam& kRivalTeam = GET_TEAM(eRivalTeam);
+			const std::vector<PlayerTypes>& rivalPlayers = kRivalTeam.getPlayers();
+			for (std::vector<PlayerTypes>::const_iterator it = rivalPlayers.begin(); it != rivalPlayers.end(); it++)
+			{
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("+ResponseChangeWar(" << *it << ", " << eTeam << ", " << bWar << ");");
+				ResponseChangeWar(*it, eTeam, bWar); // Not really sure if this is correct for teams of more than 1 member
+
+			}
+		}
+		else {
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("!ResponseChangeWar(" << ePlayer << ", " << eRivalTeam << ", " << bWar << ");");
 		}
 		return;
 	}
