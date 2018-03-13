@@ -102,11 +102,11 @@ void CvDllNetMessageHandler::ResponseChangeWar(PlayerTypes ePlayer, TeamTypes eR
 	// DN: Hijacked this message to get AI initiated wars in MP to not cause desyncs due to other player not being notified.
 	// The message cannot be sent by an AI and the sender is always the aggressor, so I am sending the a negated team ID to work around this.
 	// If we have a negative team ID here then we are to intercept, revert the sign and switch the parties so the aggressor is correct then effectively resend to self
-	if (eRivalTeam < 0)
+	if (eRivalTeam >= REALLY_MAX_TEAMS)
 	{
-		if (!kPlayer.isLocalPlayer()) // We know about this already, skipping to avoid needless refreshing of data
+		if (!kPlayer.isLocalPlayer()) // We should know about this war already, skipping to avoid needless refreshing of data
 		{
-			eRivalTeam = (TeamTypes)-eRivalTeam;
+			eRivalTeam = static_cast<TeamTypes>(eRivalTeam - REALLY_MAX_TEAMS);
 			CvTeam& kRivalTeam = GET_TEAM(eRivalTeam);
 			const std::vector<PlayerTypes>& rivalPlayers = kRivalTeam.getPlayers();
 			for (std::vector<PlayerTypes>::const_iterator it = rivalPlayers.begin(); it != rivalPlayers.end(); it++)
