@@ -4834,8 +4834,8 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 					{						
 						// Sending a negative team number so the aggressor can be correctly sent since I can't get this message to send as an AI aggressor. There is enum NO_TEAM == -1 but that shouldn't be a problem here.
 						// Will be interpreted and handled as team "GetID()" declaring war on team "eIndex" in the corresponding message handler, respondChangeWar.					
-						NET_MESSAGE_DEBUG_OSTR_ALWAYS("gDLL->sendChangeWar((TeamTypes) " << -GetID() << ", " << bNewValue << ");");
-						gDLL->sendChangeWar((TeamTypes)-GetID(), bNewValue);
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS(eIndex << "=> gDLL->sendChangeWar((TeamTypes) " << GetID() + REALLY_MAX_TEAMS << ", " << bNewValue << "); " << "{" << GetID() << "}");
+						gDLL->sendChangeWar(static_cast<TeamTypes>(GetID() + REALLY_MAX_TEAMS), bNewValue);
 					}
 					else 
 						NET_MESSAGE_DEBUG_OSTR_ALWAYS("ACTUAL TEAM!;");
