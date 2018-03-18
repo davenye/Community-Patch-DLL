@@ -1619,11 +1619,16 @@ void CvGame::update()
 	{
 		if(!GC.GetEngineUserInterface()->isDiploActive())
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update(): waited on " << m_eWaitDiploPlayer);
+#if defined(MOD_BALANCE_CORE)
+			GET_PLAYER(m_eWaitDiploPlayer).UpdateCityThreatCriteria();
+#endif
 			GET_PLAYER(m_eWaitDiploPlayer).doTurnPostDiplomacy();
 			SetWaitingForBlockingInput(NO_PLAYER);
 		}
 		else
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update(): waiting on " << m_eWaitDiploPlayer);
 			return;
 		}
 	}
@@ -5076,7 +5081,20 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 	////////////////////////////////////////////
 	if (getNumGameTurnActive() == 0 && isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Engage anit-desync hacks!");
+		FILogFile* pLog;
+		pLog = LOGFILEMGR.GetLog("units.csv", FILogFile::kDontTimeStamp);
+
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Engage anit-desync hacks!" << getGameTurn());
+
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Num Game Deals Proposed: " << GetGameDeals().m_ProposedDeals.size());
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Num Game Deals Current: " << GetGameDeals().m_CurrentDeals.size());
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("Num Game Deals Historic: " << GetGameDeals().m_HistoricalDeals.size());
+		for (size_t iI = 0; iI < GetGameDeals().m_ProposedDeals.size(); iI++)
+		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("Proposed Deal: " << GetGameDeals().m_ProposedDeals[iI].GetFromPlayer() << " -> " << GetGameDeals().m_ProposedDeals[iI].GetToPlayer());
+			
+
+		}
 		// Can probably skip non-humans, non-alive and maybe even the host (not sure how to determine the host though)
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
@@ -5084,7 +5102,7 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 			// War seemed to be causing desyncs relating to TR calculations. I don't know what i am doing.
 			// I think it is only necessary to do this for humans that have just changes their war but for the moment...
 			//if (kPlayer.isHuman() && kPlayer.isAlive())
-			GC.getGame().GetGameTrade()->UpdateTradePathCache(iI);
+			//GC.getGame().GetGameTrade()->UpdateTradePathCache(iI);
 
 			//there is some caching of economic value going on so gonna force update
 			//if (kPlayer.isHuman() && kPlayer.isAlive())
@@ -5092,7 +5110,10 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 				int iLoop = 0; //wats dis?
 				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 				{
+					int econ = pLoopCity->getEconomicValue((PlayerTypes)iI);
 					pLoopCity->updateEconomicValue();
+					int econ_ = pLoopCity->getEconomicValue((PlayerTypes)iI);
+					if (econ != econ_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " econ" << " = " << econ << " => " << econ_);
 				}
 			}
 
@@ -5105,15 +5126,28 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 
 			//if (kPlayer.isHuman() && kPlayer.isAlive())
 			{
-
+				int iHappiness = kPlayer.GetHappiness();
+				int iUnhappiness = kPlayer.GetUnhappiness();
 				kPlayer.CalculateNetHappiness();
+				int iHappiness_ = kPlayer.GetHappiness();
+				int iUnhappiness_ = kPlayer.GetUnhappiness();
+				if (iHappiness != iHappiness_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " happiness" << " = " << iHappiness << " => " << iHappiness_);
+				if (iUnhappiness != iUnhappiness_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " unhappiness" << " = " << iUnhappiness << " => " << iUnhappiness_);
 			}
 
 			//if (kPlayer.isHuman() && kPlayer.isAlive())
 			{
-
+				int mm = kPlayer.GetMilitaryMight();
+				int em = kPlayer.GetEconomicMight();
+				int pm = kPlayer.GetProductionMight();
 				//kPlayer.updateMightStatistics();
 				kPlayer.getPower();
+				int mm_ = kPlayer.GetMilitaryMight();
+				int em_ = kPlayer.GetEconomicMight();
+				int pm_ = kPlayer.GetProductionMight();
+				if (mm != mm_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " mm" << " = " << mm << " => " << mm_);
+				if (em != em_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " em" << " = " << em << " => " << em_);
+				if (pm != pm_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " pm" << " = " << pm << " => " << pm_);
 			}
 			if (kPlayer.GetDiplomacyRequests()) {
 				if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
@@ -5122,8 +5156,15 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 				if (kPlayer.GetDiplomacyRequests()->m_aRequests.size()) {
 					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has " << kPlayer.GetDiplomacyRequests()->m_aRequests.size() << " requests");
 				}
+				
 			}
-
+			int iJ = 0;
+			for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iJ); pLoopUnit; pLoopUnit = kPlayer.nextUnit(&iJ))
+			{
+				CvString strOutBuf;
+				strOutBuf.Format("%d, %d, %d, %d, %d, %d, %d", iChange, getGameTurn(), iI, pLoopUnit->GetID(), pLoopUnit->getX(), pLoopUnit->getY(), pLoopUnit->GetCurrHitPoints());
+				pLog->Msg(strOutBuf);
+			}
 		}
 	}
 
@@ -6091,7 +6132,19 @@ void CvGame::setFinalInitialized(bool bNewValue)
 		m_bFinalInitialized = bNewValue;
 	}
 }
-
+//	--------------------------------------------------------------------------------
+bool CvGame::IsWaitingForBlockingInput() const
+{
+	return (m_eWaitDiploPlayer != NO_PLAYER);
+};
+//	--------------------------------------------------------------------------------
+void CvGame::SetWaitingForBlockingInput(PlayerTypes ePlayer)
+{
+	if (ePlayer != ePlayer && m_eWaitDiploPlayer != NO_PLAYER) {
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::SetWaitingForBlockingInput(" << ePlayer << ") = " << m_eWaitDiploPlayer);
+	}
+	m_eWaitDiploPlayer = ePlayer;
+};
 
 //	--------------------------------------------------------------------------------
 bool CvGame::getPbemTurnSent() const
@@ -8237,6 +8290,7 @@ void CvGame::doTurn()
 
 	if(isOption(GAMEOPTION_DYNAMIC_TURNS))
 	{// update turn mode for dynamic turn mode.
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::doTurn() setting dynamic teams");
 		for(int teamIdx = 0; teamIdx < MAX_TEAMS; ++teamIdx)
 		{
 			CvTeam& curTeam = GET_TEAM((TeamTypes)teamIdx);

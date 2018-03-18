@@ -346,15 +346,19 @@ foundRequest:
 	}
 
 	if (requestIter->m_eDiploType == DIPLO_UI_STATE_TRADE_AI_MAKES_OFFER) {
-				
-		bool bCancelDeal = false;		
+		bool bCancelDeal = false;
+		bool bBlankDeal = false;
 		if (!kDeal.AreAllTradeItemsValid())
 		{
 			NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " invalid deal!");
 			bCancelDeal = true;
 		}
-		else if (!kDeal.m_bConsideringForRenewal) // doesn't make sense to alter deals that are being renewed, leads to confusion
+		else
 		{						
+			if (kDeal.m_bConsideringForRenewal) {
+				kDeal.AddGoldPerTurnTrade(eTo, 30, 30);
+
+			}
 			CvDealAI* dealAI = GET_PLAYER(eFrom).GetDealAI();
 			int iTotalValueToMe = 0, iValueImOffering = 0, iValueTheyreOffering = 0;
 			int iAmountOverWeWillRequest = 0, iAmountUnderWeWillOffer = 0;
@@ -363,36 +367,47 @@ foundRequest:
 
 			if (!bAcceptable)
 			{
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " unacceptable deal!");
-				bool bGoodToBeginWith = true;
-				bool bCantMatchOffer = false;
-
-				// DoEqualizeDealWithHuman won't update the cached peace value so I have split out it here
-				// Otherwise equalizing the deal in the UI won't work. I do not understand why the cached peace value is the way it is.
-				if (!kDeal.IsPeaceTreatyTrade(eTo))
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " unacceptable deal!");											
+				if (kDeal.m_bConsideringForRenewal)
 				{
+					// doesn't make sense to alter deals that are being renewed, leads to confusion.
+					if (iTotalValueToMe < 0) {	// unacceptable deal in other player's favour, could be terrible but we don't want to cancel now. CvDiplomacyAI uses a more involved condition for this
+						requestIter->m_strMessage = GET_PLAYER(eFrom).GetDiplomacyAI()->GetDiploStringForMessage(DIPLO_MESSAGE_WANT_MORE_RENEW_DEAL);
+					}
+					// we will shamelessly present a bad deal for them
+				}				
+				else if (!kDeal.IsPeaceTreatyTrade(eTo))
+				{
+					// DoEqualizeDealWithHuman won't update the cached peace value so I have split out it here
+					// Otherwise equalizing the deal in the UI won't work. I do not understand why the cached peace value is the way it is.
+					bool bGoodToBeginWith = true;
+					bool bCantMatchOffer = false;
 					// just try modify gold to start off iwth since it could maybe be possible that the AI had something in mind at the time
 					bAcceptable = dealAI->DoEqualizeDealWithHuman(&kDeal, eTo, true, true, bGoodToBeginWith, bCantMatchOffer);
 					if (!bAcceptable) // now try harder to get a deal to avoid an improptu withdrawl
 						bAcceptable = dealAI->DoEqualizeDealWithHuman(&kDeal, eTo, false, false, bGoodToBeginWith, bCantMatchOffer);
+					if (!bAcceptable) // well, we tried. Gonna just clear the deal and being up a empty non-descript trade as it is slightly less wierd than the deal abruptly being withdrawn
+					{
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " impossible deal!");
+						bBlankDeal = true;
+					}
 				}
 				else {
-					// This could change the deal signifcantly from the original but it is better than the current behaviour and probably not an issue given how offers are generated currently
+					// This could change the deal signifcantly from the original but it is better than the current behaviour and probably not an issue since it is the same as how offers are generated currently
 					kDeal.ClearItems();
-					bAcceptable = dealAI->IsOfferPeace(eTo, &kDeal, false);
-				}
-				if (!bAcceptable) // well, we tried
-				{
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " impossible deal!");
-					bCancelDeal = true;
-				}
+					if(GET_PLAYER(eFrom).GetDiplomacyAI()->IsWantsPeaceWithPlayer(eTo)) // Maybe we just don't want peace anymore somehow?
+						bAcceptable = dealAI->IsOfferPeace(eTo, &kDeal, false);
+					if (!bAcceptable) // well, we tried. 
+					{
+						bCancelDeal = true;
+					}
+				}				
 			}				
 		}
 		if (bCancelDeal)
 		{
-			// Cancelling the deal now works but means the left click on the notifcation just makes the deal mysteriously disappear(or withdrawn) and looks like kinda a bug despite getting a new notification.
+			// Cancelling the deal now works but means the left click on the notifcation just makes the deal mysteriously be withdrawn and looks like kinda a bug despite getting a new notification about it
 			// It would be better if deals were checked/adjusted more frequently but I have not been willing to test enough (desyncs, cached peace values, etc) and deals shouldn't be getting withdrawn as much now anyway.
-			// Just clearing and bringing up an empty trade will still have text relating to the original trade. Could make a completely new deal but not today.
 			CvPlayerAI& kFromPlayer = GET_PLAYER(eFrom);
 			Localization::String strMessage;
 			Localization::String strSummary;
@@ -405,6 +420,15 @@ foundRequest:
 			m_aRequests.erase(requestIter);
 			
 			return;
+		}
+		else if (bBlankDeal) 
+		{
+			// well, we tried. Gonna just clear the deal and being up a empty non-descript trade as it is slightly less wierd than the deal abruptly being withdrawn
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " impossible deal!");
+			requestIter->m_eDiploType = DIPLO_UI_STATE_TRADE;
+			requestIter->m_strMessage = GET_PLAYER(eFrom).GetDiplomacyAI()->GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
+			requestIter->m_eAnimationType = LEADERHEAD_ANIM_REQUEST;
+			kDeal.ClearItems();
 		}
 	}
 
