@@ -293,14 +293,8 @@ public:
 	bool isFinalInitialized() const;
 	void setFinalInitialized(bool bNewValue);
 
-	bool IsWaitingForBlockingInput() const
-	{
-		return (m_eWaitDiploPlayer != NO_PLAYER);
-	};
-	void SetWaitingForBlockingInput(PlayerTypes ePlayer)
-	{
-		m_eWaitDiploPlayer = ePlayer;
-	};
+	bool IsWaitingForBlockingInput() const;
+	void SetWaitingForBlockingInput(PlayerTypes ePlayer);
 
 	bool getPbemTurnSent() const;
 	void setPbemTurnSent(bool bNewValue);

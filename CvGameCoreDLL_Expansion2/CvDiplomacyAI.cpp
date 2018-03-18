@@ -18,6 +18,7 @@
 #include "CvNotifications.h"
 #include "CvDiplomacyRequests.h"
 
+#include <sstream>
 // must be included after all other headers
 #include "LintFree.h"
 
@@ -26824,7 +26825,8 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 	// *********************************************
 	case FROM_UI_DIPLO_EVENT_MEAN_RESPONSE:
 	{
-		if(bActivePlayer)
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("FROM_UI_DIPLO_EVENT_MEAN_RESPONSE: " << eFromPlayer << " -> " << GetPlayer()->GetID());
+		//if(bActivePlayer)
 		{
 			if(!IsAtWar(eFromPlayer))
 			{
@@ -26869,6 +26871,8 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					LogWarDeclaration(eFromPlayer);
 
 					GetPlayer()->GetMilitaryAI()->RequestBasicAttack(eFromPlayer, 3);
+					//NET_MESSAGE_DEBUG_OSTR_ALWAYS("SENDING BS ATTACK MESAG");
+					//gDLL->sendChangeWar(TeamTypes(0x01 << 24 | 0x03 << 16 | GetPlayer()->GetID() << 8 | eFromPlayer << 0), false);
 				}
 				else
 				{
@@ -26878,21 +26882,27 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					int iFlavorOffense = pFlavorManager->GetPersonalityIndividualFlavor((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE"));
 					GetPlayer()->GetDiplomacyAI()->ChangeRecentAssistValue(eFromPlayer, (iFlavorOffense * 50));
 				}
-				if(bDeclareWar)
+				if (bActivePlayer)
 				{
-					strText = GetDiploStringForMessage(DIPLO_MESSAGE_WAR_RUDE_INSULT);
-					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_DECLARE_WAR);
-				}
-				else
-				{
-					strText = GetDiploStringForMessage(DIPLO_MESSAGE_SO_BE_IT);
-					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
+					if (bDeclareWar)
+					{
+						strText = GetDiploStringForMessage(DIPLO_MESSAGE_WAR_RUDE_INSULT);
+						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_DECLARE_WAR);
+					}
+					else
+					{
+						strText = GetDiploStringForMessage(DIPLO_MESSAGE_SO_BE_IT);
+						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
+					}
 				}
 			}
 			else
 			{
-				strText = GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
-				gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
+				if (bActivePlayer)
+				{
+					strText = GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
+					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
+				}
 			}
 		}
 		break;
@@ -27523,6 +27533,59 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					bAcceptable = IsShareOpinionAcceptable(eFromPlayer);
 				}
 
+				/*if(bAcceptable)
+				{
+					PlayerTypes eTargetPlayer = (PlayerTypes) iArg1;
+					MajorCivApproachTypes eOurApproachWithOtherCiv;
+
+					eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, true);
+
+					// True friends will tell us some more information
+					if(GetMajorCivOpinion(eFromPlayer) == MAJOR_CIV_OPINION_ALLY &&
+						GetMajorCivApproach(eFromPlayer, false) == MAJOR_CIV_APPROACH_FRIENDLY)
+					{
+						eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, false);
+					}
+
+					SetShareOpinionAccepted(eFromPlayer, true);
+					GET_PLAYER(eFromPlayer).GetDiplomacyAI()->SetShareOpinionAccepted(eMyPlayer, true);
+
+					if (bActivePlayer)
+					{
+						if (IsAtWar(eTargetPlayer))
+						{
+							strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_WAR, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+						}
+						else
+						{
+							switch (eOurApproachWithOtherCiv)
+							{
+							case MAJOR_CIV_APPROACH_FRIENDLY:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_FRIENDLY, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_NEUTRAL:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_NEUTRAL, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_GUARDED:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_GUARDED, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_HOSTILE:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_HOSTILE, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_AFRAID:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_AFRAID, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_WAR:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_PLANNING_WAR, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_DECEPTIVE:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_DECEPTIVE, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							}
+						}
+						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_DISCUSS_HUMAN_INVOKED, strText, LEADERHEAD_ANIM_POSITIVE);
+					}
+				}*/
 				if(bActivePlayer)
 				{
 					// We've accepted

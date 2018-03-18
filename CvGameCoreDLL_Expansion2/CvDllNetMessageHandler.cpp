@@ -13,6 +13,8 @@
 #include "CvTypes.h"
 #include "CvGameCoreUtils.h"
 
+#include "CvMilitaryAI.h" // nasty!
+
 #include <sstream>
 CvDllNetMessageHandler::CvDllNetMessageHandler()
 {
@@ -103,31 +105,48 @@ void CvDllNetMessageHandler::ResponseChangeWar(PlayerTypes ePlayer, TeamTypes eR
 	// The message cannot be sent by an AI and the sender is always the aggressor, so I am sending the a negated team ID to work around this.
 	// If we have a negative team ID here then we are to intercept, revert the sign and switch the parties so the aggressor is correct then effectively resend to self
 	//if (eRivalTeam >= REALLY_MAX_TEAMS)
-	if(eRivalTeam & (1 << 31)) // is encoded
-	{
-		//if (!kPlayer.isLocalPlayer()) // We should know about this war already, skipping to avoid needless refreshing of data
+	if (eRivalTeam >> 24) {
+		if (eRivalTeam & (1 << 31)) // is encoded declare
 		{
-			//eRivalTeam = static_cast<TeamTypes>(eRivalTeam - REALLY_MAX_TEAMS);
-			uint encodedTeams = eRivalTeam;
-			TeamTypes decodedAgressorTeam = static_cast<TeamTypes>(encodedTeams >> 8 & 0xFF);
-			TeamTypes decodedAgresseeTeam = static_cast<TeamTypes>(encodedTeams >> 0 & 0xFF);
-			
-			CvTeam& kRivalTeam = GET_TEAM(decodedAgressorTeam);
-			if (bWar != kRivalTeam.isAtWar(decodedAgresseeTeam))
+			//if (!kPlayer.isLocalPlayer()) // We should know about this war already, skipping to avoid needless refreshing of data
 			{
-				const std::vector<PlayerTypes>& rivalPlayers = kRivalTeam.getPlayers();
-				for (std::vector<PlayerTypes>::const_iterator it = rivalPlayers.begin(); it != rivalPlayers.end(); it++)
+				//eRivalTeam = static_cast<TeamTypes>(eRivalTeam - REALLY_MAX_TEAMS);
+				uint encodedTeams = eRivalTeam;
+				TeamTypes decodedAgressorTeam = static_cast<TeamTypes>(encodedTeams >> 8 & 0xFF);
+				TeamTypes decodedAgresseeTeam = static_cast<TeamTypes>(encodedTeams >> 0 & 0xFF);
+
+				CvTeam& kRivalTeam = GET_TEAM(decodedAgressorTeam);
+				if (bWar != kRivalTeam.isAtWar(decodedAgresseeTeam))
 				{
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS("+ResponseChangeWar(" << *it << ", " << decodedAgresseeTeam << ", " << bWar << ");");
-					
-					ResponseChangeWar(*it, decodedAgresseeTeam, bWar); // Not really sure if this is correct for teams of more than 1 member
+					const std::vector<PlayerTypes>& rivalPlayers = kRivalTeam.getPlayers();
+					for (std::vector<PlayerTypes>::const_iterator it = rivalPlayers.begin(); it != rivalPlayers.end(); it++)
+					{
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("+ResponseChangeWar(" << *it << ", " << decodedAgresseeTeam << ", " << bWar << ");");
+
+						ResponseChangeWar(*it, decodedAgresseeTeam, bWar); // Not really sure if this is correct for teams of more than 1 member
+					}
+				}
+				else {
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("!ResponseChangeWar(" << ePlayer << ", " << eRivalTeam << ", " << bWar << ");" << decodedAgressorTeam << "->" << decodedAgresseeTeam);
 				}
 			}
-			else {
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS("!ResponseChangeWar(" << ePlayer << ", " << eRivalTeam << ", " << bWar << ");" << decodedAgressorTeam << "->" << decodedAgresseeTeam);
-			}
 		}
-		
+		else if (eRivalTeam & (0x7F << 24)) // is encoded attack request - is an 'else' cos these guys are PLAYAZ at the moment
+		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("RECV BS ATTACK MESAG");
+			uint encodedValues = eRivalTeam;
+			int requestType = (encodedValues >> 24) & 0x7F;
+			int requestArg = (encodedValues >> 16) & 0xFF;
+			PlayerTypes decodedAttackingPlayer = static_cast<PlayerTypes>(encodedValues >> 8 & 0xFF);
+			PlayerTypes decodedDefendingPlayer = static_cast<PlayerTypes>(encodedValues >> 0 & 0xFF);
+			CvPlayerAI& kAttackingPlayer = GET_PLAYER(decodedAttackingPlayer);
+			switch (requestType) {
+				case 1: 
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("BS ATTACK MESAG = " << decodedAttackingPlayer << " -> " << decodedDefendingPlayer << " # " << requestArg);
+					kAttackingPlayer.GetMilitaryAI()->RequestBasicAttack(decodedDefendingPlayer, requestArg); 
+					break;
+			}			
+		}
 		return;
 	}
 #endif

@@ -11024,6 +11024,11 @@ void CvPlayer::doTurn()
 				if(GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
 				{
 					GetDiplomacyAI()->DoTurn(DIPLO_AI_PLAYERS);
+
+					bool activeDiplo = CvDiplomacyRequests::HasActiveDiploRequestWithHuman(GetID());
+
+					if (activeDiplo)
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::doTurn() hypo active diplo"  << activeDiplo << " for " << m_eID);
 				}
 				else
 				{
@@ -11071,10 +11076,12 @@ void CvPlayer::doTurn()
 
 	if( (bHasActiveDiploRequest || GC.GetEngineUserInterface()->isDiploActive()) && !GC.getGame().isGameMultiPlayer() && !isHuman())
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::doTurn(): blocking for active diplo " << bHasActiveDiploRequest << "? " << m_eID);
 		GC.getGame().SetWaitingForBlockingInput(m_eID);
 	}
 	else
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::doTurn(): not blocking - " <<  m_eID);
 #if defined(MOD_BALANCE_CORE)
 		UpdateCityThreatCriteria();
 #endif
@@ -27598,6 +27605,7 @@ void CvPlayer::DoGreatPersonExpended(UnitTypes eGreatPersonUnit)
 #if defined(MOD_BALANCE_CORE_POLICIES) || defined(MOD_DIPLOMACY_CITYSTATES)
 	//Influence Gained with all CS per expend
 	int iExpendInfluence = GetInfluenceGPExpend() + GetGPExpendInfluence(); 
+	iExpendInfluence += 100;
 	if(iExpendInfluence > 0)
 	{
 		for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
@@ -44276,10 +44284,15 @@ void CvPlayer::Read(FDataStream& kStream)
 		m_pDiplomacyRequests->Init(GetID());
 		//m_pDiplomacyRequests->Read(kStream);
 	}
-
-	if(m_bTurnActive)
+	/*if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS)) {
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::Read() - is dynamic game, setting humans to active and ai to not");
+		m_bTurnActive = true;//isHuman();
+		if (m_bTurnActive)
+			GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
+	}
+	*/
+	if (m_bTurnActive)
 		GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
-
 #if defined(MOD_API_UNIFIED_YIELDS) && defined(MOD_API_PLOT_YIELDS)
 	// MOD_SERIALIZE_READ - v57/v58/v59 broke the save format  couldn't be helped, but don't make a habit of it!!!
 	kStream >> m_ppiPlotYieldChange;

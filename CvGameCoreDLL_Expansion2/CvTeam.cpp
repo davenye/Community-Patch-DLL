@@ -32,6 +32,8 @@
 
 #include "CvDllUnit.h"
 
+#include "CvCitySpecializationAI.h" // added but is nasty
+
 #include <sstream>
 #include "LintFree.h"
 
@@ -2194,6 +2196,30 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotificat
 #else
 	DoMakePeace(eTeam, bBumpUnits, bSuppressNotification);
 #endif
+
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvTeam::makePEace[" << GetID() << " ](TeamTypes " << eTeam << "... PlayerTypes " << eOriginatingPlayer << ") - not refreshing data;");
+	/*CvPlayerManager::Refresh(true);
+
+	//refresh tactical AI as well!
+	for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
+	{
+		PlayerTypes eAttackingPlayer = (PlayerTypes)iAttackingPlayer;
+		CvPlayerAI& kAttackingPlayer = GET_PLAYER(eAttackingPlayer);
+		if (kAttackingPlayer.isAlive() && kAttackingPlayer.getTeam() == GetID())
+		{
+			kAttackingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh();
+			for (int iDefendingPlayer = 0; iDefendingPlayer < MAX_MAJOR_CIVS; iDefendingPlayer++)
+			{
+				PlayerTypes eDefendingPlayer = (PlayerTypes)iDefendingPlayer;
+				CvPlayerAI& kDefendingPlayer = GET_PLAYER(eDefendingPlayer);
+				if (kDefendingPlayer.isAlive() && kDefendingPlayer.getTeam() == eTeam)
+				{
+					kDefendingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh();
+				}
+			}
+		}
+	}*/
+
 }
 
 //	------------------------------------------------------------------------------------------------
@@ -2312,6 +2338,7 @@ void CvTeam::DoMakePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotific
 #if defined(MOD_DIPLOMACY_CIV4_FEATURES)
 		if(MOD_DIPLOMACY_CIV4_FEATURES)
 		{
+			// Suspect line that makes vassals spuriously delcare war while in the process of making peace due to master making peace. ends up making peace tho but just redeclares first :S
 		//	DoUpdateVassalWarPeaceRelationships();
 		}
 #endif
@@ -4821,6 +4848,19 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 #endif
 
 #if defined(MOD_BUGFIX_MP_CHANGEWAR_MSG)
+	/*
+	if (bNewValue)
+	{
+		//This is nasty. Should add CvPlayer::changedWarState(TeamTypes, bool)...BUT SetSpecializationsDirty is already being called all over the shop individually - maybe there is a (good) reason?
+		const std::vector<PlayerTypes>& teamPlayers = getPlayers();
+		for (std::vector<PlayerTypes>::const_iterator it = teamPlayers.begin(); it != teamPlayers.end(); it++)
+		{
+			GET_PLAYER(*it).GetCitySpecializationAI()->SetSpecializationsDirty(SPECIALIZATION_UPDATE_NOW_AT_WAR);
+			// The person warred on seems to set this OK when responding to war
+		}
+	}
+	
+	
 	// DN: The existing call to GameplayWarStateChanged wasn't resulting in any war state messages being sent to the other players in MP (this does) when war was a result taunting AI during diplo requests (at least), causing desyncs, so:
 	//if (GET_PLAYER(GC.getGame().getActivePlayer()).getTeam() == eIndex)
 	{
@@ -4850,7 +4890,7 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 				}
 			}
 		}
-	}
+	}*/
 #endif
 
 	gDLL->GameplayWarStateChanged(GetID(), eIndex, bNewValue);
