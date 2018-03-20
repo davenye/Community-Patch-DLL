@@ -405,6 +405,7 @@ void CvTacticalAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvTacticalAI::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

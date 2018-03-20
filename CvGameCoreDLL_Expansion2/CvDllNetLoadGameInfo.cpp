@@ -80,6 +80,7 @@ bool CvDllNetLoadGameInfo::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 bool CvDllNetLoadGameInfo::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << m_slotStatus;
 	return true;
 }

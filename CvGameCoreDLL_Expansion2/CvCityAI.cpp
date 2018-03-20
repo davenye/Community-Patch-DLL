@@ -430,6 +430,7 @@ void CvCityAI::read(FDataStream& kStream)
 //
 void CvCityAI::write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	VALIDATE_OBJECT
 	CvCity::write(kStream);
 

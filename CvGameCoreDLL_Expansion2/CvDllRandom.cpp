@@ -123,6 +123,7 @@ void CvDllRandom::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 void CvDllRandom::Write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << *m_pRandom;
 }
 //------------------------------------------------------------------------------

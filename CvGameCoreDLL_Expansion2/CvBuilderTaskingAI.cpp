@@ -190,6 +190,7 @@ void CvBuilderTaskingAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvBuilderTaskingAI::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 2;
 	kStream << uiVersion;

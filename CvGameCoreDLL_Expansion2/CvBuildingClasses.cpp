@@ -3913,6 +3913,7 @@ void CvCityBuildings::Read(FDataStream& kStream)
 /// Serialization write
 void CvCityBuildings::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	CvAssertMsg(GetNumBuildings() > 0, "Number of buildings to serialize is expected to greater than 0");
 
 	// Current version number
@@ -5841,6 +5842,7 @@ void BuildingArrayHelpers::Read(FDataStream& kStream, int* paiBuildingArray)
 /// Helper function to write out an integer array of data sized according to number of building types
 void BuildingArrayHelpers::Write(FDataStream& kStream, int* paiBuildingArray, int iArraySize)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)
