@@ -121,6 +121,7 @@ void CvDllDeal::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 void CvDllDeal::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << *m_pDeal;
 }
 //------------------------------------------------------------------------------

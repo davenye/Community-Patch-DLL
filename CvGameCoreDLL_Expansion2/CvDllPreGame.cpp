@@ -1066,6 +1066,7 @@ ICvWorldInfo1* CvDllPreGame::GetWorldInfo()
 //------------------------------------------------------------------------------
 void CvDllPreGame::write(FDataStream& saveTo)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	CvPreGame::write(saveTo);
 }
 //------------------------------------------------------------------------------

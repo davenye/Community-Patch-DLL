@@ -9404,6 +9404,7 @@ void CvLeagueAI::Read(FDataStream& kStream)
 
 void CvLeagueAI::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	uint uiVersion = 2;
 	kStream << uiVersion;
 	MOD_SERIALIZE_INIT_WRITE(kStream);

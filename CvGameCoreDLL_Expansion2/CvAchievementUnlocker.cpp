@@ -510,6 +510,7 @@ void CvPlayerAchievements::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 void CvPlayerAchievements::Write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	int iVersion = 1;
 	kStream << iVersion;
 	MOD_SERIALIZE_INIT_WRITE(kStream);

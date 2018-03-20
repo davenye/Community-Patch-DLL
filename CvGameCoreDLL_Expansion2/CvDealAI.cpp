@@ -69,6 +69,7 @@ void CvDealAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvDealAI::Write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

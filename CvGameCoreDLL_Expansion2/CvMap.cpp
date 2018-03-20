@@ -179,6 +179,7 @@ void CvLandmass::read(FDataStream& kStream)
 //	--------------------------------------------------------------------------------
 void CvLandmass::write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;
@@ -1509,6 +1510,7 @@ void CvMap::Read(FDataStream& kStream)
 //
 void CvMap::Write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

@@ -569,6 +569,7 @@ bool CvReplayInfo::read(FDataStream& kStream)
 
 void CvReplayInfo::write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << REPLAY_VERSION;
 	MOD_SERIALIZE_INIT_WRITE(kStream);
 	kStream << m_iActivePlayer;

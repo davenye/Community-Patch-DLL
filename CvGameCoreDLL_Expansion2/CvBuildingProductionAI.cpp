@@ -105,6 +105,7 @@ void CvBuildingProductionAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvBuildingProductionAI::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	CvAssertMsg(m_pCityBuildings != NULL, "Building Production AI init failure: city buildings are NULL");
 
 	// Current version number

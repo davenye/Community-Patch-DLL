@@ -973,6 +973,7 @@ void CvPlayerTechs::Read(FDataStream& kStream)
 /// Serialization write
 void CvPlayerTechs::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;
@@ -2256,6 +2257,7 @@ void CvTeamTechs::Read(FDataStream& kStream)
 /// Serialization write
 void CvTeamTechs::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

@@ -9255,7 +9255,7 @@ void CvGame::updateMoves()
 			{
 				if (autosavedTurn != currentTurn) {
 					NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ HYPOSAVE of " << getGameTurn());
-					gDLL->AutoSave(false, true);
+					//gDLL->AutoSave(false, true);
 					autosavedTurn = currentTurn;;
 				}
 			}
@@ -11322,6 +11322,7 @@ void CvGame::ReadSupportingClassData(FDataStream& kStream)
 //	--------------------------------------------------------------------------------
 void CvGame::Write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	kStream << g_CurrentCvGameVersion;
 	MOD_SERIALIZE_INIT_WRITE(kStream);

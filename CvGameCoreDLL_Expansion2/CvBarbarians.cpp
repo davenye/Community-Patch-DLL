@@ -441,6 +441,7 @@ void CvBarbarians::Read(FDataStream& kStream, uint uiParentVersion)
 /// Serialization Write
 void CvBarbarians::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

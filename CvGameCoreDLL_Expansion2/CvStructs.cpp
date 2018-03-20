@@ -61,6 +61,7 @@ FDataStream& operator>>(FDataStream& loadFrom, VoteSelectionData& writeTo)
 
 void VoteSelectionData::write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;
@@ -117,6 +118,7 @@ FDataStream& operator>>(FDataStream& loadFrom, VoteTriggeredData& writeTo)
 
 void VoteTriggeredData::write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

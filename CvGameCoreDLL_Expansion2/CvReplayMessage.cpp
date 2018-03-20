@@ -141,6 +141,7 @@ void CvReplayMessage::read(FDataStream& kStream, unsigned int uiVersion)
 //------------------------------------------------------------------------------
 void CvReplayMessage::write(FDataStream& kStream) const
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << m_iTurn;
 	kStream << m_eType;
 

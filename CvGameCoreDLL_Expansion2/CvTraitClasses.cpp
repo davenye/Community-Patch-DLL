@@ -6455,6 +6455,7 @@ void CvPlayerTraits::Read(FDataStream& kStream)
 /// Serialization write
 void CvPlayerTraits::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 19;
 	kStream << uiVersion;
