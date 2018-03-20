@@ -1615,6 +1615,7 @@ bool ExternalPause()
 //	---------------------------------------------------------------------------
 void CvGame::update()
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update() called!");
 	if(IsWaitingForBlockingInput())
 	{
 		if(!GC.GetEngineUserInterface()->isDiploActive())
@@ -1680,8 +1681,11 @@ void CvGame::update()
 			// If there are no active players, move on to the AI
 			if ( !bExternalPause && getNumGameTurnActive()==0 )
 			{
-				if(gDLL->CanAdvanceTurn())
+				if (gDLL->CanAdvanceTurn())
+				{
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update() advancing turn!");
 					doTurn();
+				}
 			}
 
 			if(!isPaused() && !bExternalPause)	// Check for paused again, the doTurn call might have called something that paused the game and we don't want an update to sneak through
@@ -3832,7 +3836,9 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_OPTIONS_SCREEN:
+		NET_MESSAGE_DEBUG("CONTROL_OPTIONS_SCREEN!");
 		gDLL->GameplayOpenOptionsScreen();
+		NET_MESSAGE_DEBUG("CONTROL_OPTIONS_SCREEN!");
 		break;
 
 	case CONTROL_RETIRE:
@@ -3851,11 +3857,15 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_SAVE_GROUP:
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING G START!");
 		gDLL->SaveGame(SAVEGAME_GROUP);
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING G END!");
 		break;
 
 	case CONTROL_SAVE_NORMAL:
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING START!");
 		gDLL->SaveGame(SAVEGAME_NORMAL);
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING END!");
 		break;
 
 	case CONTROL_QUICK_SAVE:
@@ -5095,10 +5105,17 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 			
 
 		}
+
+
 		// Can probably skip non-humans, non-alive and maybe even the host (not sure how to determine the host though)
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
+			
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << ": GetNumberOfTradeRoutes=" << kPlayer.GetTrade()->GetNumberOfTradeRoutes());
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << ": GetNumTradeRoutesPossible=" << kPlayer.GetTrade()->GetNumTradeRoutesPossible());
+			
+
 			// War seemed to be causing desyncs relating to TR calculations. I don't know what i am doing.
 			// I think it is only necessary to do this for humans that have just changes their war but for the moment...
 			//if (kPlayer.isHuman() && kPlayer.isAlive())
@@ -5114,6 +5131,10 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 					pLoopCity->updateEconomicValue();
 					int econ_ = pLoopCity->getEconomicValue((PlayerTypes)iI);
 					if (econ != econ_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " econ" << " = " << econ << " => " << econ_);
+
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << ": GetNumPotentialConnections(LAND)=" << kPlayer.GetTrade()->GetNumPotentialConnections(pLoopCity, DOMAIN_LAND, false));
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << ": GetNumPotentialConnections(SEA)=" << kPlayer.GetTrade()->GetNumPotentialConnections(pLoopCity, DOMAIN_SEA, false));
+					
 				}
 			}
 
@@ -8177,6 +8198,7 @@ void CvGame::removeGreatPersonBornName(const CvString& szName)
 //	--------------------------------------------------------------------------------
 void CvGame::doTurn()
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::doTurn(): " << getGameTurn() << " " << GetTickCount());
 	OutputDebugString(CvString::format("Turn \t%03i\tTime \t%012u\n", getGameTurn(), GetTickCount()));
 
 #if defined(MOD_BALANCE_CORE) && defined(MOD_UNIT_KILL_STATS)
@@ -8221,9 +8243,9 @@ void CvGame::doTurn()
 	}
 
 	GC.getMap().doTurn();
-
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI START --------------------------------------------------------")
 	GC.GetEngineUserInterface()->doTurn();
-
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI ENDDD --------------------------------------------------------")
 	CvBarbarians::DoCamps();
 
 	CvBarbarians::DoUnits();
@@ -8294,7 +8316,7 @@ void CvGame::doTurn()
 		for(int teamIdx = 0; teamIdx < MAX_TEAMS; ++teamIdx)
 		{
 			CvTeam& curTeam = GET_TEAM((TeamTypes)teamIdx);
-			curTeam.setDynamicTurnsSimultMode(!curTeam.isHuman() || !curTeam.isAtWarWithHumans());
+			curTeam.setDynamicTurnsSimultMode(!curTeam.isHuman() || !curTeam.isAtWarWithHumans());					
 		}
 	}
 
@@ -8329,7 +8351,9 @@ void CvGame::doTurn()
 			CvTeam& kTeam = GET_TEAM((TeamTypes)iI);
 			if(kTeam.isAlive() && !kTeam.isSimultaneousTurns()) 
 			{
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("teamactive:" << iI);
 				kTeam.setTurnActive(true);
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS("teamactive done:" << iI);
 				break;
 			}
 		}
@@ -8337,6 +8361,7 @@ void CvGame::doTurn()
 	else if(!isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 	{// player sequential turns.
 		// Sequential turns.  Activate the first player we find from the start, human or AI, who wants a sequential turn.
+		
 		for(iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if(GET_PLAYER((PlayerTypes)iI).isAlive() 
@@ -8357,6 +8382,7 @@ void CvGame::doTurn()
 				}
 				else
 				{
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("sequential turn for player " << iI);
 					GET_PLAYER((PlayerTypes)iI).setTurnActive(true);
 					CvAssert(getNumGameTurnActive() == 1);
 				}
@@ -8411,10 +8437,11 @@ void CvGame::doTurn()
 	LogGameState();
 
 	//autosave after doing a turn
-#ifndef VPDEBUG
 	if (isNetworkMultiPlayer())
-#endif // !VPDEBUG
-		gDLL->AutoSave(false, true);
+	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ PRESAVE of " << getGameTurn());
+		gDLL->AutoSave(false);
+	}
 
 	gDLL->PublishNewGameTurn(getGameTurn());
 }
@@ -9177,6 +9204,7 @@ void CvGame::updateMoves()
 	int iI;
 
 	static bool processPlayerAutoMoves = false;
+	static int autosavedTurn = -1;
 
 	// Process all AI first, then process players.
 	// Processing of the AI 'first' only occurs when the AI are activated first
@@ -9223,7 +9251,14 @@ void CvGame::updateMoves()
 				CvAchievementUnlocker::EndTurn();
 #endif
 			}
-
+			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
+			{
+				if (autosavedTurn != currentTurn) {
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ HYPOSAVE of " << getGameTurn());
+					gDLL->AutoSave(false, true);
+					autosavedTurn = currentTurn;;
+				}
+			}
 			if(!processPlayerAutoMoves)
 			{
 				if(!GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) && GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
@@ -9241,7 +9276,7 @@ void CvGame::updateMoves()
 				else
 					processPlayerAutoMoves = true;
 			}
-
+			
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
@@ -9252,6 +9287,7 @@ void CvGame::updateMoves()
 					playersToProcess.push_back(static_cast<PlayerTypes>(iI));
 				}
 			}
+
 		}
 	}
 
@@ -9473,10 +9509,12 @@ void CvGame::updateMoves()
 	}
 
 	if(activatePlayers)
-	{
+	{		
 		if (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 			// KWG: This code should go into CheckPlayerTurnDeactivate
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ POSTSAVE of " << getGameTurn());
+//			gDLL->AutoSave(false, true);
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
