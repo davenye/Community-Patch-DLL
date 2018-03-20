@@ -109,6 +109,8 @@ void CvDiplomacyRequests::Read(FDataStream& kStream)
 		{
 			m_aRequests.push_back(Request());
 			kStream >> m_aRequests.back();
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("READ DIPLO REQ:" << m_ePlayer << ": " << m_aRequests.back().m_iLookupIndex);
+			m_aRequests.back().m_iLookupIndex = -1;
 		}
 	}
 }
@@ -128,6 +130,7 @@ void CvDiplomacyRequests::Write(FDataStream& kStream) const
 
 	for(RequestList::const_iterator i = m_aRequests.begin(); i != m_aRequests.end(); ++i)
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("WRITE DIPLO REQ for " << m_ePlayer << ": " << i->m_iLookupIndex);
 		kStream << (*i);
 	}
 }
