@@ -5846,6 +5846,8 @@ FDataStream& operator>>(FDataStream& loadFrom, CvGameDeals& writeTo)
 #if defined(MOD_ACTIVE_DIPLOMACY)
 	if(GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
 	{
+		// Firaxis seemed to think clearing was worth doing...
+		writeTo.m_ProposedDeals.clear();
 		// JdH => savegame compatible load
 		loadFrom >> iEntriesToRead;
 		for (int iI = 0; iI < iEntriesToRead; iI++)
@@ -5854,8 +5856,9 @@ FDataStream& operator>>(FDataStream& loadFrom, CvGameDeals& writeTo)
 			if (CvPreGame::isHuman(tempItem.GetFromPlayer()) && CvPreGame::isHuman(tempItem.GetToPlayer()))
 			{
 				// only load human to humand deals until other problems are fixed
-				writeTo.m_ProposedDeals.push_back(tempItem);
+				// wat issues....? writeTo.m_ProposedDeals.push_back(tempItem);
 			}
+			writeTo.m_ProposedDeals.push_back(tempItem);
 		}
 	}
 	else
@@ -5911,7 +5914,7 @@ FDataStream& operator<<(FDataStream& saveTo, const CvGameDeals& readFrom)
 		DealList saveList;
 		for (it = readFrom.m_ProposedDeals.begin(); it != readFrom.m_ProposedDeals.end(); ++it)
 		{
-			if (CvPreGame::isHuman(it->GetFromPlayer()) && CvPreGame::isHuman(it->GetToPlayer()))
+			//if (CvPreGame::isHuman(it->GetFromPlayer()) && CvPreGame::isHuman(it->GetToPlayer()))
 			{
 				// only save human to human deals until we save notifications & requests too
 				saveList.push_back(*it);

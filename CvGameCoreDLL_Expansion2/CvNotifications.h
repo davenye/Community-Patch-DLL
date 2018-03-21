@@ -91,6 +91,8 @@ public:
 	bool IsNotificationTypeEndOfTurnExpired(NotificationTypes eNotificationType, int iForSpecificEntry = -1);
 
 	static void AddToPlayer(PlayerTypes ePlayer, NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX=-1, int iY=-1, int iGameDataIndex=-1, int iExtraGameData=-1);
+
+	int getZeroBasedIndex(int iLookupIndex);
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
