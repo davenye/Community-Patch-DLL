@@ -2302,6 +2302,25 @@ void CvNotifications::IncrementEndIndex()
 	}
 }
 
+
+int CvNotifications::getZeroBasedIndex(int iLookupIndex)
+{
+		int iIndex = m_iNotificationsBeginIndex;
+		while (iIndex != m_iNotificationsEndIndex)
+		{
+			if (m_aNotifications[iIndex].m_iLookupIndex == iLookupIndex)
+			{
+				int iZeroBasedIndex = m_aNotifications.size() + iIndex - m_iNotificationsBeginIndex;
+				return iZeroBasedIndex;
+			}
+			iIndex++;
+			if (iIndex >= (int)m_aNotifications.size())
+			{
+				iIndex = 0;
+			}
+		}
+		return -1;
+}
 //	---------------------------------------------------------------------------
 // static
 void CvNotifications::AddToPlayer(PlayerTypes ePlayer, NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX/*=-1*/, int iY/*=-1*/, int iGameDataIndex/*=-1*/, int iExtraGameData/*=-1*/)

@@ -110,7 +110,17 @@ void CvDiplomacyRequests::Read(FDataStream& kStream)
 			m_aRequests.push_back(Request());
 			kStream >> m_aRequests.back();
 			NET_MESSAGE_DEBUG_OSTR_ALWAYS("READ DIPLO REQ:" << m_ePlayer << ": " << m_aRequests.back().m_iLookupIndex);
-			m_aRequests.back().m_iLookupIndex = -1;
+			CvNotifications* pNote = GET_PLAYER(m_ePlayer).GetNotifications();
+			if (pNote)
+			{
+				int zbi = GET_PLAYER(m_ePlayer).GetNotifications()->getZeroBasedIndex(m_aRequests.back().m_iLookupIndex);
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(pNote->GetNotificationStr(zbi) << " / " << m_aRequests.back().m_strMessage);
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(pNote->GetNotificationSummary(zbi) << " / " << m_aRequests.back().m_eDiploType);
+			}
+			
+			
+		//	m_aRequests.back().m_iLookupIndex = -1;
+			
 		}
 	}
 }
@@ -206,6 +216,7 @@ void CvDiplomacyRequests::BeginTurn(void)
 			{
 				if (iter->m_iLookupIndex < 0)
 				{
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("FIXING UP DIPLO for " << iter->m_strMessage.c_str());
 					CvPlayer& kFrom = GET_PLAYER(iter->m_eFromPlayer);
 					CvString leaderMessage = CvString::format("%s: %s", kFrom.getName(), iter->m_strMessage.c_str());
 					Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_MP_DIPLO_CONTACT_SUMMARY");
