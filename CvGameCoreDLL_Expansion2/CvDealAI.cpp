@@ -140,7 +140,9 @@ DealOfferResponseTypes CvDealAI::DoHumanOfferDealToThisAI(CvDeal* pDeal)
 	const char* szText = "";
 	LeaderheadAnimationTypes eAnimation = NO_LEADERHEAD_ANIM;
 
-	PlayerTypes eFromPlayer = GC.getGame().getActivePlayer();
+	PlayerTypes eFromPlayer = pDeal->GetFromPlayer();
+	if (eFromPlayer != GC.getGame().getActivePlayer())
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::GetDealPercentLeewayWithHuman(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
 
 	bool bFromIsActivePlayer = eFromPlayer == GC.getGame().getActivePlayer();
 
@@ -400,6 +402,8 @@ DemandResponseTypes CvDealAI::DoHumanDemand(CvDeal* pDeal)
 	DemandResponseTypes eResponse = NO_DEMAND_RESPONSE_TYPE;
 
 	PlayerTypes eFromPlayer = GC.getGame().getActivePlayer();
+	if (eFromPlayer != GC.getGame().getActivePlayer())
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoHumanDemand(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
 	PlayerTypes eMyPlayer = GetPlayer()->GetID();
 
 	int iValueWillingToGiveUp = 0;
@@ -8180,7 +8184,9 @@ void CvDealAI::DoTradeScreenClosed(bool bAIWasMakingOffer)
 // Is the human's request for help acceptable?
 DemandResponseTypes CvDealAI::GetRequestForHelpResponse(CvDeal* pDeal)
 {
-	PlayerTypes eFromPlayer = GC.getGame().getActivePlayer();
+	PlayerTypes eFromPlayer = pDeal->GetFromPlayer();
+	if (eFromPlayer != GC.getGame().getActivePlayer())
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::GetRequestForHelpResponse(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
 	PlayerTypes eMyPlayer = GetPlayer()->GetID();
 	
 	CvDiplomacyAI* pDiploAI = m_pPlayer->GetDiplomacyAI();
