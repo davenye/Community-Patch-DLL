@@ -20,7 +20,7 @@
 #include "CvEconomicAI.h"
 #include "CvVotingClasses.h"
 #endif
-
+#include <sstream>
 // must be included after all other headers
 #include "LintFree.h"
 
@@ -944,11 +944,16 @@ bool CvDealAI::DoEqualizeDealWithHuman(CvDeal* pDeal, PlayerTypes eOtherPlayer, 
 	}
 	else
 	{
+		if (eOtherPlayer != GC.getGame().getActivePlayer())
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: active player bugfix in effect - " << eOtherPlayer << " != " << GC.getGame().getActivePlayer());
 		int iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer;
 #if defined(MOD_BALANCE_CORE)
-		bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, &bCantMatchOffer, true);
+		//bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, &bCantMatchOffer, true);
+		bMakeOffer = IsDealWithHumanAcceptable(pDeal, eOtherPlayer, /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, &bCantMatchOffer, true);
+		
 #else
-		bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, bCantMatchOffer);
+		//bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, bCantMatchOffer);
+		bMakeOffer = IsDealWithHumanAcceptable(pDeal, eOtherPlayer, /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, bCantMatchOffer);
 #endif
 
 		if (iTotalValueToMe < 0 && bDontChangeTheirExistingItems)
@@ -1038,7 +1043,11 @@ bool CvDealAI::DoEqualizeDealWithHuman(CvDeal* pDeal, PlayerTypes eOtherPlayer, 
 			if(pDeal->m_TradedItems.size() > 0)
 			{
 #if defined(MOD_BALANCE_CORE)
-				bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, /*passed by reference*/&bCantMatchOffer, false);
+				// WHY ACTIVE PLAYER???
+				if (eOtherPlayer != GC.getGame().getActivePlayer())
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: active player bugfix in effect - " << eOtherPlayer << " != " << GC.getGame().getActivePlayer());
+				//bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, /*passed by reference*/&bCantMatchOffer, false);
+				bMakeOffer = IsDealWithHumanAcceptable(pDeal, eOtherPlayer, /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, /*passed by reference*/&bCantMatchOffer, false);
 				if (bCantMatchOffer)
 				{
 					GetPlayer()->GetDiplomacyAI()->SetCantMatchDeal(eOtherPlayer, true);
