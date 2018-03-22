@@ -11040,6 +11040,8 @@ void CvPlayer::doTurn()
 			}
 		}
 	}
+	
+	//gDLL->sendFromUIDiploEvent((PlayerTypes)-1, (FromUIDiploEventTypes)-1, -1, -1);
 #endif
 #if defined(MOD_BALANCE_CORE)
 	for (int iInstantYield = 0; iInstantYield < NUM_INSTANT_YIELD_TYPES; iInstantYield++)

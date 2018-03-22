@@ -290,6 +290,10 @@ void CvDllNetMessageHandler::ResponseDestroyUnit(PlayerTypes ePlayer, int iUnitI
 //------------------------------------------------------------------------------
 void CvDllNetMessageHandler::ResponseDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2)
 {
+	/*if (eOtherPlayer == -1) {
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("void CvDllNetMessageHandler::ResponseDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2):" << ePlayer);
+		return;
+	}*/
 	GET_PLAYER(eOtherPlayer).GetDiplomacyAI()->DoFromUIDiploEvent(ePlayer, eEvent, iArg1, iArg2);
 }
 //------------------------------------------------------------------------------

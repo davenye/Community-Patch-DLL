@@ -9251,6 +9251,7 @@ void CvGame::updateMoves()
 				CvAchievementUnlocker::EndTurn();
 #endif
 			}
+			// TODO add a GameOption to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 			{
 				if (autosavedTurn != currentTurn) {
