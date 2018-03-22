@@ -3872,7 +3872,6 @@ void CvPlayerPolicies::Read(FDataStream& kStream)
 /// Serialization write
 void CvPlayerPolicies::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 2;
 	kStream << uiVersion;

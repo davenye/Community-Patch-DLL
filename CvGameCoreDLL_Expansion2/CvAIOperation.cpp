@@ -1167,7 +1167,6 @@ void CvAIOperation::Read(FDataStream& kStream)
 /// Write serialized data
 void CvAIOperation::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;
@@ -2018,7 +2017,6 @@ void CvAIOperationAntiBarbarian::Read(FDataStream& kStream)
 /// Write serialized data
 void CvAIOperationAntiBarbarian::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// write the base class' entries
 	CvAIOperation::Write(kStream);
 

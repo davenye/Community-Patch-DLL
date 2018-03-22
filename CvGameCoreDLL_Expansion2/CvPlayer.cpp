@@ -44362,7 +44362,6 @@ void CvPlayer::Read(FDataStream& kStream)
 static int writehack = 0;
 void CvPlayer::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	FILogFile* pLog;
 	pLog = LOGFILEMGR.GetLog("writelog.csv", FILogFile::kDontTimeStamp);
 	//Save version number.  THIS MUST BE FIRST!!

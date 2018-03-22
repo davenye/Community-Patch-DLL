@@ -138,7 +138,6 @@ void CvArmyAI::Read(FDataStream& kStream)
 /// Write to binary data store
 void CvArmyAI::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

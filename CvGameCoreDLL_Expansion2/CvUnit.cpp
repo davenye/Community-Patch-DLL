@@ -26915,7 +26915,6 @@ void CvUnit::read(FDataStream& kStream)
 //	--------------------------------------------------------------------------------
 void CvUnit::write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	VALIDATE_OBJECT
 
 	// Current version number

@@ -13104,7 +13104,6 @@ void CvPlot::read(FDataStream& kStream)
 //
 void CvPlot::write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = g_CurrentCvPlotVersion;
 	kStream << uiVersion;

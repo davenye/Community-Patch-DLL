@@ -29800,7 +29800,6 @@ void CvCity::read(FDataStream& kStream)
 //	--------------------------------------------------------------------------------
 void CvCity::write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 VALIDATE_OBJECT
 
 	// Current version number

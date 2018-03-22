@@ -1995,7 +1995,6 @@ void CvDiplomacyAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvDiplomacyAI::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 4;
 	kStream << uiVersion;

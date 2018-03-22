@@ -105,7 +105,6 @@ void CvUnitProductionAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvUnitProductionAI::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	FStringFixedBuffer(sTemp, 64);
 
 	// Current version number

@@ -2867,7 +2867,6 @@ void CvUnitPromotions::Read(FDataStream& kStream)
 /// Serialization write
 void CvUnitPromotions::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;
@@ -3295,7 +3294,6 @@ void PromotionArrayHelpers::Read(FDataStream& kStream, CvBitfield& kPromotions)
 // Save the promotions.  Entries are saved as hash values and only the entries that are 'on' are saved
 void PromotionArrayHelpers::Write(FDataStream& kStream, const CvBitfield& kPromotions, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// We are only going to save the 'on' bit, so we have to count them
 	int iCount = 0;
 
