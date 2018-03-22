@@ -948,7 +948,6 @@ void CvPlayerAI::Read(FDataStream& kStream)
 //
 void CvPlayerAI::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	CvPlayer::Write(kStream);	// write base class data first
 
 	// Current version number

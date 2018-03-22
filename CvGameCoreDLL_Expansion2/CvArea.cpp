@@ -800,7 +800,6 @@ void CvArea::read(FDataStream& kStream)
 //	--------------------------------------------------------------------------------
 void CvArea::write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	int iI;
 
 	// Current version number

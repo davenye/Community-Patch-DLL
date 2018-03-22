@@ -205,7 +205,6 @@ void CvCityCitizens::Read(FDataStream& kStream)
 /// Serialization write
 void CvCityCitizens::Write(FDataStream& kStream)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

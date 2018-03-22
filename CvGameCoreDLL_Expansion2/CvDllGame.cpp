@@ -502,7 +502,6 @@ void CvDllGame::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 void CvDllGame::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	m_pGame->Write(kStream);
 }
 //------------------------------------------------------------------------------

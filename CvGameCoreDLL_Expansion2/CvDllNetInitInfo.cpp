@@ -184,7 +184,6 @@ bool CvDllNetInitInfo::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 bool CvDllNetInitInfo::Write(FDataStream& kStream)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << m_szLoadFileName;
 	kStream << m_eLoadFileStorage;
 	kStream << m_szMapScriptName;

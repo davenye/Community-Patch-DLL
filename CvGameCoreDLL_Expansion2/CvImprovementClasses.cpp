@@ -1679,7 +1679,6 @@ void ImprovementArrayHelpers::Read(FDataStream& kStream, int* paiImprovementArra
 /// Helper function to write out an integer array of data sized according to number of improvement types
 void ImprovementArrayHelpers::Write(FDataStream& kStream, int* paiImprovementArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)

@@ -1873,7 +1873,6 @@ void BuildingClassArrayHelpers::Read(FDataStream& kStream, int* paiArray)
 /// Helper function to write out an integer array of data sized according to number of building class types
 void BuildingClassArrayHelpers::Write(FDataStream& kStream, int* paiArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)
@@ -1927,7 +1926,6 @@ void UnitClassArrayHelpers::Read(FDataStream& kStream, int* paiArray)
 /// Helper function to write out an integer array of data sized according to number of unit class types
 void UnitClassArrayHelpers::Write(FDataStream& kStream, int* paiArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)
@@ -4336,7 +4334,6 @@ void BuildArrayHelpers::Read(FDataStream& kStream, short* paiBuildArray)
 /// Helper function to write out an integer array of data sized according to number of building types
 void BuildArrayHelpers::Write(FDataStream& kStream, short* paiBuildArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)
@@ -10872,7 +10869,6 @@ void FeatureArrayHelpers::Read(FDataStream& kStream, int* paiFeatureArray)
 /// Helper function to write out an integer array of data sized according to number of feature types
 void FeatureArrayHelpers::Write(FDataStream& kStream, int* paiFeatureArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)
@@ -10990,7 +10986,6 @@ void TerrainArrayHelpers::Read(FDataStream& kStream, int* paiTerrainArray)
 /// Helper function to write out an integer array of data sized according to number of terrain types
 void TerrainArrayHelpers::Write(FDataStream& kStream, int* paiTerrainArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	kStream << iArraySize;
 
 	for(int iI = 0; iI < iArraySize; iI++)

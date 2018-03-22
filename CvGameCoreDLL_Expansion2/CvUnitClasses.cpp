@@ -2276,6 +2276,5 @@ void UnitArrayHelpers::Read(FDataStream& kStream, int* paiUnitArray)
 /// Helper function to write out an integer array of data sized according to number of unit types
 void UnitArrayHelpers::Write(FDataStream& kStream, int* paiUnitArray, int iArraySize)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	CvInfosSerializationHelper::WriteHashedDataArray<UnitTypes, int>(kStream, paiUnitArray, iArraySize);
 }

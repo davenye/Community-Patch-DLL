@@ -4119,7 +4119,6 @@ void CvPlayerReligions::Read(FDataStream& kStream)
 /// Serialization write
 void CvPlayerReligions::Write(FDataStream& kStream)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;
@@ -6886,7 +6885,6 @@ void CvReligionAI::Read(FDataStream& kStream)
 /// Serialization write
 void CvReligionAI::Write(FDataStream& kStream)
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 1;
 	kStream << uiVersion;

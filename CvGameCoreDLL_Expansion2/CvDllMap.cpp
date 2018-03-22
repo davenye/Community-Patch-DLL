@@ -186,7 +186,6 @@ void CvDllMap::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 void CvDllMap::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	m_pMap->Write(kStream);
 }
 //------------------------------------------------------------------------------

@@ -350,7 +350,6 @@ void CvDllPlayer::Read(FDataStream& kStream)
 //------------------------------------------------------------------------------
 void CvDllPlayer::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	m_pPlayer->Write(kStream);
 }
 //------------------------------------------------------------------------------

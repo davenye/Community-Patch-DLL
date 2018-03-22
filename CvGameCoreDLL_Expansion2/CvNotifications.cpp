@@ -296,7 +296,6 @@ void CvNotifications::Read(FDataStream& kStream)
 /// Serialization write
 void CvNotifications::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Current version number
 	uint uiVersion = 2;
 	kStream << uiVersion;

@@ -109,7 +109,6 @@ void CvCityConnections::Read(FDataStream& kStream)
 /// Serialization write
 void CvCityConnections::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG(__FUNCTION__);
 	// Version number to maintain backwards compatibility
 	uint uiVersion = 1;
 	kStream << uiVersion;
