@@ -8713,8 +8713,13 @@ void CvPlayer::DoEventSyncChoices(EventChoiceTypes eEventChoice, CvCity* pCity)
 		}
 	}
 }
-void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent)
+void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent, bool bSendMsg)
 {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::DoEventChoice: " << PlayerTypes((1 << 31) | GetID()) << " " << (FromUIDiploEventTypes)eEvent << " " << -1 << " " << eEventChoice);
+		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | GetID()), (FromUIDiploEventTypes) eEvent, -1, eEventChoice);
+		return;
+	}
 	if(eEventChoice != NO_EVENT_CHOICE)
 	{
 		CvModEventChoiceInfo* pkEventChoiceInfo = GC.getEventChoiceInfo(eEventChoice);
@@ -11103,7 +11108,7 @@ void CvPlayer::doTurn()
 			//Don't do events in MP
 			bool bDontShowRewardPopup = (GC.getGame().isReallyNetworkMultiPlayer() || GC.getGame().isNetworkMultiPlayer());
 
-			if (!bDontShowRewardPopup)
+			if (true || !bDontShowRewardPopup)
 			{
 				DoEvents();
 			}

@@ -44,6 +44,7 @@
 #if defined(MOD_BALANCE_CORE)
 #include "CvBarbarians.h"
 #endif
+#include <sstream>
 // include after all other headers
 #include "LintFree.h"
 
@@ -2840,7 +2841,7 @@ void CvCity::doTurn()
 			//Don't do events in MP
 			bool bDontShowRewardPopup = (GC.getGame().isReallyNetworkMultiPlayer() || GC.getGame().isNetworkMultiPlayer());
 
-			if (!bDontShowRewardPopup)
+			if (true || !bDontShowRewardPopup)
 			{
 				DoEvents();
 			}
@@ -6059,8 +6060,14 @@ CvString CvCity::GetDisabledTooltip(CityEventChoiceTypes eChosenEventChoice)
 	return DisabledTT.c_str();
 
 }
-void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent)
+void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent, bool bSendMsg)
 {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvCity::DoEventChoice: " << PlayerTypes((1 << 31) | getOwner()) << " " << (FromUIDiploEventTypes)eCityEvent << " " << GetID() << " " << eEventChoice);
+		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | getOwner()), (FromUIDiploEventTypes)eCityEvent, GetID(), eEventChoice);
+		return;
+	}
 	if(eEventChoice != NO_EVENT_CHOICE)
 	{
 		CvModEventCityChoiceInfo* pkEventChoiceInfo = GC.getCityEventChoiceInfo(eEventChoice);

@@ -1615,7 +1615,7 @@ bool ExternalPause()
 //	---------------------------------------------------------------------------
 void CvGame::update()
 {
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update() called!");
+	//NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update() called!");
 	if(IsWaitingForBlockingInput())
 	{
 		if(!GC.GetEngineUserInterface()->isDiploActive())
