@@ -19,7 +19,7 @@ g_SelectedEntry = nil;		-- The currently selected entry.
 ----------------------------------------------------------------        
 ----------------------------------------------------------------
 function DoSaveToFile()
-	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted()) then
+	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted() and not Controls.ForceFreshMPSave:IsChecked()) then
 		UI.CopyLastAutoSave( Controls.NameBox:GetText() );
 	else
 		UI.SaveGame( Controls.NameBox:GetText() );
@@ -28,7 +28,7 @@ end
 ----------------------------------------------------------------        
 ----------------------------------------------------------------
 function DoSaveToSteamCloud(i)
-	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted()) then
+	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted() and not Controls.ForceFreshMPSave:IsChecked()) then
 		Steam.CopyLastAutoSaveToSteamCloud( i );
 	else
 		Steam.SaveGameToCloud( i );
@@ -636,10 +636,13 @@ ContextPtr:SetInputHandler( InputHandler );
 ----------------------------------------------------------------        
 ----------------------------------------------------------------
 function ShowHideHandler( isHide )
+		-- don't want to encourage potentially corrupting operations!
+		Controls.ForceFreshMPSave:SetCheck(false);
     if( not isHide ) then
 
     	if (PreGame.GameStarted()) then    	
-	    	-- If the lock mods option is on then disable the save map button    	
+    		Controls.ForceFreshMPSave:SetHide(not PreGame.IsMultiplayerGame());
+	    	-- If the lock mods option is on then disable the save map button    		    		    	
     		if( PreGame.IsMultiplayerGame() or
     			Modding.AnyActivatedModsContainPropertyValue( "DisableSaveMapOption", "1" ) or
         		PreGame.GetGameOption( GameOptionTypes.GAMEOPTION_LOCK_MODS ) ~= 0 or
