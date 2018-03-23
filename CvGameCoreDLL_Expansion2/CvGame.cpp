@@ -1615,7 +1615,7 @@ bool ExternalPause()
 //	---------------------------------------------------------------------------
 void CvGame::update()
 {
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update() called!");
+	//NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::update() called!");
 	if(IsWaitingForBlockingInput())
 	{
 		if(!GC.GetEngineUserInterface()->isDiploActive())
@@ -8243,9 +8243,8 @@ void CvGame::doTurn()
 	}
 
 	GC.getMap().doTurn();
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI START --------------------------------------------------------")
 	GC.GetEngineUserInterface()->doTurn();
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI ENDDD --------------------------------------------------------")
+
 	CvBarbarians::DoCamps();
 
 	CvBarbarians::DoUnits();
@@ -8439,7 +8438,7 @@ void CvGame::doTurn()
 	//autosave after doing a turn
 	if (isNetworkMultiPlayer())
 	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ PRESAVE of " << getGameTurn());
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE of " << getGameTurn());
 		gDLL->AutoSave(false);
 	}
 
@@ -9231,10 +9230,16 @@ void CvGame::updateMoves()
 #if defined(MOD_BUGFIX_SKIPPED_HUMAN_TURN_ON_MP_LOAD)
 	bool firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
 #endif
+	int tempHack = -1;
 	// If no AI with an active turn, check humans.
 	if(playersToProcess.empty())
 	{
 		SetLastTurnAICivsProcessed();
+		if (tempHack != currentTurn) {
+			tempHack = currentTurn;
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ WAITING ON AI in " << getGameTurn());
+		}
+		
 		if(gDLL->allAICivsProcessedThisTurn())
 		{//everyone is finished processing the AI civs.
 			PlayerTypes eActivePlayer = getActivePlayer();
@@ -9251,13 +9256,16 @@ void CvGame::updateMoves()
 				CvAchievementUnlocker::EndTurn();
 #endif
 			}
-			// TODO add a GameOption to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving
+			// DN: This spot *seems* safe for a save point due to the barrier created by the allAICivsProcessedThisTurn check above.
+			// Currently, nothing that can't be repeated is done between here and the normal autosave when the AI have finished. This needs to remain the case.
+			// Should add a GameOption or similar to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving but less sure of safety
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 			{
+				// If loaded from one of these autosaves, the original will be overwritten with a (binary identical) file upon load. No biggie but would be nice if it didn't happen.
 				if (autosavedTurn != currentTurn) {
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ HYPOSAVE of " << getGameTurn());
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE(POST) of " << getGameTurn());								
 					gDLL->AutoSave(false, true);
-					autosavedTurn = currentTurn;;
+					autosavedTurn = currentTurn;		
 				}
 			}
 			if(!processPlayerAutoMoves)
@@ -9514,8 +9522,6 @@ void CvGame::updateMoves()
 		if (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 			// KWG: This code should go into CheckPlayerTurnDeactivate
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ POSTSAVE of " << getGameTurn());
-//			gDLL->AutoSave(false, true);
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
