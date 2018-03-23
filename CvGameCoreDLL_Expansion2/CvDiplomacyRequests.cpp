@@ -215,7 +215,7 @@ void CvDiplomacyRequests::BeginTurn(void)
 			{
 				if (iter->m_iLookupIndex < 0)
 				{
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS("FIXING UP DIPLO for " << iter->m_strMessage.c_str());
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("Adding deal notifications for diplo: " << iter->m_strMessage.c_str());
 					CvPlayer& kFrom = GET_PLAYER(iter->m_eFromPlayer);
 					CvString leaderMessage = CvString::format("%s: %s", kFrom.getName(), iter->m_strMessage.c_str());
 					Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_MP_DIPLO_CONTACT_SUMMARY");
