@@ -9230,7 +9230,7 @@ void CvGame::updateMoves()
 #if defined(MOD_BUGFIX_SKIPPED_HUMAN_TURN_ON_MP_LOAD)
 	bool firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
 #endif
-	int tempHack = -1;
+	static int tempHack = -1;
 	// If no AI with an active turn, check humans.
 	if(playersToProcess.empty())
 	{
