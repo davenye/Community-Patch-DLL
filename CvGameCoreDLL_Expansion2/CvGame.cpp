@@ -9211,6 +9211,8 @@ void CvGame::updateMoves()
 	int iI;
 
 	static bool processPlayerAutoMoves = false;	
+	if (m_lastTurnAICivsProcessed == -1) // i.e. just loaded
+		processPlayerAutoMoves = false; // this value could already be true if game reloaded so we gotta reset it. Probably should just be a member but why wasn't it already?
 
 	// Process all AI first, then process players.
 	// Processing of the AI 'first' only occurs when the AI are activated first
