@@ -26761,83 +26761,79 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 	case FROM_UI_DIPLO_EVENT_MEAN_RESPONSE:
 	{
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("FROM_UI_DIPLO_EVENT_MEAN_RESPONSE: " << eFromPlayer << " -> " << GetPlayer()->GetID());
-		//if(bActivePlayer)
-		{
-			if(!IsAtWar(eFromPlayer))
-			{
-				// Does the AI declare war?
-				bool bDeclareWar = false;
-#if defined(MOD_EVENTS_WAR_AND_PEACE)
-				if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
-#else
-				if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
-#endif
-				{
-					int iChance = 20;
-					if(GetMajorCivOpinion(eFromPlayer) >= MAJOR_CIV_OPINION_FAVORABLE)
-					{
-						iChance = 40;
-					}
-					if (GC.getGame().getSmallFakeRandNum(10, eFromPlayer) > (iChance - GetMeanness() - GetBoldness()))
-					{
-						bDeclareWar = true;
-					}
-#if defined(MOD_BALANCE_CORE)
-					if(bDeclareWar && IsDoFAccepted(eFromPlayer))
-					{
-						bDeclareWar = false;
-					}
-					if(bDeclareWar && GET_TEAM(GetTeam()).IsHasDefensivePact(GET_PLAYER(eFromPlayer).getTeam()))
-					{
-						bDeclareWar = false;
-					}
-					if (GET_TEAM(GetPlayer()->getTeam()).IsVassalOfSomeone())
-						bDeclareWar = false;
-#endif
-				}
-				if(bDeclareWar)
-				{
-#if defined(MOD_EVENTS_WAR_AND_PEACE)
-					GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam(), false, GetPlayer()->GetID());
-#else
-					GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam());
-#endif
-					m_pPlayer->GetCitySpecializationAI()->SetSpecializationsDirty(SPECIALIZATION_UPDATE_NOW_AT_WAR);
-					LogWarDeclaration(eFromPlayer);
 
-					GetPlayer()->GetMilitaryAI()->RequestBasicAttack(eFromPlayer, 3);
-					//NET_MESSAGE_DEBUG_OSTR_ALWAYS("SENDING BS ATTACK MESAG");
-					//gDLL->sendChangeWar(TeamTypes(0x01 << 24 | 0x03 << 16 | GetPlayer()->GetID() << 8 | eFromPlayer << 0), false);
-				}
-				else
+		if(!IsAtWar(eFromPlayer))
+		{
+			// Does the AI declare war?
+			bool bDeclareWar = false;
+#if defined(MOD_EVENTS_WAR_AND_PEACE)
+			if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
+#else
+			if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
+#endif
+			{
+				int iChance = 20;
+				if(GetMajorCivOpinion(eFromPlayer) >= MAJOR_CIV_OPINION_FAVORABLE)
 				{
-					SetMajorCivApproach(eFromPlayer, MAJOR_CIV_APPROACH_NEUTRAL);
-					//If player is offended, AI should take note as penalty to assistance.
-					CvFlavorManager* pFlavorManager = GetPlayer()->GetFlavorManager();
-					int iFlavorOffense = pFlavorManager->GetPersonalityIndividualFlavor((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE"));
-					GetPlayer()->GetDiplomacyAI()->ChangeRecentAssistValue(eFromPlayer, (iFlavorOffense * 50));
+					iChance = 40;
 				}
-				if (bActivePlayer)
+				if (GC.getGame().getSmallFakeRandNum(10, eFromPlayer) > (iChance - GetMeanness() - GetBoldness()))
 				{
-					if (bDeclareWar)
-					{
-						strText = GetDiploStringForMessage(DIPLO_MESSAGE_WAR_RUDE_INSULT);
-						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_DECLARE_WAR);
-					}
-					else
-					{
-						strText = GetDiploStringForMessage(DIPLO_MESSAGE_SO_BE_IT);
-						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
-					}
+					bDeclareWar = true;
 				}
+#if defined(MOD_BALANCE_CORE)
+				if(bDeclareWar && IsDoFAccepted(eFromPlayer))
+				{
+					bDeclareWar = false;
+				}
+				if(bDeclareWar && GET_TEAM(GetTeam()).IsHasDefensivePact(GET_PLAYER(eFromPlayer).getTeam()))
+				{
+					bDeclareWar = false;
+				}
+				if (GET_TEAM(GetPlayer()->getTeam()).IsVassalOfSomeone())
+					bDeclareWar = false;
+#endif
+			}
+			if(bDeclareWar)
+			{
+#if defined(MOD_EVENTS_WAR_AND_PEACE)
+				GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam(), false, GetPlayer()->GetID());
+#else
+				GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam());
+#endif
+				m_pPlayer->GetCitySpecializationAI()->SetSpecializationsDirty(SPECIALIZATION_UPDATE_NOW_AT_WAR);
+				LogWarDeclaration(eFromPlayer);
+
+				GetPlayer()->GetMilitaryAI()->RequestBasicAttack(eFromPlayer, 3);
 			}
 			else
 			{
-				if (bActivePlayer)
+				SetMajorCivApproach(eFromPlayer, MAJOR_CIV_APPROACH_NEUTRAL);
+				//If player is offended, AI should take note as penalty to assistance.
+				CvFlavorManager* pFlavorManager = GetPlayer()->GetFlavorManager();
+				int iFlavorOffense = pFlavorManager->GetPersonalityIndividualFlavor((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE"));
+				GetPlayer()->GetDiplomacyAI()->ChangeRecentAssistValue(eFromPlayer, (iFlavorOffense * 50));
+			}
+			if (bActivePlayer)
+			{
+				if (bDeclareWar)
 				{
-					strText = GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
+					strText = GetDiploStringForMessage(DIPLO_MESSAGE_WAR_RUDE_INSULT);
+					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_DECLARE_WAR);
+				}
+				else
+				{
+					strText = GetDiploStringForMessage(DIPLO_MESSAGE_SO_BE_IT);
 					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
 				}
+			}
+		}
+		else
+		{
+			if (bActivePlayer)
+			{
+				strText = GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
+				gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
 			}
 		}
 		break;

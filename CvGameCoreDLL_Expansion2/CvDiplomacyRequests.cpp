@@ -401,7 +401,8 @@ foundRequest:
 					if (!bAcceptable) // well, we tried. Gonna just clear the deal and being up a empty non-descript trade as it is slightly less wierd than the deal abruptly being withdrawn
 					{
 						NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " impossible deal!");
-						bBlankDeal = true;
+						//bBlankDeal = true; // blanking seems to works fine but from reading bug reports, simply cancelling might be less surprising
+						bCancelDeal = true;
 					}
 				}
 				else {
@@ -418,6 +419,7 @@ foundRequest:
 		}
 		if (bCancelDeal)
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " cancelling deal!");
 			// Cancelling the deal now works but means the left click on the notifcation just makes the deal mysteriously be withdrawn and looks like kinda a bug despite getting a new notification about it
 			// It would be better if deals were checked/adjusted more frequently but I have not been willing to test enough (desyncs, cached peace values, etc) and deals shouldn't be getting withdrawn as much now anyway.
 			CvPlayerAI& kFromPlayer = GET_PLAYER(eFrom);
@@ -436,7 +438,7 @@ foundRequest:
 		else if (bBlankDeal) 
 		{
 			// well, we tried. Gonna just clear the deal and being up a empty non-descript trade as it is slightly less wierd than the deal abruptly being withdrawn
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " impossible deal!");
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("activatenext " << eFrom << " -> " << eTo << ": " << " blanking deal!");
 			requestIter->m_eDiploType = DIPLO_UI_STATE_TRADE;
 			requestIter->m_strMessage = GET_PLAYER(eFrom).GetDiplomacyAI()->GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
 			requestIter->m_eAnimationType = LEADERHEAD_ANIM_REQUEST;
