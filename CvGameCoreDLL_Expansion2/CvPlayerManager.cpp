@@ -36,7 +36,7 @@ void CvPlayerManager::Refresh(bool bWarDeclaration)
 		if(!bWarDeclaration && kPlayer.m_pDangerPlots)
 			kPlayer.UpdateDangerPlots(true);
 
-		//if (bWarDeclaration)
+		if (bWarDeclaration)
 			GC.getGame().GetGameTrade()->UpdateTradePathCache(iPlayerCivLoop);
 	}
 }

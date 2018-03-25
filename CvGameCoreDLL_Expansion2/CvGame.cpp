@@ -8212,7 +8212,7 @@ void CvGame::doTurn()
 	//create an autosave
 	if(!isNetworkMultiPlayer())
 		gDLL->AutoSave(false, false);
-	
+
 	// END OF TURN
 
 	//We reset the turn timer now so that we know that the turn timer has been reset at least once for
@@ -8243,6 +8243,7 @@ void CvGame::doTurn()
 	}
 
 	GC.getMap().doTurn();
+
 	GC.GetEngineUserInterface()->doTurn();
 	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI ENDDD --------------------------------------------------------")
 	CvBarbarians::DoCamps();
@@ -8315,7 +8316,7 @@ void CvGame::doTurn()
 		for(int teamIdx = 0; teamIdx < MAX_TEAMS; ++teamIdx)
 		{
 			CvTeam& curTeam = GET_TEAM((TeamTypes)teamIdx);
-			curTeam.setDynamicTurnsSimultMode(!curTeam.isHuman() || !curTeam.isAtWarWithHumans());					
+			curTeam.setDynamicTurnsSimultMode(!curTeam.isHuman() || !curTeam.isAtWarWithHumans());
 		}
 	}
 
@@ -8360,7 +8361,6 @@ void CvGame::doTurn()
 	else if(!isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 	{// player sequential turns.
 		// Sequential turns.  Activate the first player we find from the start, human or AI, who wants a sequential turn.
-		
 		for(iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if(GET_PLAYER((PlayerTypes)iI).isAlive() 
@@ -9285,7 +9285,7 @@ void CvGame::updateMoves()
 				else
 					processPlayerAutoMoves = true;
 			}
-			
+
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
@@ -9296,7 +9296,6 @@ void CvGame::updateMoves()
 					playersToProcess.push_back(static_cast<PlayerTypes>(iI));
 				}
 			}
-
 		}
 	}
 
@@ -9499,9 +9498,6 @@ void CvGame::updateMoves()
 						if (player.isEndTurn())
 						{//If the player's turn ended, indicate it in the log.  We only do so when the end turn state has changed to prevent useless log spamming in multiplayer. 
 							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player.setEndTurn(true) called for player " << player.GetID() << " " << player.getName());
-
-														
-							
 						}
 					}
 					else
@@ -9518,7 +9514,7 @@ void CvGame::updateMoves()
 	}
 
 	if(activatePlayers)
-	{		
+	{
 		if (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 			// KWG: This code should go into CheckPlayerTurnDeactivate

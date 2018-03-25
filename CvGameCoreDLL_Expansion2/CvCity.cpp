@@ -44,7 +44,6 @@
 #if defined(MOD_BALANCE_CORE)
 #include "CvBarbarians.h"
 #endif
-#include <sstream>
 // include after all other headers
 #include "LintFree.h"
 
@@ -2854,13 +2853,7 @@ void CvCity::doTurn()
 	{
 		if(GC.getGame().isOption(GAMEOPTION_EVENTS))
 		{
-			//Don't do events in MP
-			bool bDontShowRewardPopup = (GC.getGame().isReallyNetworkMultiPlayer() || GC.getGame().isNetworkMultiPlayer());
-
-			if (true || !bDontShowRewardPopup)
-			{
-				DoEvents();
-			}
+			DoEvents();
 		}
 	}
 #endif

@@ -10,8 +10,6 @@
 #include "CvBarbarians.h"
 #include "CvGameCoreUtils.h"
 #include "CvTypes.h"
-
-#include <sstream>
 //static 
 short* CvBarbarians::m_aiPlotBarbCampSpawnCounter = NULL;
 short* CvBarbarians::m_aiPlotBarbCampNumUnitsSpawned = NULL;

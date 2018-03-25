@@ -18,7 +18,6 @@
 #include "CvNotifications.h"
 #include "CvDiplomacyRequests.h"
 
-#include <sstream>
 // must be included after all other headers
 #include "LintFree.h"
 

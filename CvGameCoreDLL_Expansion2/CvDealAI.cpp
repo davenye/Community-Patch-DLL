@@ -20,7 +20,7 @@
 #include "CvEconomicAI.h"
 #include "CvVotingClasses.h"
 #endif
-#include <sstream>
+
 // must be included after all other headers
 #include "LintFree.h"
 

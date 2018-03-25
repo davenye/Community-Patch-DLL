@@ -32,9 +32,6 @@
 
 #include "CvDllUnit.h"
 
-#include "CvCitySpecializationAI.h" // added but is nasty
-
-#include <sstream>
 #include "LintFree.h"
 
 // statics
@@ -2198,7 +2195,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotificat
 #endif
 
 	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvTeam::makePEace[" << GetID() << " ](TeamTypes " << eTeam << "... PlayerTypes " << eOriginatingPlayer << ") - not refreshing data;");
-	/*CvPlayerManager::Refresh(true);
+	CvPlayerManager::Refresh(true);
 
 	//refresh tactical AI as well!
 	for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
@@ -2218,8 +2215,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotificat
 				}
 			}
 		}
-	}*/
-
+	}
 }
 
 //	------------------------------------------------------------------------------------------------
@@ -2335,11 +2331,11 @@ void CvTeam::DoMakePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotific
 		// One shot things
 		DoNowAtWarOrPeace(eTeam, false);
 		GET_TEAM(eTeam).DoNowAtWarOrPeace(GetID(), false);
-#if defined(MOD_DIPLOMACY_CIV4_FEATURES)
+#if defined(MOD_DIPLOMACY_CIV4_FEATURES) && !(defined(MOD_BALANCE_CORE) && defined(MOD_EVENTS_WAR_AND_PEACE))
 		if(MOD_DIPLOMACY_CIV4_FEATURES)
 		{
 			// Suspect line that makes vassals spuriously delcare war while in the process of making peace due to master making peace. ends up making peace tho but just redeclares first :S
-		//	DoUpdateVassalWarPeaceRelationships();
+			DoUpdateVassalWarPeaceRelationships();
 		}
 #endif
 
@@ -4845,52 +4841,6 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 
 	// Bump Units out of places they shouldn't be
 	GC.getMap().verifyUnitValidPlot();
-#endif
-
-#if defined(MOD_BUGFIX_MP_CHANGEWAR_MSG)
-	/*
-	if (bNewValue)
-	{
-		//This is nasty. Should add CvPlayer::changedWarState(TeamTypes, bool)...BUT SetSpecializationsDirty is already being called all over the shop individually - maybe there is a (good) reason?
-		const std::vector<PlayerTypes>& teamPlayers = getPlayers();
-		for (std::vector<PlayerTypes>::const_iterator it = teamPlayers.begin(); it != teamPlayers.end(); it++)
-		{
-			GET_PLAYER(*it).GetCitySpecializationAI()->SetSpecializationsDirty(SPECIALIZATION_UPDATE_NOW_AT_WAR);
-			// The person warred on seems to set this OK when responding to war
-		}
-	}
-	
-	
-	// DN: The existing call to GameplayWarStateChanged wasn't resulting in any war state messages being sent to the other players in MP (this does) when war was a result taunting AI during diplo requests (at least), causing desyncs, so:
-	//if (GET_PLAYER(GC.getGame().getActivePlayer()).getTeam() == eIndex)
-	{
-		//if(!isHuman() && GC.getGame().isNetworkMultiPlayer())
-		{
-			if(GET_PLAYER(GC.getGame().getActivePlayer()).isSimultaneousTurns()) // might be more specific than necessary but I have only seen the issue in this mode
-			{
-				if(GC.getGame().isFinalInitialized()) // crashes UpdateDangerPlots if called on game creation, so just gonna skip it until later since it isn't required at that point
-				{					
-					//if (getPlayers().size() == 1 && GET_TEAM(GET_PLAYER(GC.getGame().getActivePlayer()).getTeam()).getPlayers().size() == 1) // Fix has not been tested with teams of >1. Might work but I haven't tested so rather than potentially introduce a new bug...Remove if adventurous!
-					if (getPlayers().size() == 1 && GET_TEAM(eIndex).getPlayers().size() == 1) // Fix has not been tested with teams of >1. Might work but I haven't tested so rather than potentially introduce a new bug...Remove if adventurous!
-					{						
-						// Sending a negative team number so the aggressor can be correctly sent since I can't get this message to send as an AI aggressor. There is enum NO_TEAM == -1 but that shouldn't be a problem here.
-						// Will be interpreted and handled as team "GetID()" declaring war on team "eIndex" in the corresponding message handler, respondChangeWar.					
-						//NET_MESSAGE_DEBUG_OSTR_ALWAYS(eIndex << "=> gDLL->sendChangeWar((TeamTypes) " << GetID() + REALLY_MAX_TEAMS << ", " << bNewValue << "); " << "{" << GetID() << "}");
-						//gDLL->sendChangeWar(static_cast<TeamTypes>(GetID() + REALLY_MAX_TEAMS), bNewValue);
-
-						uint encodedTeams = 0x1 << 31; // flag to denote encoded value
-						encodedTeams |= GetID() << 8 ; // aggressor
-						encodedTeams |= eIndex << 0; // aggress...ee
-						
-						NET_MESSAGE_DEBUG_OSTR_ALWAYS(eIndex << "=> gDLL->sendChangeWar((TeamTypes) " << static_cast<TeamTypes>(encodedTeams) << ", " << bNewValue << "); " << "{" << GetID() << "->" << eIndex << "}");
-						gDLL->sendChangeWar(static_cast<TeamTypes>(encodedTeams), bNewValue);
-					}
-					else 
-						NET_MESSAGE_DEBUG_OSTR_ALWAYS("ACTUAL TEAM!;");
-				}
-			}
-		}
-	}*/
 #endif
 
 	gDLL->GameplayWarStateChanged(GetID(), eIndex, bNewValue);

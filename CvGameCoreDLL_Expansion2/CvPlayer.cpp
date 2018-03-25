@@ -11036,17 +11036,9 @@ void CvPlayer::doTurn()
 	{
 		if(GC.getGame().isOption(GAMEOPTION_EVENTS))
 		{
-			//Don't do events in MP
-			bool bDontShowRewardPopup = (GC.getGame().isReallyNetworkMultiPlayer() || GC.getGame().isNetworkMultiPlayer());
-
-			if (true || !bDontShowRewardPopup)
-			{
-				DoEvents();
-			}
+      DoEvents();
 		}
 	}
-	
-	//gDLL->sendFromUIDiploEvent((PlayerTypes)-1, (FromUIDiploEventTypes)-1, -1, -1);
 #endif
 #if defined(MOD_BALANCE_CORE)
 	for (int iInstantYield = 0; iInstantYield < NUM_INSTANT_YIELD_TYPES; iInstantYield++)
@@ -27657,7 +27649,6 @@ void CvPlayer::DoGreatPersonExpended(UnitTypes eGreatPersonUnit)
 #if defined(MOD_BALANCE_CORE_POLICIES) || defined(MOD_DIPLOMACY_CITYSTATES)
 	//Influence Gained with all CS per expend
 	int iExpendInfluence = GetInfluenceGPExpend() + GetGPExpendInfluence(); 
-	iExpendInfluence += 100;
 	if(iExpendInfluence > 0)
 	{
 		for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
@@ -44407,13 +44398,7 @@ void CvPlayer::Read(FDataStream& kStream)
 		m_pDiplomacyRequests->Init(GetID());
 		m_pDiplomacyRequests->Read(kStream);
 	}
-	/*if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS)) {
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::Read() - is dynamic game, setting humans to active and ai to not");
-		m_bTurnActive = true;//isHuman();
-		if (m_bTurnActive)
-			GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
-	}
-	*/
+
 	if (m_bTurnActive)
 		GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
 #if defined(MOD_API_UNIFIED_YIELDS) && defined(MOD_API_PLOT_YIELDS)
@@ -44475,7 +44460,6 @@ void CvPlayer::Read(FDataStream& kStream)
 	}
 	kStream >> m_noSettlingPlots;
 #endif
-	
 }
 
 //	--------------------------------------------------------------------------------
@@ -44631,7 +44615,6 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_pabHasStrategicMonopoly;
 	kStream << m_noSettlingPlots;
 #endif
-
 }
 
 //	--------------------------------------------------------------------------------

@@ -17,7 +17,6 @@
 #include "CvDealAI.h"
 #endif
 
-#include <sstream>
 // Include this after all other headers.
 #include "LintFree.h"
 
@@ -310,7 +309,6 @@ void CvDiplomacyRequests::CheckRemainingNotifications()
 		}
 	}
 }
-
 //	----------------------------------------------------------------------------
 void CvDiplomacyRequests::ActivateNext()
 {

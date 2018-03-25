@@ -43,8 +43,6 @@
 #include "CvGameQueries.h"
 #include "CvBarbarians.h"
 
-#include <sstream>
-
 #if !defined(FINAL_RELEASE)
 #include <sstream>
 
