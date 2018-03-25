@@ -2334,7 +2334,7 @@ void CvTeam::DoMakePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotific
 #if defined(MOD_DIPLOMACY_CIV4_FEATURES) && (!defined(MOD_BALANCE_CORE) || !defined(MOD_EVENTS_WAR_AND_PEACE))
 		if(MOD_DIPLOMACY_CIV4_FEATURES)
 		{
-			// This can make vassals spuriously delcare war (ends up making peace againt though) while in the process of making peace due to master making peace int he WAR_AND_PEACE code just above. 
+			// This can make vassals spuriously delcare war (ends up making peace againt though) while in the process of making peace due to master making peace int he WAR_AND_PEACE code just above...well mayne it is not WAR_AND_PEACE specifc...inspect more
 			DoUpdateVassalWarPeaceRelationships();
 		}
 #endif
