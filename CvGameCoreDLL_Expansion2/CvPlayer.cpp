@@ -44579,7 +44579,8 @@ void CvPlayer::Write(FDataStream& kStream) const
 
 	m_kPlayerAchievements.Write(kStream);
 	
-	m_pDiplomacyRequests->Write(kStream);	
+	if (GetID() < MAX_MAJOR_CIVS)
+		m_pDiplomacyRequests->Write(kStream);	
 	
 #if defined(MOD_API_UNIFIED_YIELDS) && defined(MOD_API_PLOT_YIELDS)
 	// MOD_SERIALIZE_READ - v57/v58/v59 broke the save format  couldn't be helped, but don't make a habit of it!!!
