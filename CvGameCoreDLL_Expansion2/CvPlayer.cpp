@@ -44405,7 +44405,7 @@ void CvPlayer::Read(FDataStream& kStream)
 			m_pDiplomacyRequests->Uninit();
 
 		m_pDiplomacyRequests->Init(GetID());
-		//m_pDiplomacyRequests->Read(kStream);
+		m_pDiplomacyRequests->Read(kStream);
 	}
 	/*if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS)) {
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::Read() - is dynamic game, setting humans to active and ai to not");

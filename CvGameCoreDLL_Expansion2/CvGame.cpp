@@ -8244,7 +8244,7 @@ void CvGame::doTurn()
 
 	GC.getMap().doTurn();
 	GC.GetEngineUserInterface()->doTurn();
-
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI ENDDD --------------------------------------------------------")
 	CvBarbarians::DoCamps();
 
 	CvBarbarians::DoUnits();
@@ -9522,6 +9522,8 @@ void CvGame::updateMoves()
 		if (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 			// KWG: This code should go into CheckPlayerTurnDeactivate
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ POSTSAVE of " << getGameTurn());
+//			gDLL->AutoSave(false, true);
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
