@@ -27469,7 +27469,7 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					bAcceptable = IsShareOpinionAcceptable(eFromPlayer);
 				}
 
-				/*if(bAcceptable)
+				if(bAcceptable)
 				{
 					PlayerTypes eTargetPlayer = (PlayerTypes) iArg1;
 					MajorCivApproachTypes eOurApproachWithOtherCiv;
@@ -27521,8 +27521,8 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 						}
 						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_DISCUSS_HUMAN_INVOKED, strText, LEADERHEAD_ANIM_POSITIVE);
 					}
-				}*/
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS("???????????????????????????????????????????????????????????????????????????? INTRIGUE DESYNC INTRIGUE");
+				}
+				/*
 				if(bActivePlayer)
 				{
 					// We've accepted
@@ -27531,13 +27531,13 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 						PlayerTypes eTargetPlayer = (PlayerTypes) iArg1;
 						MajorCivApproachTypes eOurApproachWithOtherCiv;
 
-						eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, /*bHideTrueFeelings*/ true);
+						eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, true);
 
 						// True friends will tell us some more information
 						if(GetMajorCivOpinion(eFromPlayer) == MAJOR_CIV_OPINION_ALLY &&
-							GetMajorCivApproach(eFromPlayer, /*bHideTrueFeelings*/ false) == MAJOR_CIV_APPROACH_FRIENDLY)
+							GetMajorCivApproach(eFromPlayer, false) == MAJOR_CIV_APPROACH_FRIENDLY)
 						{
-							eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, /*bHideTrueFeelings*/ false);
+							eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, false);
 						}
 
 						SetShareOpinionAccepted(eFromPlayer, true);
@@ -27592,7 +27592,7 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 							gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_DISCUSS_HUMAN_INVOKED, strText, LEADERHEAD_ANIM_NO);
 						}
 					}
-				}
+				}*/
 			}
 
 			break;

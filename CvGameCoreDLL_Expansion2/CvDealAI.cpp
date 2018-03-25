@@ -400,7 +400,7 @@ DemandResponseTypes CvDealAI::DoHumanDemand(CvDeal* pDeal)
 {
 	DemandResponseTypes eResponse = NO_DEMAND_RESPONSE_TYPE;
 
-	PlayerTypes eFromPlayer = GC.getGame().getActivePlayer();
+	PlayerTypes eFromPlayer = pDeal->GetFromPlayer();
 	if (eFromPlayer != GC.getGame().getActivePlayer())
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoHumanDemand(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
 	PlayerTypes eMyPlayer = GetPlayer()->GetID();
