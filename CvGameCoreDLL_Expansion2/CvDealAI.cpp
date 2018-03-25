@@ -948,7 +948,10 @@ bool CvDealAI::DoEqualizeDealWithHuman(CvDeal* pDeal, PlayerTypes eOtherPlayer, 
 	else
 	{
 		if (eOtherPlayer != GC.getGame().getActivePlayer())
+		{
 			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: active player bugfix in effect - " << eOtherPlayer << " != " << GC.getGame().getActivePlayer());
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: deal players " << pDeal->GetFromPlayer() << " -> " << pDeal->GetToPlayer());		
+		}
 		int iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer;
 #if defined(MOD_BALANCE_CORE)
 		//bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, &bCantMatchOffer, true);
