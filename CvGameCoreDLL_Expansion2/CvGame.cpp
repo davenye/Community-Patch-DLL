@@ -1423,6 +1423,11 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 #if defined(MOD_BALANCE_CORE_GLOBAL_IDS)
 	m_iGlobalAssetCounter = 1000; //0 is invalid
 #endif
+
+#if defined(MOD_POST_AI_AUTOSAVE) 
+	m_iAutosaveFlag = 0;
+	m_iLastAutosavedTurn = -1;
+#endif
 }
 
 //	--------------------------------------------------------------------------------
@@ -9205,8 +9210,7 @@ void CvGame::updateMoves()
 	int iLoop;
 	int iI;
 
-	static bool processPlayerAutoMoves = false;
-	static int autosavedTurn = -1;
+	static bool processPlayerAutoMoves = false;	
 
 	// Process all AI first, then process players.
 	// Processing of the AI 'first' only occurs when the AI are activated first
@@ -9265,11 +9269,20 @@ void CvGame::updateMoves()
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 			{
 				// If loaded from one of these autosaves, the original will be overwritten with a (binary identical) file upon load. No biggie but would be nice if it didn't happen.
-				if (autosavedTurn != currentTurn) {
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE(POST) of " << getGameTurn());								
-					gDLL->AutoSave(false, true);
-					autosavedTurn = currentTurn;		
-				}
+				if (m_iLastAutosavedTurn != currentTurn) {
+					if (m_iAutosaveFlag == 0)
+					{
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE(POST) of " << getGameTurn());
+						// flag to indicate that this was a post-autosave so we don't overwrite a save we have just loaded.
+						m_iAutosaveFlag = 1;
+						gDLL->AutoSave(false, true);						
+					}
+					else {
+						NET_MESSAGE_DEBUG_OSTR_ALWAYS("Avoided AUTOSAVE(POST) of " << getGameTurn());
+					}
+					m_iAutosaveFlag = 0;
+					m_iLastAutosavedTurn = currentTurn;
+				}		
 			}
 			if(!processPlayerAutoMoves)
 			{
@@ -9521,8 +9534,6 @@ void CvGame::updateMoves()
 		if (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 			// KWG: This code should go into CheckPlayerTurnDeactivate
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ POSTSAVE of " << getGameTurn());
-//			gDLL->AutoSave(false, true);
 			for(iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
@@ -11279,6 +11290,10 @@ void CvGame::Read(FDataStream& kStream)
 	kStream >> *m_pGameContracts;
 #endif
 
+#if defined(MOD_POST_AI_AUTOSAVE)
+	kStream >> m_iAutosaveFlag;
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream >> m_iAutosaveFlag = " << m_iAutosaveFlag);
+#endif
 	unsigned int lSize = 0;
 	kStream >> lSize;
 	if(lSize > 0)
@@ -11485,6 +11500,11 @@ void CvGame::Write(FDataStream& kStream) const
 	kStream << *m_pGameContracts;
 #endif
 
+#if defined(MOD_POST_AI_AUTOSAVE)
+	kStream << m_iAutosaveFlag;
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream << m_iAutosaveFlag = " << m_iAutosaveFlag);
+#endif
+	
 	//In Version 8, Serialize Saved Game database
 	CvString strPath = gDLL->GetCacheFolderPath();
 	strPath += "Civ5SavedGameDatabase.db";

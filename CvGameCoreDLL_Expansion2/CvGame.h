@@ -868,6 +868,11 @@ protected:
 	CvGameContracts*		   m_pGameContracts;
 #endif
 
+#if defined(MOD_POST_AI_AUTOSAVE)
+	int m_iAutosaveFlag;
+	int m_iLastAutosavedTurn;
+#endif
+
 	//necessary because we only want to hide the mouseover of the most recently moused over unit -KS
 	int                        m_iLastMouseoverUnitID;
 
