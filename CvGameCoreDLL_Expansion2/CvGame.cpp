@@ -5130,7 +5130,8 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 					int econ = pLoopCity->getEconomicValue((PlayerTypes)iI);
 					pLoopCity->updateEconomicValue();
 					int econ_ = pLoopCity->getEconomicValue((PlayerTypes)iI);
-					if (econ != econ_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " econ" << " = " << econ << " => " << econ_);
+					if (econ != econ_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << "-" << iLoop << " econ" << " = " << econ << " => " << econ_)
+					else NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHeck: " << iI << "-" << iLoop << " econ" << " = " << econ << " => " << econ_)
 
 					NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << ": GetNumPotentialConnections(LAND)=" << kPlayer.GetTrade()->GetNumPotentialConnections(pLoopCity, DOMAIN_LAND, false));
 					NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << ": GetNumPotentialConnections(SEA)=" << kPlayer.GetTrade()->GetNumPotentialConnections(pLoopCity, DOMAIN_SEA, false));
@@ -5152,8 +5153,10 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 				kPlayer.CalculateNetHappiness();
 				int iHappiness_ = kPlayer.GetHappiness();
 				int iUnhappiness_ = kPlayer.GetUnhappiness();
-				if (iHappiness != iHappiness_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " happiness" << " = " << iHappiness << " => " << iHappiness_);
-				if (iUnhappiness != iUnhappiness_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " unhappiness" << " = " << iUnhappiness << " => " << iUnhappiness_);
+				if (iHappiness != iHappiness_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " happiness" << " = " << iHappiness << " => " << iHappiness_)
+				else NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHeck: " << iI << " happiness" << " = " << iHappiness << " => " << iHappiness_);
+				if (iUnhappiness != iUnhappiness_) NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHAX: " << iI << " unhappiness" << " = " << iUnhappiness << " => " << iUnhappiness_)
+				else NET_MESSAGE_DEBUG_OSTR_ALWAYS("DESYNCHeck: " << iI << " unhappiness" << " = " << iUnhappiness << " => " << iUnhappiness_)
 			}
 
 			//if (kPlayer.isHuman() && kPlayer.isAlive())

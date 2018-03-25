@@ -4516,6 +4516,7 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 //	--------------------------------------------------------------------------------
 void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::receiveGoody(): " << pUnit->getOwner() << " " << pPlot->getX() << "," << << pPlot->getY());
 	CvPlot* pLoopPlot;
 	CvPlot* pBestPlot = NULL;
 	CvString strBuffer;
