@@ -132,6 +132,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CvGameCoreDLLPCH.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="CvAutoSave.cpp" />
     <ClCompile Include="CvBarbarians.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CvGameCoreDLLPCH.h</PrecompiledHeaderFile>
@@ -724,6 +725,7 @@
     <ClInclude Include="CvArmyAI.h" />
     <ClInclude Include="CvAStar.h" />
     <ClInclude Include="CvAStarNode.h" />
+    <ClInclude Include="CvAutoSave.h" />
     <ClInclude Include="CvBarbarians.h" />
     <ClInclude Include="CvBeliefClasses.h" />
     <ClInclude Include="CvBitfield.h" />

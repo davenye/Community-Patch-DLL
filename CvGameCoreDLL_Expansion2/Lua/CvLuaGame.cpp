@@ -520,6 +520,9 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 	Method(DeleteCSV);
 	Method(WriteCSV);
 #endif
+
+	Method(GetLastAutoSaveTurn);
+	Method(QueueAutoSaveTurn);
 }
 //------------------------------------------------------------------------------
 
@@ -4046,3 +4049,16 @@ int CvLuaGame::lWriteCSV(lua_State * L)
 	return 1;
 }
 #endif
+
+int CvLuaGame::lGetLastAutoSaveTurn(lua_State* L)
+{
+	int last = GC.getGame().getAutoSaver().getLastAutoSaveTurn();
+	lua_pushinteger(L, last);
+	return 1;
+}
+
+int CvLuaGame::lQueueAutoSaveTurn(lua_State* L)
+{
+	GC.getGame().getAutoSaver().queueAutoSave();
+	return 0;
+}

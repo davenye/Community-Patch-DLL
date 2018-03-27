@@ -946,7 +946,8 @@ void CvGame::regenerateMap()
 
 	GC.GetEngineUserInterface()->setCycleSelectionCounter(1);
 
-	gDLL->AutoSave(true);
+	//gDLL->AutoSave(true);
+	GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_MAP_GEN);
 }
 
 
@@ -1427,6 +1428,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 #if defined(MOD_POST_AI_AUTOSAVE) 
 	m_iAutosaveFlag = 0;
 	m_iLastAutosavedTurn = -1;
+	m_kAutoSaver = CvAutoSave();
 #endif
 }
 
@@ -1674,7 +1676,8 @@ void CvGame::update()
 			//this creates the initial autosave
 			if(getTurnSlice() == 0 && !isPaused())
 			{
-				gDLL->AutoSave(true);
+				//gDLL->AutoSave(true);
+				GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_INITIAL);
 			}
 
 #if defined(EXTERNAL_PAUSING)
@@ -8217,9 +8220,11 @@ void CvGame::doTurn()
 	int iLoopPlayer;
 	int iI;
 
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::doTurn() start is network mp: " << isNetworkMultiPlayer());
 	//create an autosave
 	if(!isNetworkMultiPlayer())
-		gDLL->AutoSave(false, false);
+		//gDLL->AutoSave(false, false);
+		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
 
 	// END OF TURN
 
@@ -8443,13 +8448,16 @@ void CvGame::doTurn()
 
 	LogGameState();
 
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::doTurn() end is network mp: " << isNetworkMultiPlayer());
 	//autosave after doing a turn
 	if (isNetworkMultiPlayer())
 	{
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE of " << getGameTurn());
-		gDLL->AutoSave(false);
+		//gDLL->AutoSave(false);
+		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
 	}
-
+	else 
+		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
 	gDLL->PublishNewGameTurn(getGameTurn());
 }
 
@@ -9268,23 +9276,29 @@ void CvGame::updateMoves()
 			// DN: This spot *seems* safe for a save point due to the barrier created by the allAICivsProcessedThisTurn check above.
 			// Currently, nothing that can't be repeated is done between here and the normal autosave when the AI have finished. This needs to remain the case.
 			// Should add a GameOption or similar to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving but less sure of safety
+			if(isNetworkMultiPlayer())
+				GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 			{
+				//if(GC.getGame().getAutoSaver().getLastAutoSavePoint() != AUTOSAVE2_POINT_NETWORK_GAME_TURN_POST || )
+				
+				//NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE(POST) of " << getGameTurn());
 				// If loaded from one of these autosaves, the original will be overwritten with a (binary identical) file upon load. No biggie but would be nice if it didn't happen.
-				if (m_iLastAutosavedTurn != currentTurn) {
+				/*if (m_iLastAutosavedTurn != currentTurn) {
 					if (m_iAutosaveFlag == 0)
 					{
 						NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE(POST) of " << getGameTurn());
 						// flag to indicate that this was a post-autosave so we don't overwrite a save we have just loaded.
 						m_iAutosaveFlag = 1;
-						gDLL->AutoSave(false, true);						
+						//gDLL->AutoSave(false, true);						
+						GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
 					}
 					else {
 						NET_MESSAGE_DEBUG_OSTR_ALWAYS("Avoided AUTOSAVE(POST) of " << getGameTurn());
 					}
 					m_iAutosaveFlag = 0;
 					m_iLastAutosavedTurn = currentTurn;
-				}		
+				}*/		
 			}
 			if(!processPlayerAutoMoves)
 			{
@@ -11293,8 +11307,9 @@ void CvGame::Read(FDataStream& kStream)
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE)
-	kStream >> m_iAutosaveFlag;
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream >> m_iAutosaveFlag = " << m_iAutosaveFlag);
+	//kStream >> m_iAutosaveFlag;
+	kStream >> m_kAutoSaver;
+	//NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream >> m_iAutosaveFlag = " << m_iAutosaveFlag);
 #endif
 	unsigned int lSize = 0;
 	kStream >> lSize;
@@ -11503,8 +11518,7 @@ void CvGame::Write(FDataStream& kStream) const
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE)
-	kStream << m_iAutosaveFlag;
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream << m_iAutosaveFlag = " << m_iAutosaveFlag);
+	kStream << m_kAutoSaver;
 #endif
 	
 	//In Version 8, Serialize Saved Game database
@@ -14131,6 +14145,12 @@ int CvGame::GetGreatestPlayerResourceMonopolyValue(ResourceTypes eResource) cons
 		return 0;
 
 	return GET_PLAYER(eGreatestPlayer).GetMonopolyPercent(eResource);
+
+}
+
+CvAutoSave& CvGame::getAutoSaver()
+{
+	return m_kAutoSaver;
 }
 #endif
 #endif

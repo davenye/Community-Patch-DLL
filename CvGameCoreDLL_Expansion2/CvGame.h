@@ -20,6 +20,10 @@
 #include "CvDistanceMap.h"
 #include "CvDealClasses.h"
 
+#if defined(MOD_POST_AI_AUTOSAVE)
+#include "CvAutoSave.h"
+#endif 
+
 class CvPlot;
 class CvCity;
 class CvReplayMessage;
@@ -689,6 +693,9 @@ public:
 	int GetNextGlobalID() { return ++m_iGlobalAssetCounter; }
 #endif
 
+#if defined(MOD_POST_AI_AUTOSAVE)
+	CvAutoSave& getAutoSaver();
+#endif
 	void SetClosestCityMapDirty();
 	//assuming a typical unit with baseMoves==2
 	int GetClosestCityDistanceInTurns( const CvPlot* pPlot );
@@ -869,6 +876,7 @@ protected:
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE)
+	CvAutoSave m_kAutoSaver;
 	int m_iAutosaveFlag;
 	int m_iLastAutosavedTurn;
 #endif

@@ -510,6 +510,9 @@ protected:
 	static int lDeleteCSV(lua_State* L);
 	static int lWriteCSV(lua_State* L);
 #endif
+
+	static int lGetLastAutoSaveTurn(lua_State* L);
+	static int lQueueAutoSaveTurn(lua_State* L);
 };
 
 #endif //CVLUAGAME_H
