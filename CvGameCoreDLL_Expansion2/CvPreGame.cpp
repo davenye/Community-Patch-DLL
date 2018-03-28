@@ -279,6 +279,21 @@ PREGAMEVAR(std::vector<bool>,                  s_turnNotifySteamInvite,        M
 PREGAMEVAR(std::vector<bool>,                  s_turnNotifyEmail,							MAX_PLAYERS);
 PREGAMEVAR(std::vector<CvString>,              s_turnNotifyEmailAddress,    MAX_PLAYERS);
 
+//#if defined(MOD_KEEP_RANDOM_CIVS_SECRET)
+//PREGAMEVAR(std::vector<unsigned long long>, s_metCivs, MAX_MAJOR_CIVS);
+
+#if MAX_MAJOR_CIVS <= 32
+typedef unsigned long MetCivsBitArray;
+#elif MAX_MAJOR_CIVS <= 64
+typedef unsigned long long MetCivsBitArray;
+#else
+// In the highly unlikely event...
+#error need different storage for CvPreGame::s_metCivs now that MAX_MAJOR_CIVS is > 64
+#endif
+
+// this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
+std::vector<MetCivsBitArray> s_metCivs;
+//#endif
 
 typedef std::map<uint, uint> HashToOptionMap;
 
@@ -456,6 +471,23 @@ void writeSlotStatus(FDataStream& saveTo)
 	}
 }
 
+void updateMetCivsStore() {
+	// if relationship is always reciprocal I could just store half and flip as necessary but I am not 100% sure it is.
+	s_metCivs.clear();
+	s_metCivs.resize(MAX_MAJOR_CIVS);	
+	for (int i = 0; i < MAX_MAJOR_CIVS; i++) {
+		MetCivsBitArray bitarray = 0;
+		const CvTeam& kTeam = GET_TEAM((TeamTypes)i);
+
+		for (int j = 0; j < MAX_MAJOR_CIVS; j++) {
+			if (i == j || kTeam.isHasMet((TeamTypes)j))
+				bitarray |= 1 << j;
+		}
+		s_metCivs[i] = bitarray;
+	}
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WROTE METCIVS");
+}
+
 //	-----------------------------------------------------------------------
 void saveSlotHints(FDataStream& saveTo)
 {
@@ -474,6 +506,9 @@ void saveSlotHints(FDataStream& saveTo)
 	saveTo << s_handicaps;
 	saveTo << s_civilizationKeys;
 	saveTo << s_leaderKeys;
+
+	updateMetCivsStore();
+	saveTo << s_metCivs;
 }
 
 void ReseatConnectedPlayers()
@@ -523,7 +558,8 @@ static void loadSlotsHelper(
     std::vector<TeamTypes>& teamTypes,
     std::vector<HandicapTypes>& handicapTypes,
 	std::vector<CvString>& civilizationKeys,
-	std::vector<CvString>& leaderKeys)
+	std::vector<CvString>& leaderKeys,
+	std::vector<MetCivsBitArray>& metCivs)
 {
 	loadFrom >> gameSpeed;
 	loadFrom >> worldSize;
@@ -551,6 +587,8 @@ static void loadSlotsHelper(
 		civilizationKeys.clear();
 		leaderKeys.clear();
 	}
+
+	loadFrom >> metCivs;
 }
 
 int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
@@ -570,8 +608,9 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> dummyHandicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
+	std::vector<MetCivsBitArray> dummyMetCivs;
 
-	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys);
+	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyMetCivs);
 
 	return calcActiveSlotCount(slotStatus, slotClaims);
 }
@@ -593,8 +632,9 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> handicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
+	std::vector<MetCivsBitArray> metCivs;
 
-	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys);
+	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys, metCivs);
 
 	s_gameSpeed = gameSpeed;
 	s_worldSize = worldSize;
@@ -638,7 +678,7 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 		PlayerTypes p = static_cast<PlayerTypes>(i);
 		setNickname(p, s_nicknames[i]); // fix display names
 	}
-
+	s_metCivs = metCivs;
 	ReseatConnectedPlayers();
 }
 
@@ -1903,6 +1943,12 @@ void readArchive(FDataStream& loadFrom, bool bReadVersion)
 		loadFrom >> s_turnNotifyEmailAddress;
 	}
 
+	/*if (uiVersion >= 6) {
+		loadFrom >> s_metCivs;		
+		for (size_t i = 0; i < s_metCivs.size(); i++)
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("laoded met civs for " << i << ": " << s_metCivs[i]);
+	}*/
+
 	// Rebuild the hash lookup to the options
 	s_GameOptionsHash.clear();
 	for(size_t i = 0; i < s_GameOptions.size(); i++)
@@ -2009,6 +2055,8 @@ void resetGame()
 
 	s_privateGame = false;
 	s_isInternetGame = false;
+
+	s_metCivs.clear();
 
 	ResetMapOptions();
 	ResetGameOptions();
@@ -3195,9 +3243,10 @@ WorldSizeTypes worldSize()
 	return s_worldSize;
 }
 
+
 void writeArchive(FDataStream& saveTo)
 {
-	uint uiVersion = 6;
+	uint uiVersion = 7;
 	saveTo << uiVersion;
 
 	saveTo << s_activePlayer;
@@ -3286,6 +3335,9 @@ void writeArchive(FDataStream& saveTo)
 	saveTo << s_turnNotifySteamInvite;
 	saveTo << s_turnNotifyEmail;
 	saveTo << s_turnNotifyEmailAddress;
+	
+	/*updateMetCivsStore();
+	saveTo << s_metCivs;*/
 }
 
 void write(FDataStream& saveTo)
@@ -3444,8 +3496,29 @@ void setCivilizationKey(PlayerTypes p, const CvString& szKey)
 }
 
 // Return true if the key for the players civilization is available on this machine
+// Also hijacked to allow checking if a player is known to any of the local human players. Seems difficult to expose stuff to the pregame Lua stuff, sorry.
 bool civilizationKeyAvailable(PlayerTypes p)
 {
+	/////////////// HIJACKED /////////////////////////////////////
+	if (p < 0) // to differentiate I am passing in the player id as -(p+1), so player 0 would become player -1 which is an otherwise non-occuring input to the function (along with all other negative values)
+	{			
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet?");
+		p = (PlayerTypes) (-p - 1);
+		for (int i = 0; i < MAX_MAJOR_CIVS; i++)
+		{
+			//const CvPlayerAI& p2 = GET_PLAYER((PlayerTypes)i);
+			//if (p2.isHuman() && p2.isLocalPlayer() && isHasMet(p, (PlayerTypes)i)) // but what about observers? not sure how they work yet.
+			//if (slotStatus((PlayerTypes)i) == SS_OBSERVER || (slotStatus((PlayerTypes)i) == SS_TAKEN && isHasMet(p, (PlayerTypes)i)))
+			// looks spare slots get set up as observers?
+			if (slotStatus((PlayerTypes)i) == SS_TAKEN && isHasMet(p, (PlayerTypes)i))
+			{
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet " << i);
+				return true;
+			}
+		}
+		return false;
+	}
+	///////////////////////////////////////////////////////////////
 	if(p >= 0 && p < MAX_PLAYERS)
 	{
 		return s_civilizationKeysAvailable[p];
@@ -3490,5 +3563,14 @@ bool canReadyLocalPlayer()
 			return false;
 	}
 	return true;
+}
+
+
+bool isHasMet(PlayerTypes eA, PlayerTypes eB) {
+	if (eA < 0 || eB < 0) return true; // erring on the side of caution
+	if ((size_t)eA >= s_metCivs.size() || (size_t)eB >= s_metCivs.size()) return true; // erring on the side of caution
+	bool met = s_metCivs[eA] & (1 << eB);
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("isHasMet " << eA << " " << eB << " = " << met);
+	return met;
 }
 }

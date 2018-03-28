@@ -307,6 +307,10 @@ static TeamTypes teamType(PlayerTypes p)
 	return NO_TEAM;
 }
 
+
+// WARNING: this is only updated upon save and only of any use in the Staging Room - use CvTeam::isHasMet instead
+bool isHasMet(PlayerTypes eA, PlayerTypes eB);
+
 };
 
 inline TeamTypes getTeam(PlayerTypes ePlayerID)

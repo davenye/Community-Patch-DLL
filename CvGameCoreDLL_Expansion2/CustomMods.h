@@ -44,6 +44,8 @@
 // Enables making an extra autosave after Barbs/AI turn in (currently) Simultaneous/Hybrid turn MP
 #define MOD_POST_AI_AUTOSAVE	(true)
 
+#define MOD_KEEP_RANDOM_CIVS_SECRET	(true)
+
 ///////////////////////
 // BATTLE ROYALE CODE
 //////////////////////
