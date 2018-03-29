@@ -3496,7 +3496,7 @@ void setCivilizationKey(PlayerTypes p, const CvString& szKey)
 }
 
 // Return true if the key for the players civilization is available on this machine
-// Also hijacked to allow checking if a player is known to any of the local human players. Seems difficult to expose stuff to the pregame Lua stuff, sorry.
+// Also hijacked to allow checking if a player is known to any of the local human player. Seems difficult to expose stuff to the pregame Lua stuff, sorry. This function was being used in exactly one place and has limited utility at least.
 bool civilizationKeyAvailable(PlayerTypes p)
 {
 	/////////////// HIJACKED /////////////////////////////////////
@@ -3504,17 +3504,15 @@ bool civilizationKeyAvailable(PlayerTypes p)
 	{			
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet?");
 		p = (PlayerTypes) (-p - 1);
-		for (int i = 0; i < MAX_MAJOR_CIVS; i++)
+		
+		//const CvPlayerAI& p2 = GET_PLAYER((PlayerTypes)i);
+		//if (p2.isHuman() && p2.isLocalPlayer() && isHasMet(p, (PlayerTypes)i)) // but what about observers? not sure how they work yet.
+		//if (slotStatus((PlayerTypes)i) == SS_OBSERVER || (slotStatus((PlayerTypes)i) == SS_TAKEN && isHasMet(p, (PlayerTypes)i)))
+		// looks spare slots get set up as observers?
+		if (isHasMet(p, activePlayer()))
 		{
-			//const CvPlayerAI& p2 = GET_PLAYER((PlayerTypes)i);
-			//if (p2.isHuman() && p2.isLocalPlayer() && isHasMet(p, (PlayerTypes)i)) // but what about observers? not sure how they work yet.
-			//if (slotStatus((PlayerTypes)i) == SS_OBSERVER || (slotStatus((PlayerTypes)i) == SS_TAKEN && isHasMet(p, (PlayerTypes)i)))
-			// looks spare slots get set up as observers?
-			if (slotStatus((PlayerTypes)i) == SS_TAKEN && isHasMet(p, (PlayerTypes)i))
-			{
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet " << i);
-				return true;
-			}
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet " << activePlayer());
+			return true;
 		}
 		return false;
 	}
