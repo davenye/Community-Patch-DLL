@@ -93,9 +93,6 @@ bool CvAutoSave::SavePoint(AutoSavePointTypes eSavePoint) {
 		return false;
 	}
 
-	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
-	const CvPlayerAI& kActivePlayer = GET_PLAYER(eActivePlayer);
-
 	AutoSavePlayerTypes participant = GetBestPlayerTypeMatch();
 	//NET_MESSAGE_DEBUG_OSTR_ALWAYS("GetBestPlayerTypeMatch() = " << participant);
 	if (participant == NO_AUTOSAVE_PLAYER) // when, if ever?
