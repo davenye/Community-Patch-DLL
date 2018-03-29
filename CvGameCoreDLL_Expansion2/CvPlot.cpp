@@ -10984,6 +10984,12 @@ PlotVisibilityChangeResult CvPlot::changeVisibilityCount(TeamTypes eTeam, int iC
 	//remember the maximum
 	m_aiVisibilityCountThisTurnMax[eTeam] = max(m_aiVisibilityCountThisTurnMax[eTeam], m_aiVisibilityCount[eTeam]);
 
+	if (bAlwaysSeeInvisible && eSeeInvisible != NO_INVISIBLE)
+	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("!!!!!!!!!!!!!! BUG EFFECT (bAlwaysSeeInvisible && eSeeInvisible != NO_INVISIBLE) !!!!!!!!!!!!!!!!!!!!!" << eTeam << " " << iChange << " " << eSeeInvisible);
+		if(pUnit)
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("!!!!!!!!!!!!!! BUG EFFECT (bAlwaysSeeInvisible && eSeeInvisible != NO_INVISIBLE) !!!!!!!!!!!!!!!!!!!!! unit was: " << pUnit->GetID());
+	}
 	if (bAlwaysSeeInvisible)
 	{
 		for (int iI = 0; iI < NUM_INVISIBLE_TYPES; iI++)
