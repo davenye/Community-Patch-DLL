@@ -523,6 +523,8 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 
 	Method(GetLastAutoSaveTurn);
 	Method(QueueAutoSaveTurn);
+	Method(SetAutoSavePoint);
+	
 }
 //------------------------------------------------------------------------------
 
@@ -4061,4 +4063,16 @@ int CvLuaGame::lQueueAutoSaveTurn(lua_State* L)
 {
 	GC.getGame().getAutoSaver().queueAutoSave();
 	return 0;
+}
+
+int CvLuaGame::lSetAutoSavePoint(lua_State* L)
+{
+	int cat = lua_tointeger(L, 1);
+	int point = lua_tointeger(L, 2);
+	int value = lua_tointeger(L, 3);
+
+	bool result = GC.getGame().getAutoSaver().ConfigureSavePoint(value, (AutoSavePointTypes)point, (AutoSavePlayerTypes) cat);
+
+	lua_pushboolean(L, result);	
+	return 1;
 }

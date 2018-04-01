@@ -176,6 +176,10 @@ void CvAutoSave::UpdateTurn() {
 
 AutoSavePlayerTypes CvAutoSave::GetBestPlayerTypeMatch() const
 {
+	if (!GC.getGame().isNetworkMultiPlayer())
+	{
+		return AUTOSAVE_PLAYER_SINGLE;
+	}
 	if (gDLL->IsPitbossHost())
 	{
 		return AUTOSAVE_PLAYER_PITBOSSHOST;
@@ -216,8 +220,6 @@ int CvAutoSave::getLastAutoSaveTurn() const
 
 bool CvAutoSave::ConfigureSavePoint(int freq, AutoSavePointTypes eSavePoint, AutoSavePlayerTypes ePlayerType)
 {
-	if (false)
-		return false;
 
 	AutoSavePointTypes eSavePointBegin, eSavePointEnd;
 	AutoSavePlayerTypes ePlayerTypeBegin, ePlayerTypeEnd;
@@ -244,8 +246,8 @@ bool CvAutoSave::ConfigureSavePoint(int freq, AutoSavePointTypes eSavePoint, Aut
 		ePlayerTypeEnd = NUM_AUTOSAVE_PLAYER;
 	}
 
-	for(int playerType = ePlayerTypeBegin; playerType != ePlayerTypeEnd; playerType++)
-		for (int savePoint = eSavePointBegin; savePoint != eSavePointEnd; savePoint++)
+	for(int playerType = ePlayerTypeBegin; playerType <= ePlayerTypeEnd; playerType++)
+		for (int savePoint = eSavePointBegin; savePoint <= eSavePointEnd; savePoint++)
 			eSavePointMatrix[playerType][savePoint] = freq;
 
 	return true;
