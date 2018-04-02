@@ -22,6 +22,7 @@
 
 #if defined(MOD_POST_AI_AUTOSAVE)
 #include "CvAutoSave.h"
+#include "CvAutoSave2.h"
 #endif 
 
 class CvPlot;
@@ -695,6 +696,7 @@ public:
 
 #if defined(MOD_POST_AI_AUTOSAVE)
 	CvAutoSave& getAutoSaver();
+	CvAutoSave2& getAutoSaver2();
 #endif
 	void SetClosestCityMapDirty();
 	//assuming a typical unit with baseMoves==2
@@ -877,6 +879,7 @@ protected:
 
 #if defined(MOD_POST_AI_AUTOSAVE)
 	CvAutoSave m_kAutoSaver;
+	CvAutoSave2 m_kAutoSaver2;
 	int m_iAutosaveFlag;
 	int m_iLastAutosavedTurn;
 #endif

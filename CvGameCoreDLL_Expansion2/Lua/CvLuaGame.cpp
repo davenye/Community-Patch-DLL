@@ -523,8 +523,12 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 
 	Method(GetLastAutoSaveTurn);
 	Method(QueueAutoSaveTurn);
+	Method(QueueSave);
 	Method(SetAutoSavePoint);
-	
+
+	Method(IsPitbossHost);
+	Method(IsHost);
+
 }
 //------------------------------------------------------------------------------
 
@@ -4065,6 +4069,17 @@ int CvLuaGame::lQueueAutoSaveTurn(lua_State* L)
 	return 0;
 }
 
+
+int CvLuaGame::lQueueSave(lua_State* L)
+{
+	const char* filename = lua_tostring(L, 1);
+	int turn = lua_tointeger(L, 2);
+
+	GC.getGame().getAutoSaver2().QueueSave(filename, turn);
+	return 0;
+}
+
+
 int CvLuaGame::lSetAutoSavePoint(lua_State* L)
 {
 	int cat = lua_tointeger(L, 1);
@@ -4074,5 +4089,18 @@ int CvLuaGame::lSetAutoSavePoint(lua_State* L)
 	bool result = GC.getGame().getAutoSaver().ConfigureSavePoint(value, (AutoSavePointTypes)point, (AutoSavePlayerTypes) cat);
 
 	lua_pushboolean(L, result);	
+	return 1;
+}
+
+
+int CvLuaGame::lIsPitbossHost(lua_State* L)
+{
+	lua_pushboolean(L, gDLL->IsPitbossHost());
+	return 1;
+}
+
+int CvLuaGame::lIsHost(lua_State* L)
+{
+	lua_pushboolean(L, gDLL->IsHost());
 	return 1;
 }

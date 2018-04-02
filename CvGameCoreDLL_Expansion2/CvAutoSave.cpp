@@ -78,7 +78,7 @@ CvAutoSave::~CvAutoSave()
 }
 
 bool CvAutoSave::SavePoint(AutoSavePointTypes eSavePoint) {
-
+	
 	if (m_bSkipFirstNetworkGameHumanTurnsStartSave && eSavePoint == AUTOSAVE_POINT_NETWORK_GAME_TURN_POST)
 	{
 		//NET_MESSAGE_DEBUG_OSTR_ALWAYS("skipping firs postautosave");

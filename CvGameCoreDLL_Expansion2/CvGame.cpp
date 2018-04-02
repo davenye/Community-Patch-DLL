@@ -1429,6 +1429,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iAutosaveFlag = 0;
 	m_iLastAutosavedTurn = -1;
 	m_kAutoSaver = CvAutoSave();
+	m_kAutoSaver2 = CvAutoSave2();
 #endif
 }
 
@@ -8222,9 +8223,12 @@ void CvGame::doTurn()
 
 	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::doTurn() start is network mp: " << isNetworkMultiPlayer());
 	//create an autosave
-	if(!isNetworkMultiPlayer())
+	if (!isNetworkMultiPlayer())
+	{
 		//gDLL->AutoSave(false, false);
 		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
+		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_LOCAL_GAME_TURN);
+	}
 
 	// END OF TURN
 
@@ -8455,9 +8459,13 @@ void CvGame::doTurn()
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE of " << getGameTurn());
 		//gDLL->AutoSave(false);
 		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
+		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_NETWORK_GAME_TURN);
 	}
-	else 
+	else
+	{
 		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
+		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_LOCAL_GAME_TURN_POST);
+	}
 	gDLL->PublishNewGameTurn(getGameTurn());
 }
 
@@ -9276,8 +9284,11 @@ void CvGame::updateMoves()
 			// DN: This spot *seems* safe for a save point due to the barrier created by the allAICivsProcessedThisTurn check above.
 			// Currently, nothing that can't be repeated is done between here and the normal autosave when the AI have finished. This needs to remain the case.
 			// Should add a GameOption or similar to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving but less sure of safety
-			if(isNetworkMultiPlayer())
+			if (isNetworkMultiPlayer())
+			{
 				GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
+				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_NETWORK_GAME_TURN_POST);
+			}
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 			{
 				//if(GC.getGame().getAutoSaver().getLastAutoSavePoint() != AUTOSAVE2_POINT_NETWORK_GAME_TURN_POST || )
@@ -14151,6 +14162,11 @@ int CvGame::GetGreatestPlayerResourceMonopolyValue(ResourceTypes eResource) cons
 CvAutoSave& CvGame::getAutoSaver()
 {
 	return m_kAutoSaver;
+}
+
+CvAutoSave2& CvGame::getAutoSaver2()
+{
+	return m_kAutoSaver2;
 }
 #endif
 #endif

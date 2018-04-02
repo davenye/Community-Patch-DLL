@@ -513,7 +513,11 @@ protected:
 
 	static int lGetLastAutoSaveTurn(lua_State* L);
 	static int lQueueAutoSaveTurn(lua_State* L);
+	static int lQueueSave(lua_State* L);
 	static int lSetAutoSavePoint(lua_State* L);
+
+	static int lIsPitbossHost(lua_State* L);
+	static int lIsHost(lua_State* L);
 };
 
 #endif //CVLUAGAME_H

@@ -1294,6 +1294,9 @@ enum BattleTypeTypes
 #define GAMEEVENT_CityEventCanTake			"CityEventCanTake", "iii"
 #define GAMEEVENT_EventUnitCreated			"EventUnitCreated", "iii"
 #define GAMEEVENT_CityFlipped				"CityFlipped", "iii"
+// AutoSave
+#define GAMEEVENT_WantAutoSave				"WantAutoSave",		"i"
+#define GAMEEVENT_AutoSaved					"AutoSaved",		"ibb"
 
 // Serialization wrappers
 #define MOD_SERIALIZE
