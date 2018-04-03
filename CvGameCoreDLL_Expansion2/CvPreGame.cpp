@@ -507,7 +507,10 @@ void saveSlotHints(FDataStream& saveTo)
 	saveTo << s_civilizationKeys;
 	saveTo << s_leaderKeys;
 
-	updateMetCivsStore();
+	int iKeepUnmet = 0;
+	GetGameOption(GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN, iKeepUnmet);
+	if(iKeepUnmet)
+		updateMetCivsStore();
 	saveTo << s_metCivs;
 }
 
