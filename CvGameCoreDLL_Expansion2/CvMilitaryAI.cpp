@@ -415,14 +415,9 @@ void CvMilitaryAI::Read(FDataStream& kStream)
 
 	int iNumStrategies;
 	kStream >> iNumStrategies;
-#ifdef _MSC_VER
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // dereferencing null : no recovery during load, go ahead and crash here.
-#endif//_MSC_VER
+
 	ArrayWrapper<bool> wrapm_pabUsingStrategy(iNumStrategies, m_pabUsingStrategy);
-#ifdef _MSC_VER
-#pragma warning ( pop )
-#endif//_MSC_VER
+
 	kStream >> wrapm_pabUsingStrategy;
 
 	ArrayWrapper<int> wrapm_paiTurnStrategyAdopted(iNumStrategies, m_paiTurnStrategyAdopted);

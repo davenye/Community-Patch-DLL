@@ -3925,14 +3925,7 @@ void CvCityBuildings::Write(FDataStream& kStream)
 	kStream << m_iGreatWorksTourismModifier;
 	kStream << m_bSoldBuildingThisTurn;
 
-#ifdef _MSC_VER
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // if m_pBuildings is NULL during load, we're screwed. Redesign the class or the loader code.
-#endif//_MSC_VER
 	int iNumBuildings = m_pPossibleBuildings->GetNumBuildings();
-#ifdef _MSC_VER
-#pragma warning ( pop )
-#endif//_MSC_VER
 
 	BuildingArrayHelpers::Write(kStream, m_paiBuildingProduction, iNumBuildings);
 	BuildingArrayHelpers::Write(kStream, m_paiBuildingProductionTime, iNumBuildings);

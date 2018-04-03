@@ -3917,11 +3917,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 
 	CvAssertMsg(pNewCity != NULL, "NewCity is not assigned a valid value");
 
-#ifdef _MSC_VER
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) 
-#endif
-
 	// For buyouts, set it up like a new city founded by this player, to avoid liberation later on etc.
 	if(bIsMinorCivBuyout)
 	{
@@ -4834,9 +4829,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 #if defined(MOD_API_EXTENSIONS)
 		return pNewCity;
 #endif
-#ifdef _MSC_VER
-#pragma warning ( pop ) // restore warning level suppressed for pNewCity null check
-#endif// _MSC_VER
 }
 
 
@@ -33585,18 +33577,14 @@ const CvCivilizationInfo& CvPlayer::getCivilizationInfo() const
 		const char* szError = "ERROR: Player does not contain valid civilization type!!";
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
-
-		// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvCivilizationInfo();
-#pragma warning ( pop )
+		
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvCivilizationInfo communalInstance;
+		communalInstance.~CvCivilizationInfo();
+		new(&communalInstance)CvCivilizationInfo();
+		return communalInstance;
 	}
-
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *pkCivilizationInfo;
-#pragma warning ( pop )
 }
 
 //	--------------------------------------------------------------------------------
