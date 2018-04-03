@@ -1337,18 +1337,14 @@ const CvBuildingClassInfo& CvBuildingEntry::GetBuildingClassInfo() const
 		const char* szError = "ERROR: Building does not contain valid BuildingClass type!!";
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
-		
-// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvBuildingClassInfo();
-#pragma warning ( pop )
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvBuildingClassInfo communalInstance;
+		communalInstance.~CvBuildingClassInfo();
+		new(&communalInstance)CvBuildingClassInfo();
+		return communalInstance;
 	}
 
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *m_pkBuildingClassInfo;
-#pragma warning ( pop )
 }
 
 /// Does this building require a city built on or next to a specific terrain type?

@@ -33560,17 +33560,14 @@ const CvHandicapInfo& CvPlayer::getHandicapInfo() const
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
 
-		// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvHandicapInfo();
-#pragma warning ( pop )
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvHandicapInfo communalInstance;
+		communalInstance.~CvHandicapInfo();
+		new(&communalInstance)CvHandicapInfo();
+		return communalInstance;
 	}
 
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *pkHandicapInfo;
-#pragma warning ( pop )
 }
 
 //	--------------------------------------------------------------------------------
@@ -33619,17 +33616,14 @@ const CvLeaderHeadInfo& CvPlayer::getLeaderInfo() const
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
 
-		// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvLeaderHeadInfo();
-#pragma warning ( pop )
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvLeaderHeadInfo communalInstance;
+		communalInstance.~CvLeaderHeadInfo();
+		new(&communalInstance)CvLeaderHeadInfo();
+		return communalInstance;
 	}
 
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *pkLeaderInfo;
-#pragma warning ( pop )
 }
 
 //	--------------------------------------------------------------------------------
