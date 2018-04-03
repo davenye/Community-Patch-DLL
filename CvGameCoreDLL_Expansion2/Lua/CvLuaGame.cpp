@@ -4058,14 +4058,14 @@ int CvLuaGame::lWriteCSV(lua_State * L)
 
 int CvLuaGame::lGetLastAutoSaveTurn(lua_State* L)
 {
-	int last = GC.getGame().getAutoSaver().getLastAutoSaveTurn();
+	int last = GC.getGame().getAutoSaver2().getLastAutoSaveTurn();
 	lua_pushinteger(L, last);
 	return 1;
 }
 
 int CvLuaGame::lQueueAutoSaveTurn(lua_State* L)
 {
-	GC.getGame().getAutoSaver().queueAutoSave();
+	GC.getGame().getAutoSaver2().queueAutoSave();
 	return 0;
 }
 

@@ -947,7 +947,7 @@ void CvGame::regenerateMap()
 	GC.GetEngineUserInterface()->setCycleSelectionCounter(1);
 
 	//gDLL->AutoSave(true);
-	GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_MAP_GEN);
+	GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_MAP_GEN);
 }
 
 
@@ -1678,7 +1678,7 @@ void CvGame::update()
 			if(getTurnSlice() == 0 && !isPaused())
 			{
 				//gDLL->AutoSave(true);
-				GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_INITIAL);
+				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_INITIAL);
 			}
 
 #if defined(EXTERNAL_PAUSING)
@@ -5098,7 +5098,8 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 	CvAssert(getNumGameTurnActive() >= 0);
 
 	////////////////////////////////////////////
-	if (getNumGameTurnActive() == 0 && isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
+	//if (true && getNumGameTurnActive() == 0 && (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS)))
+	if (getNumGameTurnActive() == 0 && (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS)))
 	{
 		FILogFile* pLog;
 		pLog = LOGFILEMGR.GetLog("units.csv", FILogFile::kDontTimeStamp);
@@ -8226,7 +8227,7 @@ void CvGame::doTurn()
 	if (!isNetworkMultiPlayer())
 	{
 		//gDLL->AutoSave(false, false);
-		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
+		//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
 		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_LOCAL_GAME_TURN);
 	}
 
@@ -8458,12 +8459,12 @@ void CvGame::doTurn()
 	{
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE of " << getGameTurn());
 		//gDLL->AutoSave(false);
-		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
+		//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
 		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_NETWORK_GAME_TURN);
 	}
 	else
 	{
-		GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
+		//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
 		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_LOCAL_GAME_TURN_POST);
 	}
 	gDLL->PublishNewGameTurn(getGameTurn());
@@ -9286,7 +9287,7 @@ void CvGame::updateMoves()
 			// Should add a GameOption or similar to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving but less sure of safety
 			if (isNetworkMultiPlayer())
 			{
-				GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
+				//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
 				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_NETWORK_GAME_TURN_POST);
 			}
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))

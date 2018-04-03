@@ -128,7 +128,8 @@ bool CvAutoSave2::SavePoint(AutoSave2PointTypes eSavePoint) {
 			break;
 	
 	}
-	AutoSave(eSavePoint, isInitial || !isPost, isInitial, isPost);
+	bool bPostAutoSavesDefault = GC.getGame().isOption(GAMEOPTION_POST_AUTOSAVES);
+	AutoSave(eSavePoint, isInitial || !isPost || bPostAutoSavesDefault, isInitial, isPost);
 	
 
 	m_bSkipFirstNetworkGameHumanTurnsStartSave = false;
@@ -305,7 +306,9 @@ void CvAutoSave2::queueAutoSave() {
 
 bool CvAutoSave2::AutoSave(AutoSave2PointTypes eSavePoint, bool default, bool initial, bool post)
 {
-	bool save = FireWantAutoSaveEvent(eSavePoint, default);
+	bool save = eSavePoint == AUTOSAVE2_POINT_INITIAL;
+	if(!save)
+		save = FireWantAutoSaveEvent(eSavePoint, default);
 	if (save) {
 		m_eSavedPoint = eSavePoint;					
 		gDLL->AutoSave(initial, post);
