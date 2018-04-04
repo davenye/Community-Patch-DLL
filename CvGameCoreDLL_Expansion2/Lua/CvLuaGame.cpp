@@ -528,6 +528,7 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 
 	Method(IsPitbossHost);
 	Method(IsHost);
+	Method(GetTimeStringForYear);
 
 }
 //------------------------------------------------------------------------------
@@ -4102,5 +4103,19 @@ int CvLuaGame::lIsPitbossHost(lua_State* L)
 int CvLuaGame::lIsHost(lua_State* L)
 {
 	lua_pushboolean(L, gDLL->IsHost());
+	return 1;
+}
+
+//------------------------------------------------------------------------------
+int CvLuaGame::lGetTimeStringForYear(lua_State* L)
+{
+	int year = lua_tointeger(L, 1);
+
+	CvString timeString;
+
+	CvGame& kGame = GC.getGame();
+	CvGameTextMgr::setDateStr(timeString, year, true, kGame.getCalendar(), kGame.getStartYear(), kGame.getGameSpeedType());
+
+	lua_pushstring(L, timeString.GetCString());
 	return 1;
 }
