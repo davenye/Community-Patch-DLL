@@ -21,15 +21,10 @@
 #include "CvGameCoreUtils.h"
 #include "CvImprovementClasses.h"
 #include "CvDiplomacyAIEnums.h"
-#include "FireWorks/FRemark.h"
 #include "CvInfosSerializationHelper.h"
 
 // must be included after all other headers
 #include "LintFree.h"
-#ifdef _MSC_VER
-#pragma warning ( disable : 4505 ) // unreferenced local function has been removed.. needed by REMARK below
-#endif//_MSC_VER
-REMARK_GROUP("CvInfos");
 
 //////////////////////////////////////////////////////////////////////////
 // CvBaseInfo Members
@@ -5740,8 +5735,7 @@ bool CvFeatureInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	}
 	else
 	{
-		m_iWorldSoundscapeScriptId = -1;
-		Remark(1, "Warning: Missing soundscape definition in XML for feature: '%s'", GetType());
+		m_iWorldSoundscapeScriptId = -1;		
 	}
 
 	// Array properties
@@ -6209,7 +6203,6 @@ bool CvTerrainInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	else
 	{
 		m_iWorldSoundscapeScriptId = -1;
-		Remark(1, "Warning: Missing soundscape definition in XML for feature: '%s'", GetType());
 	}
 #if defined(MOD_BALANCE_CORE)
 	szTextVal = kResults.GetText("PassableTechTerrain");

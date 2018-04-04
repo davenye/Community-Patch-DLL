@@ -9,16 +9,10 @@
 #include "ICvDLLUserInterface.h"
 #include "CvGameCoreUtils.h"
 #include "CvImprovementClasses.h"
-#include "FireWorks/FRemark.h"
 #include "CvInfosSerializationHelper.h"
 
 // must be included after all other headers
 #include "LintFree.h"
-
-#ifdef _MSC_VER
-#pragma warning ( disable : 4505 ) // unreferenced local function has been removed.. needed by REMARK below
-#endif//_MSC_VER
-REMARK_GROUP("CvImprovementClasses");
 
 
 //======================================================================================================
@@ -380,7 +374,6 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	else
 	{
 		m_iWorldSoundscapeScriptId = -1;
-		Remark(1, "Warning: Missing soundscape definition in XML for feature: '%s'", GetType());
 	}
 
 	const char* szImprovementPillage = kResults.GetText("ImprovementPillage");
