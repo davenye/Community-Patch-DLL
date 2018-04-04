@@ -125,6 +125,7 @@ protected:
 	int eSavePointMatrix[NUM_AUTOSAVE2_PLAYER][NUM_AUTOSAVE2_POINT];
 
 	int iLastTurnSaved[NUM_AUTOSAVE2_POINT];
+	int iTurnChecked[NUM_AUTOSAVE2_POINT];
 
 	void UpdateTurn();
 

@@ -67,10 +67,15 @@ CvAutoSave2::CvAutoSave2()
 	}
 	
 	for (int i = 0; i < NUM_AUTOSAVE2_POINT; i++)
-		iLastTurnSaved[i] = -1;	
+	{
+		iLastTurnSaved[i] = -1;
+		iTurnChecked[i] = -1;
+	}
+
 
 	m_bSkipFirstNetworkGameHumanTurnsStartSave = false;
 	m_iQueuedAutoSaveTurn = -1;
+	m_eLastSavedPoint = NO_AUTOSAVE2_POINT;
 }
 
 CvAutoSave2::~CvAutoSave2()
@@ -78,7 +83,12 @@ CvAutoSave2::~CvAutoSave2()
 }
 
 bool CvAutoSave2::SavePoint(AutoSave2PointTypes eSavePoint) {
-
+	if (iTurnChecked[eSavePoint] == GC.getGame().getGameTurn())	{
+		return false;
+	}
+	else {
+		iTurnChecked[eSavePoint] = GC.getGame().getGameTurn();
+	}
 	if (!QueuedSaveRequests.empty() && eSavePoint == AUTOSAVE2_POINT_NETWORK_GAME_TURN) {
 		std::vector<QueuedSaveRequest>::iterator it = QueuedSaveRequests.begin();
 		while (it != QueuedSaveRequests.end() && it->turn <= GC.getGame().getGameTurn()) {
@@ -301,12 +311,14 @@ void CvAutoSave2::Save(const char* filename)
 
 void CvAutoSave2::queueAutoSave() {
 	m_iQueuedAutoSaveTurn = GC.getGame().getGameTurn() + 1;
-	ManualSave("unsafeAS");
+	//ManualSave("unsafeAS");
 }
 
 bool CvAutoSave2::AutoSave(AutoSave2PointTypes eSavePoint, bool default, bool initial, bool post)
 {
 	bool save = eSavePoint == AUTOSAVE2_POINT_INITIAL;
+	if (m_iQueuedAutoSaveTurn == GC.getGame().getGameTurn())
+		save = true;
 	if(!save)
 		save = FireWantAutoSaveEvent(eSavePoint, default);
 	if (save) {
