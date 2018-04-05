@@ -297,6 +297,7 @@ WorldSizeTypes                             worldSize();
 void                                       write(FDataStream& saveTo);
 int										 getActiveSlotCount();
 int										 readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion);
+bool										isKnownPlayer(PlayerTypes eA, PlayerTypes eB); // only accurate if game option enabled, used in Staging Room to determine if other player details should be shown
 
 extern const std::vector<TeamTypes>& sr_TeamTypes;
 
@@ -308,8 +309,7 @@ static TeamTypes teamType(PlayerTypes p)
 }
 
 
-// WARNING: this is only updated upon save and only of any use in the Staging Room - use CvTeam::isHasMet instead
-bool isHasMet(PlayerTypes eA, PlayerTypes eB);
+
 
 };
 

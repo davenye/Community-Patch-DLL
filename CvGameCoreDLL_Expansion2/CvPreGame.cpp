@@ -279,8 +279,7 @@ PREGAMEVAR(std::vector<bool>,                  s_turnNotifySteamInvite,        M
 PREGAMEVAR(std::vector<bool>,                  s_turnNotifyEmail,							MAX_PLAYERS);
 PREGAMEVAR(std::vector<CvString>,              s_turnNotifyEmailAddress,    MAX_PLAYERS);
 
-//#if defined(MOD_KEEP_RANDOM_CIVS_SECRET)
-//PREGAMEVAR(std::vector<unsigned long long>, s_metCivs, MAX_MAJOR_CIVS);
+#if defined(MOD_KEEP_RANDOM_CIVS_SECRET)
 
 #if MAX_MAJOR_CIVS <= 32
 typedef unsigned long MetCivsBitArray;
@@ -292,8 +291,8 @@ typedef unsigned long long MetCivsBitArray;
 #endif
 
 // this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
-std::vector<MetCivsBitArray> s_metCivs;
-//#endif
+std::vector<MetCivsBitArray> s_knownPlayersTable;
+#endif
 
 typedef std::map<uint, uint> HashToOptionMap;
 
@@ -471,10 +470,11 @@ void writeSlotStatus(FDataStream& saveTo)
 	}
 }
 
-void updateMetCivsStore() {
-	// if relationship is always reciprocal I could just store half and flip as necessary but I am not 100% sure it is.
-	s_metCivs.clear();
-	s_metCivs.resize(MAX_MAJOR_CIVS);	
+void updateKnownPlayersTable()
+{
+	// Playing it safe here, don't want to introduce a bug due to not knowing all the code paths and trying to save a few cycles/bytes
+	s_knownPlayersTable.clear();
+	s_knownPlayersTable.resize(MAX_MAJOR_CIVS);	
 	for (int i = 0; i < MAX_MAJOR_CIVS; i++) {
 		MetCivsBitArray bitarray = 0;
 		const CvTeam& kTeam = GET_TEAM((TeamTypes)i);
@@ -483,7 +483,7 @@ void updateMetCivsStore() {
 			if (i == j || kTeam.isHasMet((TeamTypes)j))
 				bitarray |= 1 << j;
 		}
-		s_metCivs[i] = bitarray;
+		s_knownPlayersTable[i] = bitarray;
 	}
 	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WROTE METCIVS");
 }
@@ -510,8 +510,8 @@ void saveSlotHints(FDataStream& saveTo)
 	int iKeepUnmet = 0;
 	GetGameOption(GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN, iKeepUnmet);
 	if(iKeepUnmet)
-		updateMetCivsStore();
-	saveTo << s_metCivs;
+		updateKnownPlayersTable();
+	saveTo << s_knownPlayersTable;
 }
 
 void ReseatConnectedPlayers()
@@ -611,9 +611,9 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> dummyHandicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
-	std::vector<MetCivsBitArray> dummyMetCivs;
+	std::vector<MetCivsBitArray> dummyKnownPlayersTable;
 
-	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyMetCivs);
+	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyKnownPlayersTable);
 
 	return calcActiveSlotCount(slotStatus, slotClaims);
 }
@@ -635,9 +635,9 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> handicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
-	std::vector<MetCivsBitArray> metCivs;
+	std::vector<MetCivsBitArray> knownPlayersTable;
 
-	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys, metCivs);
+	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys, knownPlayersTable);
 
 	s_gameSpeed = gameSpeed;
 	s_worldSize = worldSize;
@@ -681,7 +681,7 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 		PlayerTypes p = static_cast<PlayerTypes>(i);
 		setNickname(p, s_nicknames[i]); // fix display names
 	}
-	s_metCivs = metCivs;
+	s_knownPlayersTable = knownPlayersTable;
 	ReseatConnectedPlayers();
 }
 
@@ -1946,12 +1946,6 @@ void readArchive(FDataStream& loadFrom, bool bReadVersion)
 		loadFrom >> s_turnNotifyEmailAddress;
 	}
 
-	/*if (uiVersion >= 6) {
-		loadFrom >> s_metCivs;		
-		for (size_t i = 0; i < s_metCivs.size(); i++)
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS("laoded met civs for " << i << ": " << s_metCivs[i]);
-	}*/
-
 	// Rebuild the hash lookup to the options
 	s_GameOptionsHash.clear();
 	for(size_t i = 0; i < s_GameOptions.size(); i++)
@@ -2059,7 +2053,7 @@ void resetGame()
 	s_privateGame = false;
 	s_isInternetGame = false;
 
-	s_metCivs.clear();
+	s_knownPlayersTable.clear();
 
 	ResetMapOptions();
 	ResetGameOptions();
@@ -3339,8 +3333,8 @@ void writeArchive(FDataStream& saveTo)
 	saveTo << s_turnNotifyEmail;
 	saveTo << s_turnNotifyEmailAddress;
 	
-	/*updateMetCivsStore();
-	saveTo << s_metCivs;*/
+	/*updateKnownPlayersTable();
+	saveTo << s_knownPlayersTable;*/
 }
 
 void write(FDataStream& saveTo)
@@ -3499,22 +3493,18 @@ void setCivilizationKey(PlayerTypes p, const CvString& szKey)
 }
 
 // Return true if the key for the players civilization is available on this machine
-// Also hijacked to allow checking if a player is known to any of the local human player. Seems difficult to expose stuff to the pregame Lua stuff, sorry. This function was being used in exactly one place and has limited utility at least.
+// ALSO! Hijacked to allow checking if a player is known to the local human player. Seems difficult to expose stuff to the pregame Lua stuff (like the StagingRoom), sorry. This function was being used in exactly one place and has limited utility at least. 
 bool civilizationKeyAvailable(PlayerTypes p)
 {
 	/////////////// HIJACKED /////////////////////////////////////
 	if (p < 0) // to differentiate I am passing in the player id as -(p+1), so player 0 would become player -1 which is an otherwise non-occuring input to the function (along with all other negative values)
 	{			
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet?");
+		// Only makes sense for Network MP
+		CvAssertMsg(isNetworkMultiplayerGame(), "Checking known players table does not make sense outside of Network MP games!");
 		p = (PlayerTypes) (-p - 1);
 		
-		//const CvPlayerAI& p2 = GET_PLAYER((PlayerTypes)i);
-		//if (p2.isHuman() && p2.isLocalPlayer() && isHasMet(p, (PlayerTypes)i)) // but what about observers? not sure how they work yet.
-		//if (slotStatus((PlayerTypes)i) == SS_OBSERVER || (slotStatus((PlayerTypes)i) == SS_TAKEN && isHasMet(p, (PlayerTypes)i)))
-		// looks spare slots get set up as observers?
-		if (isHasMet(p, activePlayer()))
+		if (isKnownPlayer(p, activePlayer())) 
 		{
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS(p << " hazmet " << activePlayer());
 			return true;
 		}
 		return false;
@@ -3567,11 +3557,12 @@ bool canReadyLocalPlayer()
 }
 
 
-bool isHasMet(PlayerTypes eA, PlayerTypes eB) {
+bool isKnownPlayer(PlayerTypes eA, PlayerTypes eB) {
+	if (s_knownPlayersTable.empty()) return true; // only non-empty when we don't automatically already know everybody for these purposes
 	if (eA < 0 || eB < 0) return true; // erring on the side of caution
-	if ((size_t)eA >= s_metCivs.size() || (size_t)eB >= s_metCivs.size()) return true; // erring on the side of caution
-	bool met = s_metCivs[eA] & (1 << eB);
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("isHasMet " << eA << " " << eB << " = " << met);
-	return met;
+	if ((size_t)eA >= s_knownPlayersTable.size() || (size_t)eB >= s_knownPlayersTable.size()) return true; // erring on the side of caution
+	bool bKnown = s_knownPlayersTable[eA] & (1 << eB);
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("isKnownPlayer " << eA << " " << eB << " = " << bKnown);
+	return bKnown;
 }
 }
