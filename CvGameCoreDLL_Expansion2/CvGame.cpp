@@ -1426,9 +1426,6 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE) 
-	m_iAutosaveFlag = 0;
-	m_iLastAutosavedTurn = -1;
-	m_kAutoSaver = CvAutoSave();
 	m_kAutoSaver2 = CvAutoSave2();
 #endif
 }
@@ -11311,7 +11308,7 @@ void CvGame::Read(FDataStream& kStream)
 
 #if defined(MOD_POST_AI_AUTOSAVE)
 	//kStream >> m_iAutosaveFlag;
-	kStream >> m_kAutoSaver;
+	kStream >> m_kAutoSaver2;
 	//NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream >> m_iAutosaveFlag = " << m_iAutosaveFlag);
 #endif
 	unsigned int lSize = 0;
@@ -11521,7 +11518,7 @@ void CvGame::Write(FDataStream& kStream) const
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE)
-	kStream << m_kAutoSaver;
+	kStream << m_kAutoSaver2;
 #endif
 	
 	//In Version 8, Serialize Saved Game database
@@ -14149,11 +14146,6 @@ int CvGame::GetGreatestPlayerResourceMonopolyValue(ResourceTypes eResource) cons
 
 	return GET_PLAYER(eGreatestPlayer).GetMonopolyPercent(eResource);
 
-}
-
-CvAutoSave& CvGame::getAutoSaver()
-{
-	return m_kAutoSaver;
 }
 
 CvAutoSave2& CvGame::getAutoSaver2()

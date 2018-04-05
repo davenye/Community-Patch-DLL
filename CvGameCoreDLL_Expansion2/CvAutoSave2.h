@@ -105,10 +105,6 @@ public:
 	AutoSave2PointTypes getLastAutoSavePoint() const;
 	int getLastAutoSaveTurn() const;
 
-	void queueAutoSave();
-
-	bool ConfigureSavePoint(int freq, AutoSave2PointTypes eSavePoint = NO_AUTOSAVE2_POINT, AutoSave2PlayerTypes ePlayerTypes = NO_AUTOSAVE2_PLAYER);
-
 	void Read(FDataStream& kStream);
 	void Write(FDataStream& kStream) const;
 
@@ -116,34 +112,22 @@ public:
 	// Provided for developement and debugging purposes...and for the adventurous!
 	void Save(const char* filename);
 
-	void QueueSave(const char* filename, int turn = -1);
 
 protected:
 	bool AutoSave(AutoSave2PointTypes eSavePoint, bool default, bool initial, bool post);
+
+	void NamedSave(const char* filename, AutoSave2PointTypes type);
+
 	bool FireWantAutoSaveEvent(AutoSave2PointTypes eSavePoint, bool default);
 	void FireAutoSaveEvent(bool initial, bool post, AutoSave2PointTypes eSavePoint);
-	int eSavePointMatrix[NUM_AUTOSAVE2_PLAYER][NUM_AUTOSAVE2_POINT];
 
 	int iLastTurnSaved[NUM_AUTOSAVE2_POINT];
 	int iTurnChecked[NUM_AUTOSAVE2_POINT];
 
-	void UpdateTurn();
-
-	AutoSave2PlayerTypes GetBestPlayerTypeMatch() const;
-	
-	void NamedSave(const char* filename, AutoSave2PointTypes type);
-
 	AutoSave2PointTypes m_eSavedPoint;
 	AutoSave2PointTypes  m_eLastSavedPoint;
-	bool m_bSkipFirstNetworkGameHumanTurnsStartSave;
-	int m_iQueuedAutoSaveTurn;
 
-	struct QueuedSaveRequest {
-		int turn;
-		std::string filename;
-	};
-
-	std::vector<QueuedSaveRequest> QueuedSaveRequests;
+	bool m_bSkipFirstNetworkGameHumanTurnsStartSave;	
 };
 
 FDataStream& operator>>(FDataStream&, CvAutoSave2&);
