@@ -41,8 +41,8 @@
 ////////////////////////////////////////
 
 // Sorry, I am putting this here since I don't quite know where to put it!
-// Enables making an extra autosave after Barbs/AI turn in (currently) Simultaneous/Hybrid turn MP
-#define MOD_POST_AI_AUTOSAVE	(true)
+// Enables autosaving GameEvents and allows and extra autosave after Barbs/AI turn in
+#define MOD_SAVE_CONTROLLER	(true)
 
 #define MOD_KEEP_RANDOM_CIVS_SECRET	(true)
 

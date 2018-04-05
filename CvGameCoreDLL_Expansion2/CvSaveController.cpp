@@ -1,5 +1,5 @@
 #include "CvGameCoreDLLPCH.h"
-#include "CvAutoSave.h"
+#include "CvSaveController.h"
 
 // must be included after all other headers
 #include "LintFree.h"
@@ -61,7 +61,7 @@ namespace {
 	}
 }
 
-CvAutoSave::CvAutoSave()
+CvSaveController::CvSaveController()
 {
 	for (int i = 0; i < NUM_AUTOSAVE_POINT; i++)
 	{
@@ -75,11 +75,11 @@ CvAutoSave::CvAutoSave()
 
 }
 
-CvAutoSave::~CvAutoSave()
+CvSaveController::~CvSaveController()
 {
 }
 
-bool CvAutoSave::SavePoint(AutoSavePointTypes eSavePoint) {
+bool CvSaveController::SavePoint(AutoSavePointTypes eSavePoint) {
 	if (iTurnChecked[eSavePoint] == GC.getGame().getGameTurn())	{
 		return false;
 	}
@@ -128,7 +128,7 @@ bool CvAutoSave::SavePoint(AutoSavePointTypes eSavePoint) {
 	return true;
 
 }
-void CvAutoSave::Read(FDataStream& kStream)
+void CvSaveController::Read(FDataStream& kStream)
 {
 	int p;
 	kStream >> p;
@@ -139,36 +139,36 @@ void CvAutoSave::Read(FDataStream& kStream)
 
 }
 
-void CvAutoSave::Write(FDataStream& kStream) const
+void CvSaveController::Write(FDataStream& kStream) const
 {
 	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WRITING SAVEPOINT: " << m_eSavedPoint);
 	kStream << (int) m_eSavedPoint;
 }
 
-AutoSavePointTypes CvAutoSave::getLastAutoSavePoint() const
+AutoSavePointTypes CvSaveController::getLastAutoSavePoint() const
 {
 	return m_eLastSavedPoint;
 }
 
-int CvAutoSave::getLastAutoSaveTurn() const
+int CvSaveController::getLastAutoSaveTurn() const
 {
 	if (m_eLastSavedPoint == NO_AUTOSAVE_POINT)
 		return -1;
 	return iLastTurnSaved[m_eLastSavedPoint];
 }
 
-FDataStream& operator>>(FDataStream& kStream, CvAutoSave& kAutoSave)
+FDataStream& operator>>(FDataStream& kStream, CvSaveController& kAutoSave)
 {
 	kAutoSave.Read(kStream);
 	return kStream;
 }
-FDataStream& operator<<(FDataStream& kStream, const CvAutoSave& kAutoSave)
+FDataStream& operator<<(FDataStream& kStream, const CvSaveController& kAutoSave)
 {
 	kAutoSave.Write(kStream);
 	return kStream;
 }
 
-bool CvAutoSave::AutoSave(AutoSavePointTypes eSavePoint, bool default, bool initial, bool post)
+bool CvSaveController::AutoSave(AutoSavePointTypes eSavePoint, bool default, bool initial, bool post)
 {
 	bool save = initial;
 
@@ -187,7 +187,7 @@ bool CvAutoSave::AutoSave(AutoSavePointTypes eSavePoint, bool default, bool init
 	return save;
 }
 
-bool CvAutoSave::FireWantAutoSaveEvent(AutoSavePointTypes eSavePoint, bool default)
+bool CvSaveController::FireWantAutoSaveEvent(AutoSavePointTypes eSavePoint, bool default)
 {
 	int result =  GAMEEVENTINVOKE_TESTANY(GAMEEVENT_WantAutoSave, eSavePoint);
 	bool save = false;
@@ -199,17 +199,17 @@ bool CvAutoSave::FireWantAutoSaveEvent(AutoSavePointTypes eSavePoint, bool defau
 	return save;
 }
 
-void CvAutoSave::FireAutoSaveEvent(bool initial, bool post, AutoSavePointTypes eSavePoint)
+void CvSaveController::FireAutoSaveEvent(bool initial, bool post, AutoSavePointTypes eSavePoint)
 {
 	GAMEEVENTINVOKE_HOOK(GAMEEVENT_AutoSaved, eSavePoint, initial, post);
 }
 
-void CvAutoSave::Save(const char* filename)
+void CvSaveController::Save(const char* filename)
 {
 	NamedSave(filename, AUTOSAVE_POINT_EXPLICIT);
 }
 
-void CvAutoSave::NamedSave(const char* filename, AutoSavePointTypes type) {
+void CvSaveController::NamedSave(const char* filename, AutoSavePointTypes type) {
 	m_eSavedPoint = type;
 	ManualSave(filename);
 	m_eSavedPoint = AUTOSAVE_POINT_EXTERNAL;

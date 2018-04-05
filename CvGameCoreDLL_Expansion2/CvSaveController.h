@@ -25,11 +25,11 @@ enum AutoSavePointTypes
 	NUM_AUTOSAVE_POINT,
 };
 
-class CvAutoSave
+class CvSaveController
 {
 public:
-	CvAutoSave();
-	virtual ~CvAutoSave();
+	CvSaveController();
+	virtual ~CvSaveController();
 
 	bool SavePoint(AutoSavePointTypes eSavePoint);
 	
@@ -61,7 +61,7 @@ protected:
 	bool m_bSkipFirstNetworkGameHumanTurnsStartSave;	
 };
 
-FDataStream& operator>>(FDataStream&, CvAutoSave&);
-FDataStream& operator<<(FDataStream&, const CvAutoSave&);
+FDataStream& operator>>(FDataStream&, CvSaveController&);
+FDataStream& operator<<(FDataStream&, const CvSaveController&);
 
 #endif

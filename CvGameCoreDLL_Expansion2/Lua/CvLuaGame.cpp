@@ -30,6 +30,10 @@
 #include "../CvReplayMessage.h"
 #include "../cvStopWatch.h"
 
+#if defined(MOD_SAVE_CONTROLLER)
+#include "CvSaveController.h"
+#endif
+
 #if defined(MOD_BATTLE_ROYALE)
 #include "../CvLoggerCSV.h"
 #endif
@@ -521,11 +525,15 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 	Method(WriteCSV);
 #endif
 
+#if defined(MOD_SAVE_CONTROLLER)
 	Method(GetLastAutoSaveTurn);
-	
+#endif
+
+#if defined(MOD_API_LUA_EXTENSIONS)
 	Method(IsPitbossHost);
 	Method(IsHost);
 	Method(GetTimeStringForYear);
+#endif
 
 }
 //------------------------------------------------------------------------------
@@ -4054,13 +4062,16 @@ int CvLuaGame::lWriteCSV(lua_State * L)
 }
 #endif
 
+#if defined(MOD_SAVE_CONTROLLER)
 int CvLuaGame::lGetLastAutoSaveTurn(lua_State* L)
 {
-	int last = GC.getGame().getAutoSaver2().getLastAutoSaveTurn();
+	int last = GC.getGame().getSaveController()->getLastAutoSaveTurn();
 	lua_pushinteger(L, last);
 	return 1;
 }
+#endif
 
+#if defined(MOD_API_LUA_EXTENSIONS)
 int CvLuaGame::lIsPitbossHost(lua_State* L)
 {
 	lua_pushboolean(L, gDLL->IsPitbossHost());
@@ -4086,3 +4097,4 @@ int CvLuaGame::lGetTimeStringForYear(lua_State* L)
 	lua_pushstring(L, timeString.GetCString());
 	return 1;
 }
+#endif

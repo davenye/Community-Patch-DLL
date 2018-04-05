@@ -20,10 +20,6 @@
 #include "CvDistanceMap.h"
 #include "CvDealClasses.h"
 
-#if defined(MOD_POST_AI_AUTOSAVE)
-#include "CvAutoSave.h"
-#endif 
-
 class CvPlot;
 class CvCity;
 class CvReplayMessage;
@@ -43,6 +39,9 @@ class CvGameCorporations;
 class CvGameContracts;
 #endif
 
+#if defined(MOD_SAVE_CONTROLLER)
+class CvSaveController;
+#endif 
 class CvGameInitialItemsOverrides
 {
 public:
@@ -693,8 +692,8 @@ public:
 	int GetNextGlobalID() { return ++m_iGlobalAssetCounter; }
 #endif
 
-#if defined(MOD_POST_AI_AUTOSAVE)
-	CvAutoSave& getAutoSaver2();
+#if defined(MOD_SAVE_CONTROLLER)
+	CvSaveController* getSaveController();
 #endif
 	void SetClosestCityMapDirty();
 	//assuming a typical unit with baseMoves==2
@@ -875,8 +874,8 @@ protected:
 	CvGameContracts*		   m_pGameContracts;
 #endif
 
-#if defined(MOD_POST_AI_AUTOSAVE)
-	CvAutoSave m_kAutoSaver2;
+#if defined(MOD_SAVE_CONTROLLER)
+	CvSaveController* m_pSaveController;
 #endif
 
 	//necessary because we only want to hide the mouseover of the most recently moused over unit -KS
