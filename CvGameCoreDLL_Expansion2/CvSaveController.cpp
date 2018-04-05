@@ -180,10 +180,9 @@ bool CvSaveController::AutoSave(AutoSavePointTypes eSavePoint, bool default, boo
 		m_eSavedPoint = AUTOSAVE_POINT_EXTERNAL;
 		m_eLastSavedPoint = eSavePoint;
 
-		iLastTurnSaved[eSavePoint] = GC.getGame().getGameTurn();
-
-		FireAutoSaveEvent(initial, post, eSavePoint);
+		iLastTurnSaved[eSavePoint] = GC.getGame().getGameTurn();	
 	}
+	FireAutoSaveEvent(eSavePoint, save); // sending whether saved or not because it might be useful information to listeners and allow more functionality, especially since listening to the "want" message has side effects
 	return save;
 }
 
@@ -199,9 +198,9 @@ bool CvSaveController::FireWantAutoSaveEvent(AutoSavePointTypes eSavePoint, bool
 	return save;
 }
 
-void CvSaveController::FireAutoSaveEvent(bool initial, bool post, AutoSavePointTypes eSavePoint)
+void CvSaveController::FireAutoSaveEvent(AutoSavePointTypes eSavePoint, bool saved)
 {
-	GAMEEVENTINVOKE_HOOK(GAMEEVENT_AutoSaved, eSavePoint, initial, post);
+	GAMEEVENTINVOKE_HOOK(GAMEEVENT_AutoSaved, eSavePoint, saved);
 }
 
 void CvSaveController::Save(const char* filename)
@@ -213,6 +212,6 @@ void CvSaveController::NamedSave(const char* filename, AutoSavePointTypes type) 
 	m_eSavedPoint = type;
 	ManualSave(filename);
 	m_eSavedPoint = AUTOSAVE_POINT_EXTERNAL;
-	FireAutoSaveEvent(false, false, type);
+	FireAutoSaveEvent(type, true);
 
 }

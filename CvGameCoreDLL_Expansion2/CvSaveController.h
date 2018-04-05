@@ -50,7 +50,7 @@ protected:
 	void NamedSave(const char* filename, AutoSavePointTypes type);
 
 	bool FireWantAutoSaveEvent(AutoSavePointTypes eSavePoint, bool default);
-	void FireAutoSaveEvent(bool initial, bool post, AutoSavePointTypes eSavePoint);
+	void FireAutoSaveEvent(AutoSavePointTypes eSavePoint, bool saved);
 
 	int iLastTurnSaved[NUM_AUTOSAVE_POINT];
 	int iTurnChecked[NUM_AUTOSAVE_POINT];
