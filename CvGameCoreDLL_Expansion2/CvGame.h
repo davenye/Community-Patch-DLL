@@ -21,7 +21,7 @@
 #include "CvDealClasses.h"
 
 #if defined(MOD_POST_AI_AUTOSAVE)
-#include "CvAutoSave2.h"
+#include "CvAutoSave.h"
 #endif 
 
 class CvPlot;
@@ -694,7 +694,7 @@ public:
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE)
-	CvAutoSave2& getAutoSaver2();
+	CvAutoSave& getAutoSaver2();
 #endif
 	void SetClosestCityMapDirty();
 	//assuming a typical unit with baseMoves==2
@@ -876,7 +876,7 @@ protected:
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE)
-	CvAutoSave2 m_kAutoSaver2;
+	CvAutoSave m_kAutoSaver2;
 #endif
 
 	//necessary because we only want to hide the mouseover of the most recently moused over unit -KS

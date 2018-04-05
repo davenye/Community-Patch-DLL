@@ -947,7 +947,7 @@ void CvGame::regenerateMap()
 	GC.GetEngineUserInterface()->setCycleSelectionCounter(1);
 
 	//gDLL->AutoSave(true);
-	GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_MAP_GEN);
+	GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE_POINT_MAP_GEN);
 }
 
 
@@ -1426,7 +1426,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 #endif
 
 #if defined(MOD_POST_AI_AUTOSAVE) 
-	m_kAutoSaver2 = CvAutoSave2();
+	m_kAutoSaver2 = CvAutoSave();
 #endif
 }
 
@@ -1675,7 +1675,7 @@ void CvGame::update()
 			if(getTurnSlice() == 0 && !isPaused())
 			{
 				//gDLL->AutoSave(true);
-				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_INITIAL);
+				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE_POINT_INITIAL);
 			}
 
 #if defined(EXTERNAL_PAUSING)
@@ -8216,7 +8216,7 @@ void CvGame::doTurn()
 	{
 		//gDLL->AutoSave(false, false);
 		//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
-		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_LOCAL_GAME_TURN);
+		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
 	}
 
 	// END OF TURN
@@ -8448,12 +8448,12 @@ void CvGame::doTurn()
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE of " << getGameTurn());
 		//gDLL->AutoSave(false);
 		//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
-		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_NETWORK_GAME_TURN);
+		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
 	}
 	else
 	{
 		//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
-		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_LOCAL_GAME_TURN_POST);
+		GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
 	}
 	gDLL->PublishNewGameTurn(getGameTurn());
 }
@@ -9276,7 +9276,7 @@ void CvGame::updateMoves()
 			if (isNetworkMultiPlayer())
 			{
 				//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
-				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE2_POINT_NETWORK_GAME_TURN_POST);
+				GC.getGame().getAutoSaver2().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
 			}
 			if (GC.getGame().isOption(GAMEOPTION_DYNAMIC_TURNS) || GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 			{
@@ -14148,7 +14148,7 @@ int CvGame::GetGreatestPlayerResourceMonopolyValue(ResourceTypes eResource) cons
 
 }
 
-CvAutoSave2& CvGame::getAutoSaver2()
+CvAutoSave& CvGame::getAutoSaver2()
 {
 	return m_kAutoSaver2;
 }
