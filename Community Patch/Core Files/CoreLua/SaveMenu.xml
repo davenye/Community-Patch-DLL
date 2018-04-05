@@ -44,7 +44,7 @@
                 <Label Anchor="C,C"  Offset="0,0"  String="TXT_KEY_BACK_BUTTON" Font="TwCenMT18" ColorSet="Beige_Black_Alpha" FontStyle="Shadow" />
             </GridButton>
             
-            <GridButton Anchor="R,B"  Style="SmallButton" Offset="58,56"  Size="160,32"  Offset="0,0" StateOffsetIncrement="0,0" ID="RequestAutoSaveButton">
+            <GridButton Anchor="R,B"  Style="SmallButton" Offset="58,56"  Size="160,32"  Offset="0,0" StateOffsetIncrement="0,0" ID="RequestAutoSaveButton" Hidden="1">
                     <Label Anchor="C,C"  Offset="0,0"  String="AutoSave Next Turn" Font="TwCenMT18" ColorSet="Beige_Black_Alpha" FontStyle="Shadow"  />
             </GridButton>
             

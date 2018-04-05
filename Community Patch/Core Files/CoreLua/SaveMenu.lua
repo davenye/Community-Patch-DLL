@@ -27,19 +27,22 @@ local savemodes = {};
 
 function SetSaveModes()
 	savemodes = {};
+	
 	for i, v in ipairs(allsavemodes) do v:SetDisabled(true); v:SetHide(true); end;
-	table.insert(savemodes, allsavemodes[1]);
-	--if(Game.GetLastAutoSaveTurn() == Game.GetGameTurn()) then table.insert(savemodes, allsavemodes[1]) end;
-	if(AdvancedAutoSave.GetData().AllowQueueSave) then table.insert(savemodes, allsavemodes[2]) end;
-	if(AdvancedAutoSave.GetData().AllowForceSave) then table.insert(savemodes, allsavemodes[3]) end;
-	if(AdvancedAutoSave.GetData().AllowStaleSave and Game.GetLastAutoSaveTurn() >= 0 and Game.GetLastAutoSaveTurn() ~= Game.GetGameTurn()) then table.insert(savemodes, allsavemodes[4]) end;
 	
-	savemodes[1]:SetCheck(true);
-	
-	if(#savemodes == 1) then savemodes = {}; end;
+	if (PreGame.GameStarted()) then 
+		table.insert(savemodes, allsavemodes[1]);
+		--if(Game.GetLastAutoSaveTurn() == Game.GetGameTurn()) then table.insert(savemodes, allsavemodes[1]) end;
+		if(AdvancedAutoSave.GetData().AllowQueueSave) then table.insert(savemodes, allsavemodes[2]) end;
+		if(AdvancedAutoSave.GetData().AllowForceSave) then table.insert(savemodes, allsavemodes[3]) end;
+		if(AdvancedAutoSave.GetData().AllowStaleSave and Game.GetLastAutoSaveTurn() >= 0 and Game.GetLastAutoSaveTurn() ~= Game.GetGameTurn()) then table.insert(savemodes, allsavemodes[4]) end;
 		
-	for i, v in ipairs(savemodes) do v:SetDisabled(false); v:SetHide(false); end;
-	
+		savemodes[1]:SetCheck(true);
+		
+		if(#savemodes == 1) then savemodes = {}; end;
+			
+		for i, v in ipairs(savemodes) do v:SetDisabled(false); v:SetHide(false); end;
+	end	
 	
 end
 
@@ -52,8 +55,11 @@ function GetSaveMode()
 end
 
 local function ButtonAbility()
+	local bUsingSteamCloud = Controls.CloudCheck:IsChecked();
 	local text = Controls.NameBox:GetText();
-	if(ValidateText(text) and CanSave()) then
+	
+	
+	if(((bUsingSteamCloud and g_SelectedEntry) or (not bUsingSteamCloud and ValidateText(text))) and CanSave()) then
 		Controls.SaveButton:SetDisabled(false);
 		Controls.QueueSaveButton:SetDisabled(false);
 		Controls.ForceSaveButton:SetDisabled(false);
@@ -62,7 +68,7 @@ local function ButtonAbility()
 		Controls.QueueSaveButton:SetToolTipString( "a" );
 		Controls.ForceSaveButton:SetToolTipString( "a" );
 		Controls.StaleSaveButton:SetToolTipString( "a" );
-	elseif(not ValidateText(text)) then
+	elseif(bUsingSteamCloud and not ValidateText(text)) then
 		Controls.SaveButton:SetDisabled(true);
 		Controls.QueueSaveButton:SetDisabled(true);
 		Controls.ForceSaveButton:SetDisabled(true);
@@ -107,12 +113,7 @@ local function ShowMainButton()
 			e:SetHide(true);
 		end
 	end
-	ButtonAbility();
-	if(best == 2) then
-		controlDown = false;    	
-		Controls.DangerBox:SetHide( true );
-		Controls.DangerLabel:SetHide( true );
-	end
+	ButtonAbility();	
 end
 
 function OnSaveModeChanged()
@@ -127,13 +128,14 @@ for i, v in ipairs(allsavemodes) do v:RegisterCallback( Mouse.eLClick, OnSaveMod
 ----------------------------------------------------------------        
 ----------------------------------------------------------------
 function CanSave()
-	if (not PreGame.IsMultiplayerGame()) then
+	if (not PreGame.IsMultiplayerGame() or not PreGame.GameStarted() ) then
 		return true;
 	end
 	
-	if(Game.GetLastAutoSaveTurn() == Game.GetGameTurn()) then
+	if(PreGame.GameStarted() and Game.GetLastAutoSaveTurn() == Game.GetGameTurn()) then
 		return true;
 	end
+	
 	
 	return false;	
 end
@@ -145,13 +147,27 @@ function DoSaveToFile()
 	local savemode = GetSaveMode();
 	if(savemode == 1 or savemode == 4) then UI.CopyLastAutoSave( Controls.NameBox:GetText() );
 	--elseif(savemode == 2) then Game.QueueSave( Controls.NameBox:GetText(), Game.GetGameTurn() + 1 );
-	elseif(savemode == 2) then AdvancedAutoSave.QueueSave( Controls.NameBox:GetText(), 5, Game.GetGameTurn() + 1 );
+	elseif(savemode == 2) then print("Queing from menue", controlDown); AdvancedAutoSave.QueueSave( false, Controls.NameBox:GetText(), controlDown, 5, Game.GetGameTurn() + 1); -- TODO (5)
 	elseif(savemode == 3) then UI.SaveGame( Controls.NameBox:GetText() ); end;
 end
 ----------------------------------------------------------------        
 ----------------------------------------------------------------
+
 function DoSaveToSteamCloud(i)
-	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted() and not Controls.ForceFreshMPSave:IsChecked()) then
+	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted() and not CanSave()) then
+		Steam.CopyLastAutoSaveToSteamCloud( i );
+	else
+		Steam.SaveGameToCloud( i );
+	end
+	local savemode = GetSaveMode();
+	if(savemode == 1 or savemode == 4) then Steam.CopyLastAutoSaveToSteamCloud( i );
+	--elseif(savemode == 2) then Game.QueueSave( Controls.NameBox:GetText(), Game.GetGameTurn() + 1 );
+	elseif(savemode == 2) then print("Queing from menue", controlDown); AdvancedAutoSave.QueueSave(true, i, controlDown, 5, Game.GetGameTurn() + 1); -- TODO (5)
+	elseif(savemode == 3) then Steam.SaveGameToCloud( i ) end;
+end
+
+function DoSaveToSteamCloud0(i)
+	if (PreGame.IsMultiplayerGame() and PreGame.GameStarted() and not CanSave()) then
 		Steam.CopyLastAutoSaveToSteamCloud( i );
 	else
 		Steam.SaveGameToCloud( i );
@@ -792,7 +808,7 @@ function InputHandler( uiMsg, wParam, lParam )
 			end
 		end		
 	end
-	if(uiMsg == KeyEvents.KeyDown and wParam == Keys.VK_CONTROL and GetSaveMode() ~= 2) then    	
+	if(uiMsg == KeyEvents.KeyDown and wParam == Keys.VK_CONTROL and AdvancedAutoSave.GetData().AllowSaveAndQuit) then    	
 		controlDown = true;    	
 		Controls.DangerBox:SetHide( false );
 		Controls.DangerLabel:SetHide( false );

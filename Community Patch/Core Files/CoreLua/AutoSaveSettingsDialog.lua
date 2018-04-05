@@ -222,26 +222,22 @@ function CreateConfigControls()
 	end
 end
 
-function InitData0()
-	local idx = 0; 
-	for i,cat in ipairs(SaveModeConfigs) do
-		for j,point in ipairs(PointSets[cat.pointset]) do
-			idx = idx + 1;
-			Data.Filters[idx] = {cat.cat_id, point, 1} -- default to every turn
-		end
-	end
-end
-
-
 function InitData()
 	local idx = 0; 
 	
-	Data.AllowAutoSaveRequests = false;
+	
 	Data.AllowQueueSave = false;
 	Data.AllowForceSave = false;
 	Data.AllowStaleSave  = false;
 	Data.AllowAutoSaveRequests = false;
 	Data.ShowLastAutoSaveDetails = false;
+	
+	Data.AllowSaveAndQuit	 = false;
+	Data.NoHumansNoPosts		 = false;
+	Data.OnlyHumansNoPosts	   = false;
+	Data.DisplayAutosaveMessages   = false;
+	Data.MinTurnNormal = "0";
+	Data.MinTurnPost = "0";
 	
 	for i,cat in ipairs(SaveModeConfigs) do
 		for j,point in ipairs(PointSets[cat.pointset]) do
@@ -261,14 +257,24 @@ end
 function ChangeAll()
 		print("ChangeAll()");
 	
-	Controls.AllowAutoSaveRequests:SetCheck(Data.AllowAutoSaveRequests);
+	
 	Controls.AllowQueueSave:SetCheck(Data.AllowQueueSave);
 	Controls.AllowForceSave:SetCheck(Data.AllowForceSave);
 	Controls.AllowStaleSave:SetCheck(Data.AllowStaleSave);
 	Controls.QueuedSavePopup:SetCheck(Data.QueuedSavePopup);
 	Controls.AllowAutoSaveRequests:SetCheck(Data.AllowAutoSaveRequests);
 	Controls.ShowLastAutoSaveDetails:SetCheck(Data.ShowLastAutoSaveDetails);
+	
+	Controls.AllowSaveAndQuit:SetCheck(Data.AllowSaveAndQuit);
+	Controls.NoHumansNoPosts:SetCheck(Data.NoHumansNoPosts);
+	Controls.NoHumansNoPosts:SetCheck(Data.NoHumansNoPosts);
+	Controls.DisplayAutosaveMessages:SetCheck(Data.DisplayAutosaveMessages);
+	
+	Controls.MinTurnNormal:SetText(Data.MinTurnNormal);
+	Controls.MinTurnPost:SetText(Data.MinTurnPost);
 
+	
+	
 	for i,conf in ipairs(Data.Filters) do
 		OnDataChange(i, conf[3]);		
 	end
@@ -368,7 +374,7 @@ function DoUpdate()
 		CatToLine[thislast].WhenTypeo:SetToolTipString(SaveModeConfigs[CatToNum[thislast]].tooltip .. "[NEWLINE][COLOR_FONT_GREEN](Current)[END_COLOR]");
 		local x0 = 45;
 		local x1 = 825;
-		local y = 300 + (CatToNum[thislast] - 1) * 48;
+		local y = 280 + (CatToNum[thislast] - 1) * 42;
 		
 		Controls.ActiveHighlight:SetStartVal(x0, y);
 		Controls.ActiveHighlight:SetEndVal(x1, y);
@@ -391,11 +397,13 @@ end);
 
 
 counthax = math.random(100);
-function OnAutoSaved( eSavePoint, initial, post)	 	
+function OnAutoSaved( eSavePoint, saved)	 	
 	--print ("GameEvents.AutoSaved=====" .. eSavePoint );
 	if(not AdvancedAutoSave.IsActive()) then return end; -- needed only because my of all my order of initialization issues
+	if(not saved) then return; end;
+	
 	--print ("GameEvents.AutoSaved===== counthax " .. counthax);
-	if(eSavePoint ~= 8) then
+	if(eSavePoint ~= 8 and AdvancedAutoSave.GetData().DisplayAutosaveMessages) then
 		
 		local str = "";
 		if(initial) then
@@ -439,11 +447,27 @@ Controls.AllowStaleSave:RegisterCheckHandler(AllowStaleSaveCheckHandler);
 function QueuedSavePopupCheckHandler(checked) Data.QueuedSavePopup = checked;	end
 Controls.QueuedSavePopup:RegisterCheckHandler(QueuedSavePopupCheckHandler);
 
-function AllowAutoSaveRequestsCheckHandler(checked) Data.AllowAutoSaveRequests = checked;	end
-Controls.AllowAutoSaveRequests:RegisterCheckHandler(AllowAutoSaveRequestsCheckHandler);
 
 function ShowLastAutoSaveDetailsCheckHandler(checked) Data.ShowLastAutoSaveDetails = checked;	end
 Controls.ShowLastAutoSaveDetails:RegisterCheckHandler(ShowLastAutoSaveDetailsCheckHandler);
 
+function AllowSaveAndQuitCheckHandler(checked) Data.AllowSaveAndQuit = checked;	end
+Controls.AllowSaveAndQuit:RegisterCheckHandler(AllowSaveAndQuitCheckHandler);
 
+function NoHumansNoPostsCheckHandler(checked) Data.NoHumansNoPosts = checked;	end
+Controls.NoHumansNoPosts:RegisterCheckHandler(NoHumansNoPostsCheckHandler);
+
+function OnlyHumansNoPostsCheckHandler(checked) Data.OnlyHumansNoPosts = checked;	end
+Controls.OnlyHumansNoPosts:RegisterCheckHandler(OnlyHumansNoPostsCheckHandler);
+
+function DisplayAutosaveMessagesCheckHandler(checked) Data.DisplayAutosaveMessages = checked;	end
+Controls.DisplayAutosaveMessages:RegisterCheckHandler(DisplayAutosaveMessagesCheckHandler);
+
+function MinTurnNormalChangeHandler(edit) Data.MinTurnNormal = tonumber(edit);	end
+Controls.MinTurnNormal:RegisterCallback(MinTurnNormalChangeHandler);
+
+function MinTurnPostChangeHandler(edit) Data.MinTurnPost = tonumber(edit);	end
+Controls.MinTurnPost:RegisterCallback(MinTurnPostChangeHandler);
+		
+	  
 

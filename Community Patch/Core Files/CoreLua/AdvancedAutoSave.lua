@@ -127,6 +127,15 @@ function AdvancedAutoSave.InitData()
 	Data.AllowAutoSaveRequests = false;
 	Data.ShowLastAutoSaveDetails = false;
 	
+	Data.AllowSaveAndQuit	 = false;
+	
+	Data.NoHumansNoPosts		= false;
+	Data.OnlyHumansNoPosts	  = false;
+	Data.DisplayAutosaveMessages  = false;
+	
+	Data.MinTurnNormal = 0;
+	Data.MinTurnPost = 0;
+	
 	Data.QueuedAuto = {};
 	Data.Queued = {};
 	Data.LastSaves = {};
@@ -157,6 +166,13 @@ function AdvancedAutoSave.LoadData()
 	Data.AllowAutoSaveRequests = UserData.GetValue("Data.AllowAutoSaveRequests");
 	Data.ShowLastAutoSaveDetails = UserData.GetValue("Data.ShowLastAutoSaveDetails");
 	
+	Data.AllowSaveAndQuit = UserData.GetValue("Data.AllowSaveAndQuit");
+	Data.NoHumansNoPosts = UserData.GetValue("Data.NoHumansNoPosts");
+	Data.OnlyHumansNoPosts = UserData.GetValue("Data.OnlyHumansNoPosts");
+	Data.DisplayAutosaveMessages = UserData.GetValue("Data.DisplayAutosaveMessages");
+	Data.MinTurnNormal = UserData.GetValue("Data.MinTurnNormal");
+	Data.MinTurnPost = UserData.GetValue("Data.MinTurnPost");
+
 		local Filters = Data.Filters;
 	for i,conf in ipairs(Filters) do
 		
@@ -182,7 +198,13 @@ function AdvancedAutoSave.StoreData()
 	UserData.SetValue("Data.AllowAutoSaveRequests", Data.AllowAutoSaveRequests);
 	UserData.SetValue("Data.ShowLastAutoSaveDetails", Data.ShowLastAutoSaveDetails);
 	
-	
+	UserData.SetValue("Data.AllowSaveAndQuit", Data.AllowSaveAndQuit);
+	UserData.SetValue("Data.NoHumansNoPosts", Data.NoHumansNoPosts);
+	UserData.SetValue("Data.OnlyHumansNoPosts", Data.OnlyHumansNoPosts);
+	UserData.SetValue("Data.DisplayAutosaveMessages", Data.DisplayAutosaveMessages);
+	UserData.SetValue("Data.MinTurnNormal", Data.MinTurnNormal);
+	UserData.SetValue("Data.MinTurnPost", Data.MinTurnPost);
+			
 	local Filters = GetData().Filters;
 	for i,conf in ipairs(Filters) do
 		--print("wrintg upvaluie: " .. "conf" .. conf[1] .. "_" .. conf[2], conf[3]);
@@ -224,27 +246,6 @@ function AdvancedAutoSave.GetData()
 end
 
 local function GetBestPlayerTypeMatch()
-	local numHumans = 0;
-	local numNonHumans = 0;
-	for playerID = 0, GameDefines.MAX_CIV_PLAYERS-1, 1 do
-	 	local player = Players[playerID];
-	 	--if player:IsEverAlive() then
-	 	if player:IsAlive() then
-	  	if(player:IsHuman() and not player:IsObserver()) then -- don't know if observers are human or even alive
-	  		numHumans = numHumans + 1;
-	  	elseif(not player:IsMajorCiv()) then
-	  		numNonHumans = numHumans + 1;
-			end
-		end
-	end
-	print("numHumans=", numHumans, " numNonHumans=", numNonHumans);
-	if(numHumans == 0) then -- no humans
-		
-		--return 5;
-	elseif(numNonHumans == 0) then --humans only
-		--return 6;	
-	end
-	--else
 	if (not PreGame.IsMultiplayerGame()) then
 		return 4;
 	end
@@ -275,21 +276,46 @@ end
 
 function OnWantAutoSave(eSavePoint)
 	print("OnWantAutoSave=", eSavePoint);
+	
+	local isPost = false;
+	if(eSavePoint == 7) then --TODO fix dis shiz
+		isPost = true;
+	end
+	
+	
 	if(not MapModData.AdvancedAutoSave.LastSaves) then 
 		MapModData.AdvancedAutoSave.LastSaves = {};
 	end
 	AdvancedAutoSave.ApplyData();
 	
 	if(MapModData.AdvancedAutoSave.Queued[eSavePoint] and MapModData.AdvancedAutoSave.Queued[eSavePoint][1] == Game.GetGameTurn()) then
-		UI.SaveGame(MapModData.AdvancedAutoSave.Queued[eSavePoint][2]);
+		print("OnWantAutoSave - SAVING QUEUEED");
+		local qd = MapModData.AdvancedAutoSave.Queued[eSavePoint];
+			if(not qd[4]) then
+				UI.SaveGame(qd[2]);
+			else
+				Steam.SaveGameToCloud(qd[2]);
+			end
 			if(GetData().QueuedSavePopup) then
+				print("OnWantAutoSave - QUEUEED POPOUP");
 			--local popup = LookUpControl( "/InGame/Popups/TextPopup" );		
 			--popup.DescriptionLabel:SetText(MapModData.AdvancedAutoSave.Queued[eSavePoint][2]);
 			--UIManager:QueuePopup( ContextPtr, PopupPriority.TextPopup);		
 			--UIManager:QueuePopup( Controls.GAdvancedAutoSavePopup, PopupPriority.TextPopup);		
 			--popup not working for me (variou8s attempts) - blaimgin on me not settingup the the mod and just hacking away in the modpack
-				Events.GameplayAlertMessage("Saved: " .. MapModData.AdvancedAutoSave.Queued[eSavePoint][2] ); 
+				local str = "Saved to ";
+				if(not qd[4]) then
+					str = str .. qd[2];
+				else
+					str = str .. "Steam Cloud Slot #" .. qd[2];
+				end
+				Events.GameplayAlertMessage(str); -- popup please but only if not exiting.
 			end
+			if (qd[3]) then
+				print("UI.ExitGame();");
+				Events.GameplayAlertMessage("Now exiting after save..."); --timed popup please
+				UI.ExitGame();
+			end;
 		MapModData.AdvancedAutoSave.Queued[eSavePoint] = nil;
 	elseif(MapModData.AdvancedAutoSave.Queued[eSavePoint] and MapModData.AdvancedAutoSave.Queued[eSavePoint][1] < Game.GetGameTurn()) then
 		MapModData.AdvancedAutoSave.Queued[eSavePoint] = nil; -- could be error here
@@ -302,6 +328,35 @@ function OnWantAutoSave(eSavePoint)
 		MapModData.AdvancedAutoSave.QueuedAuto[eSavePoint] = nil; -- could be error here
 	end;
 	
+
+print(isPost, GetData().MinTurnNormal,Game.GetGameTurn());
+print(not isPost, GetData().MinTurnPost,Game.GetGameTurn());
+	
+	if(not isPost and GetData().MinTurnNormal > Game.GetGameTurn()) then
+		return false;
+	end
+	if(isPost and GetData().MinTurnPost  > Game.GetGameTurn()) then
+		return false;
+	end
+		
+	local numHumans = 0;
+	local numNonHumans = 0;
+	for playerID = 0, GameDefines.MAX_CIV_PLAYERS-1, 1 do
+	 	local player = Players[playerID];
+	 	--if player:IsEverAlive() then
+	 	if player:IsAlive() then
+	  	if(player:IsHuman() and not player:IsObserver()) then -- don't know if observers are human or even alive
+	  		numHumans = numHumans + 1;
+	  	elseif(not player:IsMajorCiv()) then
+	  		numNonHumans = numHumans + 1;
+			end
+		end
+	end
+	print("numHumans=", numHumans, " numNonHumans=", numNonHumans);
+	
+	if(isPost and numHumans == 0 and GetData().NoHumansNoPosts) then return false; end;
+	if(isPost and numNonHumans == 0 and GetData().OnlyHumansNoPosts) then return false; end;
+
 	local best = GetBestPlayerTypeMatch();
 	 
 	 print("BESTAMATCH=", best);
@@ -366,8 +421,8 @@ function AdvancedAutoSave.QueueAutoSave(point, turn)
 	MapModData.AdvancedAutoSave.QueuedAuto[point] = turn; -- bug: won't handle multiple active requests
 end
 
-function AdvancedAutoSave.QueueSave(filename, point, turn)
-	MapModData.AdvancedAutoSave.Queued[point] = {turn, filename}; -- bug: won't handle multiple active requests
+function AdvancedAutoSave.QueueSave(steam, filename, quit,point, turn)
+	MapModData.AdvancedAutoSave.Queued[point] = {turn, filename, quit, steam}; -- bug: won't handle multiple active requests
 end
 
 function AdvancedAutoSave.Hookup() 	
