@@ -5554,7 +5554,7 @@ bool CvUnit::jumpToNearestValidPlot()
 			embark(plot()); //at the current plot so that the vision update works correctly
 		else 
 			disembark(plot());
-		setXY(pBestPlot->getX(), pBestPlot->getY(), false, false);
+		setXY(pBestPlot->getX(), pBestPlot->getY(), false, true);
 		return true;
 	}
 	else
@@ -5620,7 +5620,7 @@ bool CvUnit::jumpToNearestValidPlotWithinRange(int iRange)
 			embark(plot()); //at the current plot so that the vision update works correctly
 		else 
 			disembark(plot());
-		setXY(pBestPlot->getX(), pBestPlot->getY(), false, false);
+		setXY(pBestPlot->getX(), pBestPlot->getY(), false, true);
 	}
 	else
 	{
