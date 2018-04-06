@@ -485,7 +485,6 @@ void updateKnownPlayersTable()
 		}
 		s_knownPlayersTable[i] = bitarray;
 	}
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WROTE METCIVS");
 }
 
 //	-----------------------------------------------------------------------
@@ -3558,7 +3557,6 @@ bool isKnownPlayer(PlayerTypes eA, PlayerTypes eB) {
 	if (eA < 0 || eB < 0) return true; // erring on the side of caution
 	if ((size_t)eA >= s_knownPlayersTable.size() || (size_t)eB >= s_knownPlayersTable.size()) return true; // erring on the side of caution
 	bool bKnown = s_knownPlayersTable[eA] & (1 << eB);
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("isKnownPlayer " << eA << " " << eB << " = " << bKnown);
 	return bKnown;
 }
 }
