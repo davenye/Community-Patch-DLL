@@ -5151,11 +5151,7 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 			if (kPlayer.GetDiplomacyRequests()) {
 				if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
 					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has pending requests");
-				}
-				if (kPlayer.GetDiplomacyRequests()->m_aRequests.size()) {
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS(kPlayer.GetID() << " has " << kPlayer.GetDiplomacyRequests()->m_aRequests.size() << " requests");
-				}
-				
+				}								
 			}
 			int iJ = 0;
 			for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iJ); pLoopUnit; pLoopUnit = kPlayer.nextUnit(&iJ))
