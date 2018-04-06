@@ -7,6 +7,7 @@ include( "MapUtilities" );
 local g_IsSingle = true;
 local g_IsAuto   = false;
 local g_IsDeletingFile = true;
+local g_ShowForceCheck = false;
 
 -- Global Constants
 g_InstanceManager = InstanceManager:new( "LoadButton", "Button", Controls.LoadFileButtonStack );
@@ -636,12 +637,12 @@ ContextPtr:SetInputHandler( InputHandler );
 ----------------------------------------------------------------        
 ----------------------------------------------------------------
 function ShowHideHandler( isHide )
+		
+    if( not isHide ) then
 		-- don't want to encourage potentially corrupting operations!
 		Controls.ForceFreshMPSave:SetCheck(false);
-    if( not isHide ) then
-
     	if (PreGame.GameStarted()) then    	
-    		Controls.ForceFreshMPSave:SetHide(not PreGame.IsMultiplayerGame());
+    		Controls.ForceFreshMPSave:SetHide(not g_ShowForceCheck or not PreGame.IsMultiplayerGame());
 	    	-- If the lock mods option is on then disable the save map button    		    		    	
     		if( PreGame.IsMultiplayerGame() or
     			Modding.AnyActivatedModsContainPropertyValue( "DisableSaveMapOption", "1" ) or
