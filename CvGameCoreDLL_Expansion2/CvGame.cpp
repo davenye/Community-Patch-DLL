@@ -8104,9 +8104,8 @@ void CvGame::doTurn()
 	int iI;
 
 	//create an autosave
-	if (!isNetworkMultiPlayer())
+	if(!isNetworkMultiPlayer())
 	{
-		
 #if defined(MOD_SAVE_CONTROLLER)
 		GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
 #else
@@ -8335,7 +8334,6 @@ void CvGame::doTurn()
 	//autosave after doing a turn
 	if (isNetworkMultiPlayer())
 	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("_____________________________________________________________________________________________________________________ AUTOSAVE of " << getGameTurn());
 #if defined(MOD_SAVE_CONTROLLER)
 		GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
 #else
@@ -9153,11 +9151,9 @@ void CvGame::updateMoves()
 			}
 			// DN: This spot *seems* safe for a save point due to the barrier created by the allAICivsProcessedThisTurn check above.
 			// Currently, nothing that can't be repeated is done between here and the normal autosave when the AI have finished. This needs to remain the case.
-			// Should add a GameOption or similar to toggle Post AI autosave...maybe even per player turn autosave to avoid confusion when manually saving but less sure of safety
 #if defined(MOD_SAVE_CONTROLLER)
 			if (isNetworkMultiPlayer())
 			{
-				//GC.getGame().getAutoSaver().SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
 				GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
 			}
 #endif
