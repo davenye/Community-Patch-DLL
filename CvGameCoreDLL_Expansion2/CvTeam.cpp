@@ -2308,11 +2308,10 @@ void CvTeam::DoMakePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotific
 		// One shot things
 		DoNowAtWarOrPeace(eTeam, false);
 		GET_TEAM(eTeam).DoNowAtWarOrPeace(GetID(), false);
-		// This can make vassals spuriously declare war (ends up making peace against though) while in the process of making peace due to master making peace just above in the MOD_BALANCE_CORE code. We don't need both.
+		// This can make vassals spuriously declare war (ends up making peace against though) while in the process of making peace due to master making peace just above in the MOD_BALANCE_CORE code. We don't need both (have not tried without MOD_BALANCE_CORE). It may be worth noting that this is not called when declaring war.
 #if defined(MOD_DIPLOMACY_CIV4_FEATURES) && !defined(MOD_BALANCE_CORE)
 		if(MOD_DIPLOMACY_CIV4_FEATURES)
-		{
-			
+		{			
 			DoUpdateVassalWarPeaceRelationships();
 		}
 #endif
