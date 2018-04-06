@@ -29111,8 +29111,19 @@ void CvUnit::SetMissionTimer(int iNewValue)
 
 		if(iNewTimer == 0)
 		{
-			auto_ptr<ICvUnit1> pDllUnit(new CvDllUnit(this));
-			gDLL->GameplayUnitMissionEnd(pDllUnit.get());
+			if (GetLengthMissionQueue() > 0)
+			{
+				auto_ptr<ICvUnit1> pDllUnit(new CvDllUnit(this));
+				gDLL->GameplayUnitMissionEnd(pDllUnit.get());
+			}
+			else
+			{
+				CvNotifications* pNotifications = GET_PLAYER(GC.getGame().getActivePlayer()).GetNotifications();
+				if (pNotifications) {
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvUnit::SetMissionTimer GetLengthMissionQueue hack in effect, player " << getOwner() << " unit " << GetID() << ";");
+					pNotifications->Add(NOTIFICATION_UNIT_PROMOTION, "Unit could be in bad state - consider loading earlier save and file bug report!", "MISSION TIMER BUG!", -1, -1, getUnitType(), GetID());
+				}
+			}
 		}
 	}
 }
