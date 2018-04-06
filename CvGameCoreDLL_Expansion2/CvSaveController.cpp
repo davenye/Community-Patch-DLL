@@ -56,7 +56,6 @@ namespace {
 		pkScriptSystem->CallCFunction(l, UnsafeUISave, &args);
 
 		pkScriptSystem->FreeLuaThread(l);
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("ManualSave success? " << args.bSuccess);
 		return args.bSuccess;
 	}
 }
@@ -194,7 +193,6 @@ void CvSaveController::Read(FDataStream& kStream)
 	int p;
 	kStream >> p;
 	AutoSavePointTypes eLoadedSavePoint = (AutoSavePointTypes)p;
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("LOADED SAVEPOINT: " << eLoadedSavePoint);
 	if (eLoadedSavePoint == AUTOSAVE_POINT_NETWORK_GAME_TURN_POST)
 		m_bSkipFirstNetworkGameHumanTurnsStartSave = true;
 
@@ -202,7 +200,6 @@ void CvSaveController::Read(FDataStream& kStream)
 
 void CvSaveController::Write(FDataStream& kStream) const
 {
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WRITING SAVEPOINT: " << m_eSavedPoint);
 	kStream << (int)m_eSavedPoint;
 }
 
