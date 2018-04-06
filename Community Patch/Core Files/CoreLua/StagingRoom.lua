@@ -579,7 +579,11 @@ function RefreshPlayerList()
 	Controls.ListingScrollPanel:CalculateInternalSize();
 end
 
-
+function ShouldShowCivDetails(playerID)
+  -- this nasty bit of code is actually asking if the local player has met this player. The player is transformed as such to differentiate from the normal proper usage of the function.
+  -- will just return true regardless if the game does not have the GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN set
+  return PreGame.IsCivilizationKeyAvailable( -(playerID+1) )
+end
 -------------------------------------------------
 -------------------------------------------------
 function UpdatePlayer( slotInstance, playerInfo )
@@ -601,14 +605,9 @@ function UpdatePlayer( slotInstance, playerInfo )
 		local civIndex = PreGame.GetCivilization( playerID );
 		local activeCivSlot = (PreGame.GetSlotStatus( playerID ) == SlotStatus.SS_COMPUTER 
 													or PreGame.GetSlotStatus( playerID ) == SlotStatus.SS_TAKEN);
-			print("UpdatePlayer: " .. tostring(playerName) .. "#" .. tostring(playerID) .. " ind:" .. civIndex);													
 		if( civIndex ~= -1 and activeCivSlot ) then
-			 --if(PreGame.GetLoadFileName() ~= "" and PreGame.GetSlotStatus( playerID ) == SlotStatus.SS_COMPUTER and not PreGame.IsCivilizationKeyAvailable( -(playerID+1) )) then
-			--if(PreGame.GetLoadFileName() ~= "" and playerID ~= Matchmaking.GetLocalID() and not PreGame.IsCivilizationKeyAvailable( -(playerID+1) ) and not PreGame.GetSlotStatus( Matchmaking.GetLocalID() ) == SlotStatus.SS_OBSERVER) then
-			--if(PreGame.GetLoadFileName() ~= "" and not PreGame.IsCivilizationKeyAvailable( -(playerID+1) ) and not PreGame.GetSlotStatus( Matchmaking.GetLocalID() ) == SlotStatus.SS_OBSERVER) then
-			--if(PreGame.GetLoadFileName() ~= "" and playerID ~= Matchmaking.GetLocalID() and not PreGame.IsCivilizationKeyAvailable( -(playerID+1) )) then
-			--if(PreGame.GetLoadFileName() ~= "" and playerID ~= Matchmaking.GetLocalID() and not PreGame.IsCivilizationKeyAvailable( -(playerID+1) ) and PreGame.GetSlotStatus(Matchmaking.GetLocalID()) ~= SlotStatus.SS_OBSERVER ) then
-			if(PreGame.GetLoadFileName() ~= "" and playerID ~= Matchmaking.GetLocalID() and not PreGame.IsCivilizationKeyAvailable( -(playerID+1) ) and PreGame.GetSlotStatus(Matchmaking.GetLocalID()) ~= SlotStatus.SS_OBSERVER ) then
+      -- if we are loading then we may want to hide the civ details
+			if(PreGame.GetLoadFileName() ~= "" and playerID ~= Matchmaking.GetLocalID() and not ShouldShowCivDetails(playerID) and PreGame.GetSlotStatus(Matchmaking.GetLocalID()) ~= SlotStatus.SS_OBSERVER ) then
 			 
 				civ = GameInfo.Civilizations[ civIndex ];
 	
