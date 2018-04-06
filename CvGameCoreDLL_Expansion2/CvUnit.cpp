@@ -29381,8 +29381,15 @@ void CvUnit::SetMissionTimer(int iNewValue)
 
 		if(iNewTimer == 0)
 		{
-			auto_ptr<ICvUnit1> pDllUnit(new CvDllUnit(this));
-			gDLL->GameplayUnitMissionEnd(pDllUnit.get());
+			if (GetLengthMissionQueue() > 0)
+			{
+				auto_ptr<ICvUnit1> pDllUnit(new CvDllUnit(this));
+				gDLL->GameplayUnitMissionEnd(pDllUnit.get());
+			}
+			else
+			{
+				CvNotifications* pNotifications = GET_PLAYER(GC.getGame().getActivePlayer()).GetNotifications();				
+			}
 		}
 	}
 }
