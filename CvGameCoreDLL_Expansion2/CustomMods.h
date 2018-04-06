@@ -40,7 +40,8 @@
 //END MULTIPLAYER INSTRUCTIONS
 ////////////////////////////////////////
 
-// Sorry, I am putting this here since I don't quite know where to put it! Please advise and/or move
+
+
 // Enables not showing, during pregame, the details of the civs that have not been met by the local player, i.e. as it doesn't during the game
 #define MOD_KEEP_CIVS_UNKNOWN_PREGAME	(true)
 
