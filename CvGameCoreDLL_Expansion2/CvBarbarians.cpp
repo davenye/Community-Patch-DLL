@@ -516,7 +516,7 @@ void CvBarbarians::DoCamps()
 			// No new camps on plots in sight of a player
 			if (pLoopPlot->isVisibleToCivTeam(true, bMinors))
 				continue;
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS(__FUNCTION__  ": adding nonvisible plot = " << pLoopPlot->getX() << "," << pLoopPlot->getY());
+
 			iNumNotVisiblePlots++;
 
 			vAllPlots.push_back(pLoopPlot);
@@ -686,7 +686,6 @@ void CvBarbarians::DoCamps()
 						// Found a camp or a city too close, check another one
 						if (bSomethingTooClose || !CvBarbarians::IsPlotValidForBarbCamp(pLoopPlot))
 						{
-							NET_MESSAGE_DEBUG_OSTR_ALWAYS(__FUNCTION__  ": skipped plot = " << pLoopPlot->getX() << "," << pLoopPlot->getY() << " " << bSomethingTooClose);
 #if defined(MOD_CORE_REDUCE_RANDOMNESS)
 							//if we're using the fake random generator, it will produce the same candidate every time, need to remove it from the pool
 							vRelevantPlots.erase(vRelevantPlots.begin() + iPlotIndex);
@@ -748,7 +747,6 @@ void CvBarbarians::DoCamps()
 				else
 				{
 #if defined(MOD_CORE_REDUCE_RANDOMNESS)
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS(__FUNCTION__  ": skipped plot = " << pLoopPlot->getX() << "," << pLoopPlot->getY() << " too croweded");
 					//if we're using the fake random generator, it will produce the same candidate every time, need to remove it from the pool
 					vRelevantPlots.erase(vRelevantPlots.begin() + iPlotIndex);
 #endif

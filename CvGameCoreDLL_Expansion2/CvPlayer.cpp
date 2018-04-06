@@ -11028,7 +11028,7 @@ void CvPlayer::doTurn()
 	{
 		if(GC.getGame().isOption(GAMEOPTION_EVENTS))
 		{
-      DoEvents();
+			DoEvents();
 		}
 	}
 #endif
@@ -44229,12 +44229,12 @@ void CvPlayer::Read(FDataStream& kStream)
 	uint uiVersion;
 	kStream >> uiVersion;
 	MOD_SERIALIZE_INIT_READ(kStream);
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS(GetID() << " pre-reading turn active " << m_bTurnActive);
+
 #if defined(MOD_BALANCE_CORE)
 	kStream >> m_syncArchive;
 	//Values below deleted, as they're already in the sync archive! Use the sync archive from now on!
 #endif
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS(GetID() << " reading turn active " << m_bTurnActive);
+
 	m_pPlayerPolicies->Read(kStream);
 	m_pEconomicAI->Read(kStream);
 	m_pCitySpecializationAI->Read(kStream);
@@ -44381,8 +44381,9 @@ void CvPlayer::Read(FDataStream& kStream)
 		m_pDiplomacyRequests->Read(kStream);
 	}
 
-	if (m_bTurnActive)
+	if(m_bTurnActive)
 		GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
+
 #if defined(MOD_API_UNIFIED_YIELDS) && defined(MOD_API_PLOT_YIELDS)
 	// MOD_SERIALIZE_READ - v57/v58/v59 broke the save format  couldn't be helped, but don't make a habit of it!!!
 	kStream >> m_ppiPlotYieldChange;
@@ -44449,20 +44450,12 @@ void CvPlayer::Read(FDataStream& kStream)
 // save object to a stream
 // used during save
 //
-static int writehack = 0;
 void CvPlayer::Write(FDataStream& kStream) const
 {
-	FILogFile* pLog;
-	pLog = LOGFILEMGR.GetLog("writelog.csv", FILogFile::kDontTimeStamp);
 	//Save version number.  THIS MUST BE FIRST!!
 	kStream << g_CurrentCvPlayerVersion;
 	MOD_SERIALIZE_INIT_WRITE(kStream);
-	writehack++;
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS(GetID() << " wrting run active " << m_bTurnActive << " #" << writehack);
 
-	CvString strOutBuf;
-	strOutBuf.Format("%d, %d, %d", GetID(), m_bTurnActive , writehack);
-	pLog->Msg(strOutBuf);
 #if defined(MOD_BALANCE_CORE)
 	kStream << m_syncArchive;
 	//Values below deleted, as they're already in the sync archive! Use the sync archive from now on!

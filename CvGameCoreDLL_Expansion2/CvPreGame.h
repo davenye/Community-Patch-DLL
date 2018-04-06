@@ -308,9 +308,6 @@ static TeamTypes teamType(PlayerTypes p)
 	return NO_TEAM;
 }
 
-
-
-
 };
 
 inline TeamTypes getTeam(PlayerTypes ePlayerID)

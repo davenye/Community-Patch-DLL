@@ -40,11 +40,11 @@
 //END MULTIPLAYER INSTRUCTIONS
 ////////////////////////////////////////
 
-// Sorry, I am putting this here since I don't quite know where to put it!
+// Sorry, I am putting this here since I don't quite know where to put it! Please advise and/or move
 // Enables autosaving GameEvents and allows and extra autosave after Barbs/AI turn in
 #define MOD_SAVE_CONTROLLER	(true)
 
-#define MOD_KEEP_RANDOM_CIVS_SECRET	(true)
+#define MOD_KEEP_CIVS_UNKNOWN_PREGAME	(true)
 
 ///////////////////////
 // BATTLE ROYALE CODE

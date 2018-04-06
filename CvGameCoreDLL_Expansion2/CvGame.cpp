@@ -1444,7 +1444,6 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 #if defined(MOD_BALANCE_CORE_GLOBAL_IDS)
 	m_iGlobalAssetCounter = 1000; //0 is invalid
 #endif
-
 }
 
 //	--------------------------------------------------------------------------------
@@ -3883,15 +3882,11 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_SAVE_GROUP:
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING G START!");
 		gDLL->SaveGame(SAVEGAME_GROUP);
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING G END!");
 		break;
 
 	case CONTROL_SAVE_NORMAL:
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING START!");
 		gDLL->SaveGame(SAVEGAME_NORMAL);
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SAVING END!");
 		break;
 
 	case CONTROL_QUICK_SAVE:
@@ -5115,7 +5110,7 @@ void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
 	CvAssert(getNumGameTurnActive() >= 0);
 
 	////////////////////////////////////////////
-	//if (true && getNumGameTurnActive() == 0 && (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS)))
+	//if (getNumGameTurnActive() == 0 && (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS)))
 	if (getNumGameTurnActive() == 0 && (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS)))
 	{
 		FILogFile* pLog;
@@ -8274,7 +8269,7 @@ void CvGame::doTurn()
 	GC.getMap().doTurn();
 
 	GC.GetEngineUserInterface()->doTurn();
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("----------------------------------------------- UI ENDDD --------------------------------------------------------")
+
 	CvBarbarians::DoCamps();
 
 	CvBarbarians::DoUnits();
@@ -8341,7 +8336,6 @@ void CvGame::doTurn()
 
 	if(isOption(GAMEOPTION_DYNAMIC_TURNS))
 	{// update turn mode for dynamic turn mode.
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvGame::doTurn() setting dynamic teams");
 		for(int teamIdx = 0; teamIdx < MAX_TEAMS; ++teamIdx)
 		{
 			CvTeam& curTeam = GET_TEAM((TeamTypes)teamIdx);
@@ -8380,9 +8374,7 @@ void CvGame::doTurn()
 			CvTeam& kTeam = GET_TEAM((TeamTypes)iI);
 			if(kTeam.isAlive() && !kTeam.isSimultaneousTurns()) 
 			{
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS("teamactive:" << iI);
 				kTeam.setTurnActive(true);
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS("teamactive done:" << iI);
 				break;
 			}
 		}
@@ -8410,7 +8402,6 @@ void CvGame::doTurn()
 				}
 				else
 				{
-					NET_MESSAGE_DEBUG_OSTR_ALWAYS("sequential turn for player " << iI);
 					GET_PLAYER((PlayerTypes)iI).setTurnActive(true);
 					CvAssert(getNumGameTurnActive() == 1);
 				}
@@ -11335,9 +11326,7 @@ void CvGame::Read(FDataStream& kStream)
 #endif
 
 #if defined(MOD_SAVE_CONTROLLER)
-	//kStream >> m_iAutosaveFlag;
 	kStream >> *m_pSaveController;
-	//NET_MESSAGE_DEBUG_OSTR_ALWAYS("kStream >> m_iAutosaveFlag = " << m_iAutosaveFlag);
 #endif
 	unsigned int lSize = 0;
 	kStream >> lSize;
@@ -14173,7 +14162,6 @@ int CvGame::GetGreatestPlayerResourceMonopolyValue(ResourceTypes eResource) cons
 		return 0;
 
 	return GET_PLAYER(eGreatestPlayer).GetMonopolyPercent(eResource);
-
 }
 
 #if defined(MOD_SAVE_CONTROLLER)

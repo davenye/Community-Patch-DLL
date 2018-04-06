@@ -11944,8 +11944,7 @@ void CvMinorCivAI::SetAlly(PlayerTypes eNewAlly)
 {
 	CvAssertMsg(eNewAlly >= NO_PLAYER, "ePlayer is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eNewAlly < MAX_MAJOR_CIVS, "ePlayer is expected to be within maximum bounds (invalid Index)");
-	
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("[" << m_pPlayer->GetID() << "].SetAlly(" << eNewAlly << ");");
+
 	CvMap& theMap = GC.getMap();
 	int iNumPlots = GC.getMap().numPlots();
 

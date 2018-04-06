@@ -279,7 +279,7 @@ PREGAMEVAR(std::vector<bool>,                  s_turnNotifySteamInvite,        M
 PREGAMEVAR(std::vector<bool>,                  s_turnNotifyEmail,							MAX_PLAYERS);
 PREGAMEVAR(std::vector<CvString>,              s_turnNotifyEmailAddress,    MAX_PLAYERS);
 
-#if defined(MOD_KEEP_RANDOM_CIVS_SECRET)
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 
 #if MAX_MAJOR_CIVS <= 32
 typedef unsigned long MetCivsBitArray;

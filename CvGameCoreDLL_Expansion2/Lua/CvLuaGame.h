@@ -511,10 +511,6 @@ protected:
 	static int lWriteCSV(lua_State* L);
 #endif
 
-#if defined(MOD_SAVE_CONTROLLER)
-	static int lGetLastAutoSaveTurn(lua_State* L);
-#endif
-
 #if defined(MOD_API_LUA_EXTENSIONS)
 	static int lIsPitbossHost(lua_State* L);
 	static int lIsHost(lua_State* L);
