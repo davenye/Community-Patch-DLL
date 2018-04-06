@@ -11004,11 +11004,12 @@ PlotVisibilityChangeResult CvPlot::changeVisibilityCount(TeamTypes eTeam, int iC
 	//remember the maximum
 	m_aiVisibilityCountThisTurnMax[eTeam] = max(m_aiVisibilityCountThisTurnMax[eTeam], m_aiVisibilityCount[eTeam]);
 
-	if(eSeeInvisible != NO_INVISIBLE)
+	if(bAlwaysSeeInvisible && eSeeInvisible != NO_INVISIBLE)
 	{
-		changeInvisibleVisibilityCount(eTeam, eSeeInvisible, iChange);
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("!!!!!!!!!!!!!! BUG EFFECT (bAlwaysSeeInvisible && eSeeInvisible != NO_INVISIBLE) !!!!!!!!!!!!!!!!!!!!!" << eTeam << " " << iChange << " " << eSeeInvisible);
+		if(pUnit)
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("!!!!!!!!!!!!!! BUG EFFECT (bAlwaysSeeInvisible && eSeeInvisible != NO_INVISIBLE) !!!!!!!!!!!!!!!!!!!!! unit was: " << pUnit->GetID());
 	}
-
 	if(bAlwaysSeeInvisible)
 	{
 		for(int iI = 0; iI < NUM_INVISIBLE_TYPES; iI++)
@@ -11016,6 +11017,12 @@ PlotVisibilityChangeResult CvPlot::changeVisibilityCount(TeamTypes eTeam, int iC
 			changeInvisibleVisibilityCount(eTeam, (InvisibleTypes) iI, iChange);
 		}
 	}
+	else if (eSeeInvisible != NO_INVISIBLE)
+	{
+		changeInvisibleVisibilityCount(eTeam, eSeeInvisible, iChange);
+	}
+
+	
 
 	// We couldn't see the Plot before but we can now
 	// note: the isVisible check works even when MOD_CORE_DELAYED_VISIBILITY is active
