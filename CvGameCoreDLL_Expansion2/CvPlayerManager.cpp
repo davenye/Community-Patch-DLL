@@ -35,5 +35,8 @@ void CvPlayerManager::Refresh(bool bWarStateChanged)
 		//only after loading, force danger update (only known enemy units are serialized)
 		if(!bWarStateChanged && kPlayer.m_pDangerPlots)
 			kPlayer.UpdateDangerPlots(true);
+
+		if (bWarDeclaration)
+			GC.getGame().GetGameTrade()->UpdateTradePathCache(iPlayerCivLoop);
 	}
 }
