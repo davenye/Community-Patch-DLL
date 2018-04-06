@@ -541,6 +541,10 @@ void CvDiplomacyRequests::SendRequest(PlayerTypes eFromPlayer, PlayerTypes eToPl
 	{
 		if (GC.getGame().isNetworkMultiPlayer() && eToPlayer != GC.getGame().getActivePlayer())
 		{
+			CvPlayer& kPlayer = GET_PLAYER(eToPlayer);
+			CvDiplomacyRequests* pkDiploRequests = kPlayer.GetDiplomacyRequests();
+			if (pkDiploRequests)
+				pkDiploRequests->Add(eFromPlayer, eDiploType, pszMessage, eAnimationType, iExtraGameData);
 			return;
 		}
 		CvPlayer& kPlayer = GET_PLAYER(eToPlayer);
