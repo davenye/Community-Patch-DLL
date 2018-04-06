@@ -6092,8 +6092,6 @@ CvString CvCity::GetDisabledTooltip(CityEventChoiceTypes eChosenEventChoice)
 void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent, bool bSendMsg)
 {
 	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
-
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvCity::DoEventChoice: " << PlayerTypes((1 << 31) | getOwner()) << " " << (FromUIDiploEventTypes)eCityEvent << " " << GetID() << " " << eEventChoice);
 		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | getOwner()), (FromUIDiploEventTypes)eCityEvent, GetID(), eEventChoice);
 		return;
 	}

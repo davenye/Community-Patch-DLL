@@ -8657,7 +8657,6 @@ void CvPlayer::DoEventSyncChoices(EventChoiceTypes eEventChoice, CvCity* pCity)
 void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent, bool bSendMsg)
 {
 	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::DoEventChoice: " << PlayerTypes((1 << 31) | GetID()) << " " << (FromUIDiploEventTypes)eEvent << " " << -1 << " " << eEventChoice);
 		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | GetID()), (FromUIDiploEventTypes) eEvent, -1, eEventChoice);
 		return;
 	}

@@ -239,7 +239,6 @@ void CvDllNetMessageHandler::ResponseDiplomacyFromUI(PlayerTypes ePlayer, Player
 {
 	// hijacks message for MP events since it has a few args and is sent to everyone
 	if ((eOtherPlayer & 0xFF000000) == 0x80000000) {
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("void CvDllNetMessageHandler::ResponseDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2):" << ePlayer);
 		PlayerTypes eActualPlayer = static_cast<PlayerTypes>(eOtherPlayer & 0x7FFFFFFF);
 		CvPlayerAI& kActualPlayer = GET_PLAYER(eActualPlayer);
 		if (kActualPlayer.isHuman() || GET_PLAYER(ePlayer).isLocalPlayer()) // there will be a lot of msgs flying around. we only want to handle each choice once on each client
