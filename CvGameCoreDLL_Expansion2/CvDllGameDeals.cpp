@@ -136,7 +136,7 @@ ICvDeal1* CvDllGameDeals::GetProposedDeal(PlayerTypes eFromPlayer, PlayerTypes e
 {
 #if defined(MOD_ACTIVE_DIPLOMACY)
 	CvDeal* pDeal;
-	if ((!GET_PLAYER(eFromPlayer).isHuman() || !GET_PLAYER(eToPlayer).isHuman()) && GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
+	if((!GET_PLAYER(eFromPlayer).isHuman() || !GET_PLAYER(eToPlayer).isHuman()) && GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
 	{
 		pDeal = m_pGameDeals->GetProposedMPDeal(eFromPlayer, eToPlayer, 0);
 	}
