@@ -199,17 +199,8 @@ void CvGrandStrategyAI::Read(FDataStream& kStream)
 	kStream >> (int&)m_eActiveGrandStrategy;
 
 	FAssertMsg(m_pAIGrandStrategies != NULL && m_pAIGrandStrategies->GetNumAIGrandStrategies() > 0, "Number of AIGrandStrategies to serialize is expected to greater than 0");
-#ifdef _MSC_VER
-// JAR - if m_pAIGrandStrategies can be NULL at this point,
-// the load will fail if the data isn't read. Better to crash
-// here where the problem is than defer it.
-#pragma warning ( push )
-#pragma warning ( disable : 6011 )
-#endif//_MSC_VER
+
 	ArrayWrapper<int> wrapm_paiGrandStrategyPriority(m_pAIGrandStrategies->GetNumAIGrandStrategies(), m_paiGrandStrategyPriority);
-#ifdef _MSC_VER
-#pragma warning ( pop )
-#endif//_MSC_VER
 
 	kStream >> wrapm_paiGrandStrategyPriority;
 

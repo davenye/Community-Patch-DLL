@@ -358,14 +358,7 @@ void CvEconomicAI::Read(FDataStream& kStream)
 
 	kStream >> iEntriesToRead;
 
-#ifdef _MSC_VER
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // no clear solution or recovery if m_pAIStrategies is ever NULL
-#endif//_MSC_VER
 	ArrayWrapper<bool> wrapGetNumEconomicAIStrategies(iEntriesToRead, m_pabUsingStrategy);
-#ifdef _MSC_VER
-#pragma warning ( pop )
-#endif//_MSC_VER
 
 	kStream >> wrapGetNumEconomicAIStrategies;
 
