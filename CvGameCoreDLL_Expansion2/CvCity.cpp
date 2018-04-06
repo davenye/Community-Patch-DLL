@@ -2865,13 +2865,7 @@ void CvCity::doTurn()
 	{
 		if(GC.getGame().isOption(GAMEOPTION_EVENTS))
 		{
-			//Don't do events in MP
-			bool bDontShowRewardPopup = (GC.getGame().isReallyNetworkMultiPlayer() || GC.getGame().isNetworkMultiPlayer());
-
-			if (!bDontShowRewardPopup)
-			{
-				DoEvents();
-			}
+			DoEvents();
 		}
 	}
 #endif
@@ -6095,8 +6089,12 @@ CvString CvCity::GetDisabledTooltip(CityEventChoiceTypes eChosenEventChoice)
 	return DisabledTT.c_str();
 
 }
-void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent)
+void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent, bool bSendMsg)
 {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | getOwner()), (FromUIDiploEventTypes)eCityEvent, GetID(), eEventChoice);
+		return;
+	}
 	if(eEventChoice != NO_EVENT_CHOICE)
 	{
 		CvModEventCityChoiceInfo* pkEventChoiceInfo = GC.getCityEventChoiceInfo(eEventChoice);
