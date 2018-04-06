@@ -13,15 +13,10 @@
 #include "CvDiplomacyAI.h"
 #include "CvMilitaryAI.h"
 #include "CvMinorCivAI.h"
-#include "FireWorks/FRemark.h"
 
 // must be included after all other headers
 #include "LintFree.h"
-#ifdef _MSC_VER
-#pragma warning ( disable : 4505 ) // unreferenced local function has been removed.. needed by REMARK below
-#endif//_MSC_VER
 
-REMARK_GROUP("CvDangerPlots");
 
 #define FOG_DEFAULT_DANGER (8)
 
