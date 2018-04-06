@@ -1619,6 +1619,9 @@ void CvGame::update()
 	{
 		if(!GC.GetEngineUserInterface()->isDiploActive())
 		{
+#if defined(MOD_BALANCE_CORE)
+			GET_PLAYER(m_eWaitDiploPlayer).UpdateCityThreatCriteria();
+#endif
 			GET_PLAYER(m_eWaitDiploPlayer).doTurnPostDiplomacy();
 			SetWaitingForBlockingInput(NO_PLAYER);
 		}
