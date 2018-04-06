@@ -27520,7 +27520,7 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					SetShareOpinionAccepted(eFromPlayer, true);
 					GET_PLAYER(eFromPlayer).GetDiplomacyAI()->SetShareOpinionAccepted(eMyPlayer, true);
 
-					if (bActivePlayer)
+					if(bActivePlayer)
 					{
 						if(IsAtWar(eTargetPlayer))
 						{
