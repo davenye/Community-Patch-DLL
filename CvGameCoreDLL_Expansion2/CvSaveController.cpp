@@ -128,22 +128,6 @@ bool CvSaveController::SavePoint(AutoSavePointTypes eSavePoint) {
 	return true;
 
 }
-void CvSaveController::Read(FDataStream& kStream)
-{
-	int p;
-	kStream >> p;
-	AutoSavePointTypes eLoadedSavePoint = (AutoSavePointTypes) p;
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("LOADED SAVEPOINT: " << eLoadedSavePoint);
-	if (eLoadedSavePoint == AUTOSAVE_POINT_NETWORK_GAME_TURN_POST)
-		m_bSkipFirstNetworkGameHumanTurnsStartSave = true;
-
-}
-
-void CvSaveController::Write(FDataStream& kStream) const
-{
-	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WRITING SAVEPOINT: " << m_eSavedPoint);
-	kStream << (int) m_eSavedPoint;
-}
 
 AutoSavePointTypes CvSaveController::getLastAutoSavePoint() const
 {
@@ -155,17 +139,6 @@ int CvSaveController::getLastAutoSaveTurn() const
 	if (m_eLastSavedPoint == NO_AUTOSAVE_POINT)
 		return -1;
 	return iLastTurnSaved[m_eLastSavedPoint];
-}
-
-FDataStream& operator>>(FDataStream& kStream, CvSaveController& kAutoSave)
-{
-	kAutoSave.Read(kStream);
-	return kStream;
-}
-FDataStream& operator<<(FDataStream& kStream, const CvSaveController& kAutoSave)
-{
-	kAutoSave.Write(kStream);
-	return kStream;
 }
 
 bool CvSaveController::AutoSave(AutoSavePointTypes eSavePoint, bool default, bool initial, bool post)
@@ -214,4 +187,32 @@ void CvSaveController::NamedSave(const char* filename, AutoSavePointTypes type) 
 	m_eSavedPoint = AUTOSAVE_POINT_EXTERNAL;
 	FireAutoSaveEvent(type, true);
 
+}
+
+void CvSaveController::Read(FDataStream& kStream)
+{
+	int p;
+	kStream >> p;
+	AutoSavePointTypes eLoadedSavePoint = (AutoSavePointTypes)p;
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("LOADED SAVEPOINT: " << eLoadedSavePoint);
+	if (eLoadedSavePoint == AUTOSAVE_POINT_NETWORK_GAME_TURN_POST)
+		m_bSkipFirstNetworkGameHumanTurnsStartSave = true;
+
+}
+
+void CvSaveController::Write(FDataStream& kStream) const
+{
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("WRITING SAVEPOINT: " << m_eSavedPoint);
+	kStream << (int)m_eSavedPoint;
+}
+
+FDataStream& operator>>(FDataStream& kStream, CvSaveController& kAutoSave)
+{
+	kAutoSave.Read(kStream);
+	return kStream;
+}
+FDataStream& operator<<(FDataStream& kStream, const CvSaveController& kAutoSave)
+{
+	kAutoSave.Write(kStream);
+	return kStream;
 }
