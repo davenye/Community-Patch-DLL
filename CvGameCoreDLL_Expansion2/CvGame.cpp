@@ -67,6 +67,10 @@
 #include "CvDllContext.h"
 #endif
 
+#if defined(MOD_SAVE_CONTROLLER)
+#include "CvSaveController.h"
+#endif
+
 // Public Functions...
 // must be included after all other headers
 #include "LintFree.h"
@@ -157,6 +161,9 @@ CvGame::CvGame() :
 	m_endTurnTimer.Start();
 	m_endTurnTimer.Stop();
 
+#if defined(MOD_SAVE_CONTROLLER)
+	m_pSaveController = NULL;
+#endif
 	reset(NO_HANDICAP, true);
 }
 
@@ -946,7 +953,12 @@ void CvGame::regenerateMap()
 
 	GC.GetEngineUserInterface()->setCycleSelectionCounter(1);
 
+#if defined(MOD_SAVE_CONTROLLER)
+	GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_MAP_GEN);	
+#else
 	gDLL->AutoSave(true);
+#endif
+	
 }
 
 
@@ -1068,6 +1080,10 @@ void CvGame::uninit()
 
 	SAFE_DELETE(m_pAdvisorCounsel);
 	SAFE_DELETE(m_pAdvisorRecommender);
+
+#if defined(MOD_SAVE_CONTROLLER)
+	SAFE_DELETE(m_pSaveController);
+#endif
 
 	m_bForceEndingTurn = false;
 
@@ -1409,6 +1425,11 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 		m_pAdvisorRecommender = FNEW(CvAdvisorRecommender, c_eCiv5GameplayDLL, 0);
 
 		m_eTechAstronomy = (TechTypes)GC.getInfoTypeForString("TECH_ASTRONOMY");
+
+#if defined(MOD_SAVE_CONTROLLER)
+		CvAssertMsg(m_pSaveController == NULL, "about to leak memory, CvGame::m_pSaveController");
+		m_pSaveController = FNEW(CvSaveController, c_eCiv5GameplayDLL, 0);
+#endif
 	}
 
 	m_mapRand.reset();
@@ -1663,7 +1684,11 @@ void CvGame::update()
 			//this creates the initial autosave
 			if(getTurnSlice() == 0 && !isPaused())
 			{
+#if defined(MOD_SAVE_CONTROLLER)
+				GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_INITIAL);
+#else
 				gDLL->AutoSave(true);
+#endif
 			}
 
 #if defined(EXTERNAL_PAUSING)
@@ -8080,7 +8105,13 @@ void CvGame::doTurn()
 
 	//create an autosave
 	if(!isNetworkMultiPlayer())
+	{
+#if defined(MOD_SAVE_CONTROLLER)
+		GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN);
+#else
 		gDLL->AutoSave(false, false);
+#endif
+	}
 
 	// END OF TURN
 
@@ -8302,8 +8333,19 @@ void CvGame::doTurn()
 
 	//autosave after doing a turn
 	if (isNetworkMultiPlayer())
-		gDLL->AutoSave(false, true);
-
+	{
+#if defined(MOD_SAVE_CONTROLLER)
+		GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN);
+#else
+		gDLL->AutoSave(false);
+#endif
+	}
+#if defined(MOD_SAVE_CONTROLLER)
+	else
+	{
+		GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_LOCAL_GAME_TURN_POST);
+	}
+#endif
 	gDLL->PublishNewGameTurn(getGameTurn());
 }
 
@@ -9107,6 +9149,14 @@ void CvGame::updateMoves()
 				CvAchievementUnlocker::EndTurn();
 #endif
 			}
+			// DN: This spot *seems* safe for a save point due to the barrier created by the allAICivsProcessedThisTurn check above.
+			// Currently, nothing that can't be repeated is done between here and the normal autosave when the AI have finished. This needs to remain the case.
+#if defined(MOD_SAVE_CONTROLLER)
+			if (isNetworkMultiPlayer())
+			{
+				GC.getGame().getSaveController()->SavePoint(AUTOSAVE_POINT_NETWORK_GAME_TURN_POST);
+			}
+#endif
 
 			if(!processPlayerAutoMoves)
 			{
@@ -11097,6 +11147,9 @@ void CvGame::Read(FDataStream& kStream)
 	kStream >> *m_pGameContracts;
 #endif
 
+#if defined(MOD_SAVE_CONTROLLER)
+	kStream >> *m_pSaveController;
+#endif
 	unsigned int lSize = 0;
 	kStream >> lSize;
 	if(lSize > 0)
@@ -11303,6 +11356,10 @@ void CvGame::Write(FDataStream& kStream) const
 	kStream << *m_pGameContracts;
 #endif
 
+#if defined(MOD_SAVE_CONTROLLER)
+	kStream << *m_pSaveController;
+#endif
+	
 	//In Version 8, Serialize Saved Game database
 	CvString strPath = gDLL->GetCacheFolderPath();
 	strPath += "Civ5SavedGameDatabase.db";
@@ -13959,5 +14016,13 @@ int CvGame::GetGreatestPlayerResourceMonopolyValue(ResourceTypes eResource) cons
 
 	return GET_PLAYER(eGreatestPlayer).GetMonopolyPercent(eResource);
 }
+
+#if defined(MOD_SAVE_CONTROLLER)
+CvSaveController* CvGame::getSaveController()
+{
+	return m_pSaveController;
+}
+#endif
+
 #endif
 #endif

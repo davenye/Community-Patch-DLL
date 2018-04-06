@@ -40,6 +40,10 @@
 //END MULTIPLAYER INSTRUCTIONS
 ////////////////////////////////////////
 
+// Sorry, I am putting this here since I don't quite know where to put it! Please advise and/or move
+// Enables autosaving GameEvents and allows and extra autosave after Barbs/AI turn in
+#define MOD_SAVE_CONTROLLER	(true)
+
 
 
 // Enables not showing, during pregame, the details of the civs that have not been met by the local player, i.e. as it doesn't during the game
@@ -1296,6 +1300,9 @@ enum BattleTypeTypes
 #define GAMEEVENT_CityFlipped				"CityFlipped", "iii"
 #define GAMEEVENT_CityFlipChance			"CityFlipChance", "ii"
 #define GAMEEVENT_CityFlipRecipientChance	"CityFlipChance", "iii"
+// AutoSave
+#define GAMEEVENT_WantAutoSave				"WantAutoSave",		"i"
+#define GAMEEVENT_AutoSaved					"AutoSaved",		"ib"
 
 // Serialization wrappers
 #define MOD_SERIALIZE
