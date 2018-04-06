@@ -108,6 +108,7 @@ void CvDiplomacyRequests::Read(FDataStream& kStream)
 		{
 			m_aRequests.push_back(Request());
 			kStream >> m_aRequests.back();
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("READ DIPLO REQ:" << m_ePlayer << ": " << m_aRequests.back().m_iLookupIndex);
 		}
 	}
 }
@@ -127,6 +128,7 @@ void CvDiplomacyRequests::Write(FDataStream& kStream) const
 
 	for(RequestList::const_iterator i = m_aRequests.begin(); i != m_aRequests.end(); ++i)
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("WRITE DIPLO REQ for " << m_ePlayer << ": " << i->m_iLookupIndex);
 		kStream << (*i);
 	}
 }
@@ -201,6 +203,7 @@ void CvDiplomacyRequests::BeginTurn(void)
 			{
 				if (iter->m_iLookupIndex < 0)
 				{
+					NET_MESSAGE_DEBUG_OSTR_ALWAYS("Adding deal notifications for diplo: " << iter->m_strMessage.c_str());
 					CvPlayer& kFrom = GET_PLAYER(iter->m_eFromPlayer);
 					CvString leaderMessage = CvString::format("%s: %s", kFrom.getName(), iter->m_strMessage.c_str());
 					Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_MP_DIPLO_CONTACT_SUMMARY");
@@ -460,6 +463,10 @@ void CvDiplomacyRequests::SendRequest(PlayerTypes eFromPlayer, PlayerTypes eToPl
 	{
 		if (GC.getGame().isNetworkMultiPlayer() && eToPlayer != GC.getGame().getActivePlayer())
 		{
+			CvPlayer& kPlayer = GET_PLAYER(eToPlayer);
+			CvDiplomacyRequests* pkDiploRequests = kPlayer.GetDiplomacyRequests();
+			if (pkDiploRequests)
+				pkDiploRequests->Add(eFromPlayer, eDiploType, pszMessage, eAnimationType, iExtraGameData);
 			return;
 		}
 		CvPlayer& kPlayer = GET_PLAYER(eToPlayer);
