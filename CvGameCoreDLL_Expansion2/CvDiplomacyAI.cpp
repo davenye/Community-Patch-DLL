@@ -26802,9 +26802,7 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 	// Human responds to AI action in a positive or negative way.
 	// *********************************************
 	case FROM_UI_DIPLO_EVENT_MEAN_RESPONSE:
-	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS("FROM_UI_DIPLO_EVENT_MEAN_RESPONSE: " << eFromPlayer << " -> " << GetPlayer()->GetID());
-
+	{		
 		if(!IsAtWar(eFromPlayer))
 		{
 			// Does the AI declare war?
@@ -26857,9 +26855,9 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 				int iFlavorOffense = pFlavorManager->GetPersonalityIndividualFlavor((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE"));
 				GetPlayer()->GetDiplomacyAI()->ChangeRecentAssistValue(eFromPlayer, (iFlavorOffense * 50));
 			}
-			if (bActivePlayer)
+			if(bActivePlayer)
 			{
-				if (bDeclareWar)
+				if(bDeclareWar)
 				{
 					strText = GetDiploStringForMessage(DIPLO_MESSAGE_WAR_RUDE_INSULT);
 					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_DECLARE_WAR);
@@ -26873,7 +26871,7 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 		}
 		else
 		{
-			if (bActivePlayer)
+			if(bActivePlayer)
 			{
 				strText = GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
 				gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
