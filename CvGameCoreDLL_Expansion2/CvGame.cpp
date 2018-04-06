@@ -6212,17 +6212,14 @@ const CvHandicapInfo& CvGame::getHandicapInfo() const
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
 
-		// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvHandicapInfo();
-#pragma warning ( pop )
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvHandicapInfo communalInstance;
+		communalInstance.~CvHandicapInfo();
+		new(&communalInstance)CvHandicapInfo();
+		return communalInstance;
 	}
 
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *pkHandicapInfo;
-#pragma warning ( pop )
 }
 
 HandicapTypes CvGame::getHandicapType() const
@@ -7542,17 +7539,14 @@ const CvGameSpeedInfo& CvGame::getGameSpeedInfo() const
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
 
-		// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvGameSpeedInfo();
-#pragma warning ( pop )
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvGameSpeedInfo communalInstance;
+		communalInstance.~CvGameSpeedInfo();
+		new(&communalInstance)CvGameSpeedInfo();
+		return communalInstance;
 	}
 
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *pkGameSpeedInfo;
-#pragma warning ( pop )
 }
 
 //	--------------------------------------------------------------------------------
@@ -7571,17 +7565,14 @@ const CvEraInfo& CvGame::getStartEraInfo() const
 		GC.LogMessage(szError);
 		CvAssertMsg(false, szError);
 
-		// it hurts but we have to - whoever designed this should be whipped
-#pragma warning ( push )
-#pragma warning(disable:4172) //returning address of temporary
-		return CvEraInfo();
-#pragma warning ( pop )
+		// Adding extra hackiness to this already massive hack by making a static to return instead of the temporary...but why not just terminate instead? This is just terrible but no UB at least?
+		static CvEraInfo communalInstance;
+		communalInstance.~CvEraInfo();
+		new(&communalInstance)CvEraInfo();
+		return communalInstance;
 	}
 
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) // Dereferencing NULL pointer
 	return *pkStartEraInfo;
-#pragma warning ( pop )
 }
 
 //	--------------------------------------------------------------------------------
