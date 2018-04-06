@@ -40,6 +40,11 @@
 //END MULTIPLAYER INSTRUCTIONS
 ////////////////////////////////////////
 
+// Sorry, I am putting this here since I don't quite know where to put it! Please advise and/or move
+// Enables autosaving GameEvents and allows and extra autosave after Barbs/AI turn in
+#define MOD_SAVE_CONTROLLER	(true)
+
+
 ///////////////////////
 // BATTLE ROYALE CODE
 //////////////////////
@@ -1286,6 +1291,9 @@ enum BattleTypeTypes
 #define GAMEEVENT_CityEventCanTake			"CityEventCanTake", "iii"
 #define GAMEEVENT_EventUnitCreated			"EventUnitCreated", "iii"
 #define GAMEEVENT_CityFlipped				"CityFlipped", "iii"
+// AutoSave
+#define GAMEEVENT_WantAutoSave				"WantAutoSave",		"i"
+#define GAMEEVENT_AutoSaved					"AutoSaved",		"ib"
 
 // Serialization wrappers
 #define MOD_SERIALIZE
