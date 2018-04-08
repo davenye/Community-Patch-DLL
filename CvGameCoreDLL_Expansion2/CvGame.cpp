@@ -8095,12 +8095,27 @@ void CvGame::doTurn()
 
 	CvBarbarians::BeginTurn();
 
+#if defined(MOD_ACTIVE_DIPLOMACY)
+	// Dodgy business to cleanup all the completed requests from last turn. Any still here should just be ones that were processed on other clients anyway.
+	if (MOD_ACTIVE_DIPLOMACY)
+	{
+		for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
+		{
+			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
+			CvAssertMsg((kPlayer.isLocalPlayer() && kPlayer.GetDiplomacyRequests()->HasPendingRequests()) || !kPlayer.isLocalPlayer(), "Clearing requests but still apparently some still pending.");
+			kPlayer.GetDiplomacyRequests()->ClearAllRequests();
+		}
+	}
+#endif
+
 	doUpdateCacheOnTurn();
 
 	DoUpdateCachedWorldReligionTechProgress();
 
 	updateScore();
 
+	
+	
 	m_kGameDeals.DoTurn();
 
 	for(iI = 0; iI < MAX_TEAMS; iI++)
