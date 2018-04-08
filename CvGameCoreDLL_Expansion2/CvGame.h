@@ -891,12 +891,14 @@ protected:
 
 	FTimer  m_endTurnTimer;
 	int     m_endTurnTimerSemaphore;
-	int     m_lastTurnAICivsProcessed;
+	int     m_lastTurnAICivsProcessed;	
 	FTimer  m_curTurnTimer;
 	FTimer  m_timeSinceGameTurnStart;		//time since game turn started for human players
 	float	m_fCurrentTurnTimerPauseDelta;	//
 	bool    m_sentAutoMoves;
+	bool	m_processPlayerAutoMoves;
 	bool	m_bForceEndingTurn;
+	
 
 #if defined(MOD_BALANCE_CORE_SPIES)
 	int		m_iLargestBasePotential;
