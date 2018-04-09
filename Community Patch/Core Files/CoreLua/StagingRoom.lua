@@ -552,6 +552,12 @@ function RefreshPlayerList()
     m_bIsHost = Matchmaking.IsHost();
 	m_bLaunchReady = true;
 	
+	-- Avoid Icon Hookup errors and missing/wrong icons. Need to clear mapping of playerID to civ info since all that is potentially changing here. Quite a heavy-handed approach, I freely admit.
+	-- Referencing EUI here is probably not smiled upon. Tried a few Multiplayer Events hook this up to instead but to no avail.
+	if (EUI) then
+		EUI.ResetCache();
+	end
+	
 	-- Get the Current Player List
 	local playerTable = Matchmaking.GetPlayerList();
 	
