@@ -8102,7 +8102,7 @@ void CvGame::doTurn()
 		for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 		{
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
-			CvAssertMsg((kPlayer.isLocalPlayer() && kPlayer.GetDiplomacyRequests()->HasPendingRequests()) || !kPlayer.isLocalPlayer(), "Clearing requests but still apparently some still pending.");
+			CvAssertMsg((kPlayer.isLocalPlayer() && !kPlayer.GetDiplomacyRequests()->HasPendingRequests()) || !kPlayer.isLocalPlayer(), "Clearing requests, expected local player to be empty.");
 			kPlayer.GetDiplomacyRequests()->ClearAllRequests();
 		}
 	}
