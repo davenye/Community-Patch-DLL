@@ -4444,7 +4444,11 @@ bool CvCity::IsCityEventChoiceValid(CityEventChoiceTypes eChosenEventChoice, Cit
 
 	//Exploit checks.
 	if(kPlayer.isEndTurn())
-		return false;
+	{
+		// Not sure what the exploits are in particular but global events are fired outside of human turns so we can't return here
+		if(!GC.getGame().isNetworkMultiPlayer()) // check simul/hybrid turns instead maybe? not sure yet.
+			return false;
+	}
 
 	if(!IsEventActive(eParentEvent))
 		return false;
@@ -6091,7 +6095,7 @@ CvString CvCity::GetDisabledTooltip(CityEventChoiceTypes eChosenEventChoice)
 }
 void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent, bool bSendMsg)
 {
-	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && GET_PLAYER(getOwner()).isHuman()) {
 		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | getOwner()), (FromUIDiploEventTypes)eCityEvent, GetID(), eEventChoice);
 		return;
 	}

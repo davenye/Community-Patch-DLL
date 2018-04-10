@@ -6366,8 +6366,12 @@ bool CvPlayer::IsEventChoiceValid(EventChoiceTypes eChosenEventChoice, EventType
 	}
 
 	//Exploit checks.
-	if(isEndTurn())
-		return false;
+	if (isEndTurn())
+	{
+		// Not sure what the exploits are in particular but global events are fired outside of human turns so we can't return here
+		if(!GC.getGame().isNetworkMultiPlayer()) // check simul/hybrid turns instead maybe? not sure yet.
+			return false;
+	}
 
 	if(!IsEventActive(eParentEvent))
 		return false;
@@ -8656,7 +8660,7 @@ void CvPlayer::DoEventSyncChoices(EventChoiceTypes eEventChoice, CvCity* pCity)
 }
 void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent, bool bSendMsg)
 {
-	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && isHuman()) {
 		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | GetID()), (FromUIDiploEventTypes) eEvent, -1, eEventChoice);
 		return;
 	}
