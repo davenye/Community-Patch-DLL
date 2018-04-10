@@ -1,4 +1,4 @@
-/*	-------------------------------------------------------------------------------------------------------
+k/*	-------------------------------------------------------------------------------------------------------
 	© 1991-2012 Take-Two Interactive Software and its subsidiaries.  Developed by Firaxis Games.  
 	Sid Meier's Civilization V, Civ, Civilization, 2K Games, Firaxis Games, Take-Two Interactive Software 
 	and their respective logos are all trademarks of Take-Two interactive Software, Inc.  
@@ -279,6 +279,7 @@ PREGAMEVAR(std::vector<bool>,                  s_turnNotifySteamInvite,        M
 PREGAMEVAR(std::vector<bool>,                  s_turnNotifyEmail,							MAX_PLAYERS);
 PREGAMEVAR(std::vector<CvString>,              s_turnNotifyEmailAddress,    MAX_PLAYERS);
 
+
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 
 #if MAX_MAJOR_CIVS <= 32
@@ -293,6 +294,7 @@ typedef unsigned long long MetCivsBitArray;
 // this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
 std::vector<MetCivsBitArray> s_knownPlayersTable;
 #endif
+
 
 typedef std::map<uint, uint> HashToOptionMap;
 
@@ -470,6 +472,14 @@ void writeSlotStatus(FDataStream& saveTo)
 	}
 }
 
+const std::vector<MetCivsBitArray>& GetKnownPlayersTable() {
+	return s_knownPlayersTable;
+}
+
+void SetKnownPlayersTable(const std::vector<MetCivsBitArray>& aiKnownPlayersTable) {
+	s_knownPlayersTable = aiKnownPlayersTable;
+}
+
 void updateKnownPlayersTable()
 {
 	// Playing it safe here, don't want to introduce a bug due to not knowing all the code paths and trying to save a few cycles/bytes
@@ -490,6 +500,7 @@ void updateKnownPlayersTable()
 //	-----------------------------------------------------------------------
 void saveSlotHints(FDataStream& saveTo)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::saveSlotHints: knownPlayersTable count=" << s_knownPlayersTable.size());
 	uint uiVersion = 3;
 	saveTo << uiVersion;
 	saveTo << s_gameSpeed;
@@ -595,6 +606,7 @@ static void loadSlotsHelper(
 
 int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::readActiveSlotCountFromSaveGame");
 	uint uiVersion = 0;
 	if(bReadVersion)
 		loadFrom >> uiVersion;
@@ -615,6 +627,31 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyKnownPlayersTable);
 
 	return calcActiveSlotCount(slotStatus, slotClaims);
+}
+
+void readKnownCivsTableFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
+{
+	uint uiVersion = 0;
+	if (bReadVersion)
+		loadFrom >> uiVersion;
+
+	GameSpeedTypes	dummyGameSpeed;
+	WorldSizeTypes	dummyWorldSize;
+	CvString		dummyMapScriptName;
+	std::vector<CivilizationTypes>	dummyCivilizations;
+	std::vector<CvString> dummyNicknames;
+	std::vector<TeamTypes> dummyTeamTypes;
+	std::vector<SlotStatus> slotStatus;
+	std::vector<SlotClaim> slotClaims;
+	std::vector<HandicapTypes> dummyHandicapTypes;
+	std::vector<CvString> civilizationKeys;
+	std::vector<CvString> leaderKeys;
+
+	std::vector<MetCivsBitArray> knownPlayersTable;
+
+	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, knownPlayersTable);
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::readKnownCivsTableFromSaveGame: knownPlayersTable count=" << knownPlayersTable.size());
+	s_knownPlayersTable = knownPlayersTable;	
 }
 
 void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
@@ -680,6 +717,7 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 		PlayerTypes p = static_cast<PlayerTypes>(i);
 		setNickname(p, s_nicknames[i]); // fix display names
 	}
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::loadSlotHints: knownPlayersTable count=" << knownPlayersTable.size());
 	s_knownPlayersTable = knownPlayersTable;
 	ReseatConnectedPlayers();
 }
@@ -1766,6 +1804,7 @@ bool randomMapScript()
 
 void readArchive(FDataStream& loadFrom, bool bReadVersion)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::readArchive");
 	uint uiVersion = 0;
 	if(bReadVersion)
 		loadFrom >> uiVersion;
@@ -2243,9 +2282,12 @@ std::vector<GUID> s_savedLeaderPackageID(MAX_PLAYERS);
 std::vector<bool> s_savedLeaderKeysAvailable(MAX_PLAYERS);
 std::vector<PackageIDList> s_savedDLCPackagesAvailable(MAX_PLAYERS);
 
+std::vector<MetCivsBitArray> s_savedKnownPlayersTable;
+
 //	------------------------------------------------------------------------------------
 void restoreSlots()
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::restoreSlots()");
 	s_slotClaims = s_savedSlotClaims;
 	s_slotStatus = s_savedSlotStatus;
 	s_civilizations = s_savedCivilizations;
@@ -2260,7 +2302,7 @@ void restoreSlots()
 	s_leaderPackageID = s_savedLeaderPackageID;
 	s_leaderKeysAvailable =  s_savedLeaderKeysAvailable;
 	s_DLCPackagesAvailable = s_savedDLCPackagesAvailable;
-
+	s_knownPlayersTable = s_savedKnownPlayersTable;
 	setActivePlayer(s_savedLocalPlayer);
 }
 
@@ -2269,6 +2311,7 @@ void restoreSlots()
 //	after a hot-join/re-sync
 void saveSlots()
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::saveSlots()");
 	s_savedSlotClaims = s_slotClaims;
 	s_savedSlotStatus = s_slotStatus;
 	s_savedCivilizations = s_civilizations;
@@ -2284,6 +2327,8 @@ void saveSlots()
 	s_savedLeaderPackageID = s_leaderPackageID;
 	s_savedLeaderKeysAvailable = s_leaderKeysAvailable;
 	s_savedDLCPackagesAvailable = s_DLCPackagesAvailable;
+
+	s_savedKnownPlayersTable = s_knownPlayersTable;
 }
 
 SeaLevelTypes seaLevel()
@@ -2775,9 +2820,19 @@ void setLoadFileName(const CvString& f, StorageLocation eStorage)
 
 bool readPlayerSlotInfo(FDataStream& loadFrom, bool bReadVersion)
 {
-	if(gDLL->IsHost())	// Only do this if the player is the host.
+	if (gDLL->IsHost())	// Only do this if the player is the host.
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::readPlayerSlotInfo-host");
 		loadSlotHints(loadFrom, bReadVersion);
+	
+	}
+	else
+	{
+		// still need this though
+	//	NET_MESSAGE_DEBUG_OSTR_ALWAYS("PreGame::readPlayerSlotInfo-guest");
+		//readKnownCivsTableFromSaveGame(loadFrom, bReadVersion);
+		
+
 	}
 	return true;
 }

@@ -323,7 +323,7 @@ foundRequest:
 	static CvDeal kDeal;
 	PlayerTypes eFrom = requestIter->m_eFromPlayer;
 	PlayerTypes eTo = m_ePlayer;
-
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("activate next: " << eFrom << " -> " << eTo);
 	// we remove the first proposed deal and use it as the scratch deal ...
 	if (!(CvPreGame::isHuman(m_ePlayer) && CvPreGame::isHuman(eFrom)))
 	{
@@ -550,6 +550,7 @@ void CvDiplomacyRequests::SendRequest(PlayerTypes eFromPlayer, PlayerTypes eToPl
 	{
 		if (GC.getGame().isNetworkMultiPlayer() && eToPlayer != GC.getGame().getActivePlayer())
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("dummy deal req: " << eFromPlayer << " -> " << eToPlayer);
 			CvPlayer& kPlayer = GET_PLAYER(eToPlayer);
 			CvDiplomacyRequests* pkDiploRequests = kPlayer.GetDiplomacyRequests();
 			if (pkDiploRequests)
@@ -560,6 +561,7 @@ void CvDiplomacyRequests::SendRequest(PlayerTypes eFromPlayer, PlayerTypes eToPl
 		CvDiplomacyRequests* pkDiploRequests = kPlayer.GetDiplomacyRequests();
 		if(pkDiploRequests)
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("real deal req: " << eFromPlayer << " -> " << eToPlayer);
 			// JdH => add now handles everything, from direct sending to adding notifications...
 			if (!(CvPreGame::isHuman(eFromPlayer) && CvPreGame::isHuman(eToPlayer)))
 			{

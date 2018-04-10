@@ -9,7 +9,7 @@
 #include "CvGameCoreDLLPCH.h"
 #include "CvDllNetInitInfo.h"
 #include "CvDllContext.h"
-
+#include <sstream>
 CvDllNetInitInfo::CvDllNetInitInfo()
 	: m_uiRefCount(1)
 {
@@ -45,7 +45,9 @@ CvDllNetInitInfo::CvDllNetInitInfo()
 	m_iNumMinorCivs = CvPreGame::numMinorCivs();
 	m_iNumAdvancedStartPoints = CvPreGame::advancedStartPoints();
 	m_eMode = CvPreGame::gameMode();
-
+	
+	m_aiKnownPlayersTable = CvPreGame::GetKnownPlayersTable();
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("+CvDllNetInitInfo::CvDllNetInitInfo()=" << m_aiKnownPlayersTable.size());
 	ZeroMemory(m_szDebugString, sizeof m_szDebugString);
 }
 //------------------------------------------------------------------------------
@@ -121,7 +123,8 @@ const char* CvDllNetInitInfo::GetDebugString()
 	        "m_eTurnTimer=%d "\
 	        "m_szGameName=\"%s\" "\
 	        "m_uiSyncRandSeed=%u "\
-	        "m_uiMapRandSeed=%u"
+	        "m_uiMapRandSeed=%u "\
+			"m_aiKnownPlayersTable.size()=%d"
 	        , CvPreGame::loadFileName().c_str()
 	        , CvPreGame::mapScriptName().c_str()
 	        , CvPreGame::mapNoPlayers() ? "true" : "false"
@@ -137,6 +140,7 @@ const char* CvDllNetInitInfo::GetDebugString()
 	        , CvPreGame::gameName().c_str()
 	        , CvPreGame::syncRandomSeed()
 	        , CvPreGame::mapRandomSeed()
+			, CvPreGame::GetKnownPlayersTable()
 	       );
 
 	return m_szDebugString;
@@ -144,6 +148,7 @@ const char* CvDllNetInitInfo::GetDebugString()
 //------------------------------------------------------------------------------
 bool CvDllNetInitInfo::Read(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("bool CvDllNetInitInfo::Read(FDataStream& kStream)");
 	kStream >> m_szLoadFileName;
 	kStream >> m_eLoadFileStorage;
 	kStream >> m_szMapScriptName;
@@ -179,11 +184,15 @@ bool CvDllNetInitInfo::Read(FDataStream& kStream)
 	kStream >> m_eMode;
 	kStream >> m_bStatReporting;
 
+	kStream >> m_aiKnownPlayersTable;
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS(+"bool CvDllNetInitInfo::Read(FDataStream& kStream)=" << m_aiKnownPlayersTable.size());
 	return true;
 }
 //------------------------------------------------------------------------------
 bool CvDllNetInitInfo::Write(FDataStream& kStream)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("bool CvDllNetInitInfo::Write(FDataStream& kStream)");
+
 	kStream << m_szLoadFileName;
 	kStream << m_eLoadFileStorage;
 	kStream << m_szMapScriptName;
@@ -217,11 +226,14 @@ bool CvDllNetInitInfo::Write(FDataStream& kStream)
 	kStream << m_eMode;
 	kStream << m_bStatReporting;
 
+	kStream << m_aiKnownPlayersTable;
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("+bool CvDllNetInitInfo::Write(FDataStream& kStream)=" << m_aiKnownPlayersTable.size());
 	return true;
 }
 //------------------------------------------------------------------------------
 bool CvDllNetInitInfo::Commit()
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("bool CvDllNetInitInfo::Commit()");
 	// Copy the settings into our initialization data structure
 
 	//The map script path cannot be trusted since this structure is sent over the network.
@@ -263,6 +275,10 @@ bool CvDllNetInitInfo::Commit()
 	CvPreGame::setNumMinorCivs(m_iNumMinorCivs);
 	CvPreGame::setAdvancedStartPoints(m_iNumAdvancedStartPoints);
 	CvPreGame::setGameMode(m_eMode);
+
+	CvPreGame::SetKnownPlayersTable(m_aiKnownPlayersTable);
+
+	logFile->DebugMsg("Commited PreGame NetInfo: %s", GetDebugString());
 
 	return true;
 }

@@ -4443,8 +4443,26 @@ bool CvCity::IsCityEventChoiceValid(CityEventChoiceTypes eChosenEventChoice, Cit
 	CvPlayer &kPlayer = GET_PLAYER(m_eOwner);
 
 	//Exploit checks.
-	if(kPlayer.isEndTurn())
+	if (kPlayer.isEndTurn() && !GC.getGame().isNetworkMultiPlayer()) // check simul/hybrid turns instead maybe
+	{
+		/*
+		if (GC.getLogging())
+		{
+			CvString playerName;
+			FILogFile* pLog;
+			CvString strBaseString;
+			CvString strOutBuf;
+			CvString strFileName = "EventCityLogging.csv";
+			playerName = getName();
+			pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+			strBaseString.Format("%03d, ", GC.getGame().getElapsedGameTurns());
+			strBaseString += playerName + ", ";
+			strOutBuf.Format("Event choice for city invalid cos is end turn, skipping: %s, Event: %s. Cooldown: %d", pkEventInfo->GetDescription(), pkEventInfo->GetDescription(), GetEventChoiceDuration(eChosenEventChoice));
+			strBaseString += strOutBuf;
+			pLog->Msg(strBaseString);
+		}*/
 		return false;
+	}
 
 	if(!IsEventActive(eParentEvent))
 		return false;
@@ -6091,7 +6109,7 @@ CvString CvCity::GetDisabledTooltip(CityEventChoiceTypes eChosenEventChoice)
 }
 void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent, bool bSendMsg)
 {
-	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && GET_PLAYER(getOwner()).isHuman()) {
 		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | getOwner()), (FromUIDiploEventTypes)eCityEvent, GetID(), eEventChoice);
 		return;
 	}

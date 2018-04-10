@@ -6358,8 +6358,25 @@ bool CvPlayer::IsEventChoiceValid(EventChoiceTypes eChosenEventChoice, EventType
 	}
 
 	//Exploit checks.
-	if(isEndTurn())
+	if (isEndTurn() && !GC.getGame().isNetworkMultiPlayer()) // check simul/hybrid turns instead maybe
+	{
+		/*if (GC.getLogging())
+		{
+			CvString playerName;
+			FILogFile* pLog;
+			CvString strBaseString;
+			CvString strOutBuf;
+			CvString strFileName = "EventLogging.csv";
+			playerName = getCivilizationShortDescription();
+			pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+			strBaseString.Format("%03d, ", GC.getGame().getElapsedGameTurns());
+			strBaseString += playerName + ", ";
+			strOutBuf.Format("Event choice invalid cos end of turn: %s, Event: %s. Cooldown: %d", pkEventInfo->GetDescription(), pkEventInfo->GetDescription(), GetEventChoiceDuration(eChosenEventChoice));
+			strBaseString += strOutBuf;
+			pLog->Msg(strBaseString);
+		}*/
 		return false;
+	}
 
 	if(!IsEventActive(eParentEvent))
 		return false;
@@ -6915,6 +6932,21 @@ void CvPlayer::DoStartEvent(EventTypes eChosenEvent)
 					}
 				}
 			}
+			if (iNumEvents == 0 && GC.getLogging())
+			{
+				CvString playerName;
+				FILogFile* pLog;
+				CvString strBaseString;
+				CvString strOutBuf;
+				CvString strFileName = "EventLogging.csv";
+				playerName = getCivilizationShortDescription();
+				pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+				strBaseString.Format("%03d, ", GC.getGame().getElapsedGameTurns());
+				strBaseString += playerName + ", ";
+				strOutBuf.Format("Event has no valid options for player: %s. Cooldown: %d", pkEventInfo->GetDescription(), iEventDuration);
+				strBaseString += strOutBuf;
+				pLog->Msg(strBaseString);
+			}
 			if(iNumEvents > 0 && pkEventInfo->getNumChoices() > 1)
 			{
 				if(isHuman())
@@ -6938,6 +6970,7 @@ void CvPlayer::DoStartEvent(EventTypes eChosenEvent)
 					AI_DoEventChoice(eChosenEvent);
 				}
 			}
+
 		}
 	}
 }
@@ -8648,7 +8681,7 @@ void CvPlayer::DoEventSyncChoices(EventChoiceTypes eEventChoice, CvCity* pCity)
 }
 void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent, bool bSendMsg)
 {
-	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg) {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && isHuman()) {
 		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | GetID()), (FromUIDiploEventTypes) eEvent, -1, eEventChoice);
 		return;
 	}
@@ -44308,6 +44341,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_syncArchive;
 	//Values below deleted, as they're already in the sync archive! Use the sync archive from now on!
 #endif
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::Read() Read player event cooldown size" << m_aiEventCooldown.size());
 
 	m_pPlayerPolicies->Read(kStream);
 	m_pEconomicAI->Read(kStream);

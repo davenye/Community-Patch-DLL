@@ -8220,9 +8220,23 @@ void CvGame::doTurn()
 	{
 		for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 		{
+			
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
-			CvAssertMsg((kPlayer.isLocalPlayer() && kPlayer.GetDiplomacyRequests()->HasPendingRequests()) || !kPlayer.isLocalPlayer(), "Clearing requests but still apparently some still pending.");
+			if (kPlayer.GetDiplomacyRequests()->HasActiveRequest()) {
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << " HasActiveRequest");
+			}
+			if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << " HasPendingRequests");
+			}
+			if (kPlayer.isLocalPlayer() && kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << "Clearing requests but still apparently some still pending.");
+			}
+			
+			CvAssertMsg((kPlayer.isLocalPlayer() && !kPlayer.GetDiplomacyRequests()->HasPendingRequests()) || !kPlayer.isLocalPlayer(), "Clearing requests but still apparently some still pending.");
 			kPlayer.GetDiplomacyRequests()->ClearAllRequests();
+			if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << " Still HasPendingRequests!!!");
+			}
 		}
 	}
 #endif

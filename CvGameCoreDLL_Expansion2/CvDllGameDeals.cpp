@@ -74,7 +74,7 @@ void* CvDllGameDeals::operator new(size_t bytes)
 }
 //------------------------------------------------------------------------------
 CvGameDeals* CvDllGameDeals::GetInstance()
-{
+{	
 	return m_pGameDeals;
 }
 //------------------------------------------------------------------------------
@@ -90,12 +90,18 @@ void CvDllGameDeals::AddProposedDeal(ICvDeal1* pDeal)
 bool CvDllGameDeals::FinalizeDeal(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bAccepted)
 {
 #if defined(MOD_ACTIVE_DIPLOMACY)
-	if(GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
+	//if(GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
+	// getting errors in the diplomacy log - maybe this fix?
+	if ((!GET_PLAYER(eFromPlayer).isHuman() || !GET_PLAYER(eToPlayer).isHuman()) && GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)	
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS(" CvDllGameDeals::FinalizeDeal - notallhumans");
 		return m_pGameDeals->FinalizeMPDealLatest(eFromPlayer, eToPlayer, bAccepted, true);
 	}
 	else
+	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS(" CvDllGameDeals::FinalizeDeal - humans");
 		return m_pGameDeals->FinalizeDeal(eFromPlayer, eToPlayer, bAccepted);
+	}
 #else
 	return m_pGameDeals->FinalizeDeal(eFromPlayer, eToPlayer, bAccepted);
 #endif
