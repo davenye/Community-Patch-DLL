@@ -45,7 +45,9 @@ CvDllNetInitInfo::CvDllNetInitInfo()
 	m_iNumMinorCivs = CvPreGame::numMinorCivs();
 	m_iNumAdvancedStartPoints = CvPreGame::advancedStartPoints();
 	m_eMode = CvPreGame::gameMode();
-
+	
+	m_aiKnownPlayersTable = CvPreGame::GetKnownPlayersTable();
+	
 	ZeroMemory(m_szDebugString, sizeof m_szDebugString);
 }
 //------------------------------------------------------------------------------
@@ -121,7 +123,8 @@ const char* CvDllNetInitInfo::GetDebugString()
 	        "m_eTurnTimer=%d "\
 	        "m_szGameName=\"%s\" "\
 	        "m_uiSyncRandSeed=%u "\
-	        "m_uiMapRandSeed=%u"
+	        "m_uiMapRandSeed=%u "\
+		"m_aiKnownPlayersTable.size()=%d"
 	        , CvPreGame::loadFileName().c_str()
 	        , CvPreGame::mapScriptName().c_str()
 	        , CvPreGame::mapNoPlayers() ? "true" : "false"
@@ -137,6 +140,7 @@ const char* CvDllNetInitInfo::GetDebugString()
 	        , CvPreGame::gameName().c_str()
 	        , CvPreGame::syncRandomSeed()
 	        , CvPreGame::mapRandomSeed()
+		, CvPreGame::GetKnownPlayersTable()
 	       );
 
 	return m_szDebugString;
@@ -179,6 +183,8 @@ bool CvDllNetInitInfo::Read(FDataStream& kStream)
 	kStream >> m_eMode;
 	kStream >> m_bStatReporting;
 
+	kStream >> m_aiKnownPlayersTable;
+
 	return true;
 }
 //------------------------------------------------------------------------------
@@ -217,6 +223,8 @@ bool CvDllNetInitInfo::Write(FDataStream& kStream)
 	kStream << m_eMode;
 	kStream << m_bStatReporting;
 
+	kStream << m_aiKnownPlayersTable;
+	
 	return true;
 }
 //------------------------------------------------------------------------------
@@ -263,6 +271,10 @@ bool CvDllNetInitInfo::Commit()
 	CvPreGame::setNumMinorCivs(m_iNumMinorCivs);
 	CvPreGame::setAdvancedStartPoints(m_iNumAdvancedStartPoints);
 	CvPreGame::setGameMode(m_eMode);
+
+	CvPreGame::SetKnownPlayersTable(m_aiKnownPlayersTable);
+
+	logFile->DebugMsg("Commited PreGame %s", GetDebugString());
 
 	return true;
 }

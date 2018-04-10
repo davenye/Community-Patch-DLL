@@ -470,6 +470,14 @@ void writeSlotStatus(FDataStream& saveTo)
 	}
 }
 
+const std::vector<MetCivsBitArray>& GetKnownPlayersTable() {
+	return s_knownPlayersTable;
+}
+
+void SetKnownPlayersTable(const std::vector<MetCivsBitArray>& aiKnownPlayersTable) {
+	s_knownPlayersTable = aiKnownPlayersTable;
+}
+
 void updateKnownPlayersTable()
 {
 	// Playing it safe here, don't want to introduce a bug due to not knowing all the code paths and trying to save a few cycles/bytes
@@ -2243,6 +2251,8 @@ std::vector<GUID> s_savedLeaderPackageID(MAX_PLAYERS);
 std::vector<bool> s_savedLeaderKeysAvailable(MAX_PLAYERS);
 std::vector<PackageIDList> s_savedDLCPackagesAvailable(MAX_PLAYERS);
 
+std::vector<MetCivsBitArray> s_savedKnownPlayersTable;
+
 //	------------------------------------------------------------------------------------
 void restoreSlots()
 {
@@ -2260,7 +2270,7 @@ void restoreSlots()
 	s_leaderPackageID = s_savedLeaderPackageID;
 	s_leaderKeysAvailable =  s_savedLeaderKeysAvailable;
 	s_DLCPackagesAvailable = s_savedDLCPackagesAvailable;
-
+	s_knownPlayersTable = s_savedKnownPlayersTable;
 	setActivePlayer(s_savedLocalPlayer);
 }
 
@@ -2284,6 +2294,8 @@ void saveSlots()
 	s_savedLeaderPackageID = s_leaderPackageID;
 	s_savedLeaderKeysAvailable = s_leaderKeysAvailable;
 	s_savedDLCPackagesAvailable = s_DLCPackagesAvailable;
+
+	s_savedKnownPlayersTable = s_knownPlayersTable;
 }
 
 SeaLevelTypes seaLevel()
