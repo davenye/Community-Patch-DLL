@@ -11056,6 +11056,7 @@ void CvPlayer::doTurn()
 
 	if( (bHasActiveDiploRequest || GC.GetEngineUserInterface()->isDiploActive()) && !GC.getGame().isGameMultiPlayer() && !isHuman())
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("SetWaitingForBlockingInput(" << m_eID << ")");
 		GC.getGame().SetWaitingForBlockingInput(m_eID);
 	}
 	else
@@ -44311,7 +44312,7 @@ bool CvPlayer::HasActiveDiplomacyRequests() const
 				pkDiploRequests = kPlayer.GetDiplomacyRequests();
 				if (pkDiploRequests)
 				{
-					if (pkDiploRequests->HasActiveRequestFrom(ePlayer))
+					if (pkDiploRequests->HasPendingRequestFrom(ePlayer))
 						return true;
 				}
 			}

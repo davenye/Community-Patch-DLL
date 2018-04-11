@@ -19157,7 +19157,8 @@ void CvDiplomacyAI::DoContactMajorCivs()
 			// JdH => contact humans by priority, but use a notification system instead of pop up the diplo screen
 			// every AI can only talk to one human a time (as a human can only talk to one human a time
 			// TODO: the one to one restriction should be removed in favor of a trade resource pool allocation
-			if (!CvDiplomacyRequests::HasActiveDiploRequestWithHuman(m_pPlayer->GetID()))
+			//if (!CvDiplomacyRequests::HasActiveDiploRequestWithHuman(m_pPlayer->GetID()))
+			if (!CvDiplomacyRequests::HasPendingDiploRequestWithHuman(m_pPlayer->GetID()))
 			{
 				vector<PlayerTypes> aeHumansByPriority;
 				vector<PlayerTypes>::const_iterator priorityIter, humanIter;
@@ -19197,8 +19198,10 @@ void CvDiplomacyAI::DoContactMajorCivs()
 				for (humanIter = aeHumansByPriority.begin(); humanIter != aeHumansByPriority.end(); ++humanIter)
 				{
 					DoContactPlayer(*humanIter);
-					if (GET_PLAYER(*humanIter).GetDiplomacyRequests()->HasActiveRequestFrom(GetPlayer()->GetID()))
+					//if (GET_PLAYER(*humanIter).GetDiplomacyRequests()->HasActiveRequestFrom(GetPlayer()->GetID()))
+					if (GET_PLAYER(*humanIter).GetDiplomacyRequests()->HasPendingRequestFrom(GetPlayer()->GetID()))					
 					{
+						logdealmsg("found someone to contact", GetPlayer()->GetID(), *humanIter);
 						// we actually found someone worth talking with, the others must wait...
 						break;
 					}
@@ -27456,6 +27459,7 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 		// *********************************************
 		case FROM_UI_DIPLO_EVENT_HUMAN_DISCUSSION_SHARE_OPINION:
 		{
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("FROM_UI_DIPLO_EVENT_HUMAN_DISCUSSION_SHARE_OPINION");
 			bool bVassal = IsVassal(eFromPlayer);
 			// AI hasn't known the human for long enough yet
 			if(IsTooEarlyForShareOpinion(eFromPlayer) && !bVassal)

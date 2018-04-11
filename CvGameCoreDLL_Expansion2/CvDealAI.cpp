@@ -141,7 +141,10 @@ DealOfferResponseTypes CvDealAI::DoHumanOfferDealToThisAI(CvDeal* pDeal)
 
 	PlayerTypes eFromPlayer = pDeal->GetFromPlayer();
 	if (eFromPlayer != GC.getGame().getActivePlayer())
+	{
+		logdealmsg(__FUNCTION__ " not active", eFromPlayer);
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::GetDealPercentLeewayWithHuman(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
+	}
 
 	bool bFromIsActivePlayer = eFromPlayer == GC.getGame().getActivePlayer();
 
@@ -402,7 +405,10 @@ DemandResponseTypes CvDealAI::DoHumanDemand(CvDeal* pDeal)
 
 	PlayerTypes eFromPlayer = pDeal->GetFromPlayer();
 	if (eFromPlayer != GC.getGame().getActivePlayer())
+	{
+		logdealmsg(__FUNCTION__ " not active", eFromPlayer);
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoHumanDemand(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
+	}
 	PlayerTypes eMyPlayer = GetPlayer()->GetID();
 
 	int iValueWillingToGiveUp = 0;
@@ -923,10 +929,22 @@ bool CvDealAI::DoEqualizeDealWithHuman(CvDeal* pDeal, PlayerTypes eOtherPlayer, 
 	PlayerTypes eMyPlayer = GetPlayer()->GetID();
 	DEBUG_VARIABLE(eMyPlayer);
 
+	logdealoth(__FUNCTION__ " other player test", pDeal, eMyPlayer, eOtherPlayer);
+
+	if (GET_PLAYER(eMyPlayer).isHuman())
+		logdealoth(__FUNCTION__ " me player IS human", pDeal, eMyPlayer, eOtherPlayer);
+	if(!GET_PLAYER(eOtherPlayer).isHuman())
+		logdealoth(__FUNCTION__ " other player NOT human", pDeal, eMyPlayer, eOtherPlayer);
+
 	CvAssert(eOtherPlayer >= 0);
 	CvAssert(eOtherPlayer < MAX_MAJOR_CIVS);
 	CvAssertMsg(eMyPlayer != eOtherPlayer, "DEAL_AI: Trying to equalize human deal, but both players are the same.  Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
-
+	/*
+	if(pDeal->GetFromPlayer() != eMyPlayer)
+		logdeal(__FUNCTION__ " AI not the from player", pDeal, eMyPlayer, eOtherPlayer);
+	if (pDeal->GetToPlayer() != eOtherPlayer)
+		logdeal(__FUNCTION__ " other player not the to player", pDeal, eMyPlayer, eOtherPlayer);
+	*/
 	int iDealDuration = GC.getGame().GetDealDuration();
 #if defined(MOD_BALANCE_CORE)
 	if (pDeal->GetNumItems() <= 0)
@@ -949,6 +967,7 @@ bool CvDealAI::DoEqualizeDealWithHuman(CvDeal* pDeal, PlayerTypes eOtherPlayer, 
 	{
 		if (eOtherPlayer != GC.getGame().getActivePlayer())
 		{
+			logdeal(__FUNCTION__ " not active, assumg deal is from AI here", pDeal, eMyPlayer, eOtherPlayer);
 			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: active player bugfix in effect - " << eOtherPlayer << " != " << GC.getGame().getActivePlayer());
 			NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: deal players " << pDeal->GetFromPlayer() << " -> " << pDeal->GetToPlayer());		
 		}
@@ -1051,7 +1070,10 @@ bool CvDealAI::DoEqualizeDealWithHuman(CvDeal* pDeal, PlayerTypes eOtherPlayer, 
 #if defined(MOD_BALANCE_CORE)
 				// WHY ACTIVE PLAYER???
 				if (eOtherPlayer != GC.getGame().getActivePlayer())
+				{
+					logdeal(__FUNCTION__ " not active, assumming deal is from AI here", pDeal, eMyPlayer, eOtherPlayer);
 					NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::DoEqualizeDealWithHuman: active player bugfix in effect - " << eOtherPlayer << " != " << GC.getGame().getActivePlayer());
+				}
 				//bMakeOffer = IsDealWithHumanAcceptable(pDeal, GC.getGame().getActivePlayer(), /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, /*passed by reference*/&bCantMatchOffer, false);
 				bMakeOffer = IsDealWithHumanAcceptable(pDeal, eOtherPlayer, /*Passed by reference*/ iTotalValueToMe, iValueImOffering, iValueTheyreOffering, iAmountOverWeWillRequest, iAmountUnderWeWillOffer, /*passed by reference*/&bCantMatchOffer, false);
 				if (bCantMatchOffer)
@@ -8188,7 +8210,10 @@ DemandResponseTypes CvDealAI::GetRequestForHelpResponse(CvDeal* pDeal)
 {
 	PlayerTypes eFromPlayer = pDeal->GetFromPlayer();
 	if (eFromPlayer != GC.getGame().getActivePlayer())
+	{
+		logdeal(__FUNCTION__ " not active, assumg deal is from AI here", pDeal);
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvDealAI::GetRequestForHelpResponse(): " << eFromPlayer << " != " << GC.getGame().getActivePlayer() << " -> " << pDeal->GetToPlayer());
+	}
 	PlayerTypes eMyPlayer = GetPlayer()->GetID();
 	
 	CvDiplomacyAI* pDiploAI = m_pPlayer->GetDiplomacyAI();

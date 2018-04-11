@@ -163,6 +163,8 @@ typedef wchar_t          wchar;
 #include "CvContractClasses.h"
 #endif
 
+#include "DealLogger.h"
+
 using namespace fastdelegate;
 
 #ifdef FINAL_RELEASE

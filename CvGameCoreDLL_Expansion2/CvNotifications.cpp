@@ -1849,6 +1849,7 @@ bool CvNotifications::IsNotificationExpired(int iIndex)
 		{
 			if (game.GetGameDeals().GetProposedMPDeal(m_ePlayer, eFrom, true) == NULL)
 			{
+				logdealmsg("NOTIFICATION_PLAYER_DEAL GetProposedMPDeal", eFrom);
 				return true;
 			}
 		}
@@ -1856,6 +1857,7 @@ bool CvNotifications::IsNotificationExpired(int iIndex)
 		{
 			if(!game.GetGameDeals().ProposedDealExists(m_ePlayer, eFrom))
 			{
+				logdealmsg("NOTIFICATION_PLAYER_DEAL ProposedDealExists", eFrom);
 				return true;
 			}
 		}
@@ -1877,16 +1879,20 @@ bool CvNotifications::IsNotificationExpired(int iIndex)
 		if((!GET_PLAYER(m_ePlayer).isHuman() || !GET_PLAYER(eFrom).isHuman()) && GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
 		{
 			// JdH =>			
-			if (!GET_PLAYER(m_ePlayer).GetDiplomacyRequests()->HasActiveRequestFrom(eFrom))
+			//if (!GET_PLAYER(m_ePlayer).GetDiplomacyRequests()->HasActiveRequestFrom(eFrom))
+			if (!GET_PLAYER(m_ePlayer).GetDiplomacyRequests()->HasPendingRequestFrom(eFrom))
 			{
+				logdealmsg("NOTIFICATION_PLAYER_DEAL_RECEIVED no pending", eFrom);
 				return true;
 			}
 			if (m_aNotifications[iIndex].m_iY != -1 /* no deal request */) // TODO: check if pvp deals really use m_iY == -1
 			{
+				logdealmsg("NOTIFICATION_PLAYER_DEAL_RECEIVED m_iY != -1", eFrom);
 				return false;
 			}
 			else if (game.GetGameDeals().GetProposedMPDeal(eFrom, m_ePlayer, true) == NULL)
 			{
+				logdealmsg("NOTIFICATION_PLAYER_DEAL_RECEIVED GetProposedMPDeal == NULL", eFrom);
 				return true;
 			}
 			// JdH <=
@@ -1895,6 +1901,7 @@ bool CvNotifications::IsNotificationExpired(int iIndex)
 		{
 			if(!game.GetGameDeals().ProposedDealExists(eFrom,  m_ePlayer))
 			{
+				logdealmsg("NOTIFICATION_PLAYER_DEAL_RECEIVED human-human", eFrom);
 				return true;
 			}
 		}

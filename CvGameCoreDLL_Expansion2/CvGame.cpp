@@ -1645,6 +1645,7 @@ void CvGame::update()
 #if defined(MOD_BALANCE_CORE)
 			GET_PLAYER(m_eWaitDiploPlayer).UpdateCityThreatCriteria();
 #endif
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("IsWaitingForBlockingInput()");
 			GET_PLAYER(m_eWaitDiploPlayer).doTurnPostDiplomacy();
 			SetWaitingForBlockingInput(NO_PLAYER);
 		}
@@ -8213,29 +8214,41 @@ void CvGame::doTurn()
 	gDLL->DoTurn();
 
 	CvBarbarians::BeginTurn();
-
+	logdealmsg("==================================================================================================================================================================================");
 #if defined(MOD_ACTIVE_DIPLOMACY)
 	// Dodgy business to cleanup all the completed requests from last turn. Any still here should just be ones that were processed on other clients anyway.
 	if (MOD_ACTIVE_DIPLOMACY)
 	{
+		CvGameDeals& kGameDeals = GC.getGame().GetGameDeals();
+		logdealmsg(CvString::format("m_ProposedDeals Deals=%d", kGameDeals.m_ProposedDeals.size()));
+		logdealmsg(CvString::format("m_CurrentDeals Deals=%d", kGameDeals.m_CurrentDeals.size()));
+		logdealmsg(CvString::format("m_HistoricalDeals Deals=%d", kGameDeals.m_HistoricalDeals.size()));
+		
 		for (iI = 0; iI < MAX_MAJOR_CIVS; iI++)
 		{
+			
 			
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
 			if (kPlayer.GetDiplomacyRequests()->HasActiveRequest()) {
 				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << " HasActiveRequest");
+				logdealmsg(CvString::format("%d has active request", iI));
 			}
 			if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
 				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << " HasPendingRequests");
 			}
 			if (kPlayer.isLocalPlayer() && kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
-				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << "Clearing requests but still apparently some still pending.");
+				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << "Clearing requests but still apparently some still pending.")
+					
 			}
-			
+			if (kPlayer.GetDiplomacyRequests()->HasPendingRequests())
+				logdealmsg(CvString::format("%d has pending requests", iI));
+			else
+				logdealmsg(CvString::format("%d has no pending requests", iI));
 			CvAssertMsg((kPlayer.isLocalPlayer() && !kPlayer.GetDiplomacyRequests()->HasPendingRequests()) || !kPlayer.isLocalPlayer(), "Clearing requests but still apparently some still pending.");
 			kPlayer.GetDiplomacyRequests()->ClearAllRequests();
 			if (kPlayer.GetDiplomacyRequests()->HasPendingRequests()) {
 				NET_MESSAGE_DEBUG_OSTR_ALWAYS(iI << " Still HasPendingRequests!!!");
+				logdealmsg(CvString::format("%d STILL has pending requests", iI));
 			}
 		}
 	}
@@ -9222,7 +9235,8 @@ void CvGame::updateMoves()
 	CvUnit* pLoopUnit = NULL;
 	int iLoop;
 	int iI;
-
+	if (m_lastTurnAICivsProcessed == -1 && m_processPlayerAutoMoves)
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("(m_lastTurnAICivsProcessed == -1 && m_processPlayerAutoMoves) dun goofed");
 	// Process all AI first, then process players.
 	// Processing of the AI 'first' only occurs when the AI are activated first
 	// in doTurn, when MPSIMULTANEOUS_TURNS is set.  If the turns are sequential,

@@ -83,23 +83,29 @@ void CvDllGameDeals::AddProposedDeal(ICvDeal1* pDeal)
 	CvDeal* pkDeal = (NULL != pDeal)? static_cast<CvDllDeal*>(pDeal)->GetInstance() : NULL;
 	if(pkDeal != NULL)
 	{
+		logdeal(__FUNCTION__ " adding", pkDeal);
 		m_pGameDeals->AddProposedDeal(*pkDeal);
 	}
+	else
+		logdeal(__FUNCTION__ " null");
 }
 //------------------------------------------------------------------------------
 bool CvDllGameDeals::FinalizeDeal(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bAccepted)
 {
+	// I DONT EVEN THINK THIS IS CALLED FOR AI DEALS?!?!!?!?!?!?!? wtf.
 #if defined(MOD_ACTIVE_DIPLOMACY)
 	//if(GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)
 	// getting errors in the diplomacy log - maybe this fix?
+	if (bAccepted)
+		logdeal(__FUNCTION__ " accept");
+	else
+		logdeal(__FUNCTION__ " reject");
 	if ((!GET_PLAYER(eFromPlayer).isHuman() || !GET_PLAYER(eToPlayer).isHuman()) && GC.getGame().isReallyNetworkMultiPlayer() && MOD_ACTIVE_DIPLOMACY)	
 	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS(" CvDllGameDeals::FinalizeDeal - notallhumans");
 		return m_pGameDeals->FinalizeMPDealLatest(eFromPlayer, eToPlayer, bAccepted, true);
 	}
 	else
 	{
-		NET_MESSAGE_DEBUG_OSTR_ALWAYS(" CvDllGameDeals::FinalizeDeal - humans");
 		return m_pGameDeals->FinalizeDeal(eFromPlayer, eToPlayer, bAccepted);
 	}
 #else
@@ -116,6 +122,8 @@ ICvDeal1* CvDllGameDeals::GetTempDeal()
 void CvDllGameDeals::SetTempDeal(ICvDeal1* pDeal)
 {
 	CvDeal* pkDeal = (NULL != pDeal)? static_cast<CvDllDeal*>(pDeal)->GetInstance() : NULL;
+	if(pkDeal)
+		logdeal(__FUNCTION__ " temp deal", pkDeal);
 	m_pGameDeals->SetTempDeal(pkDeal);
 }
 //------------------------------------------------------------------------------
@@ -153,6 +161,10 @@ ICvDeal1* CvDllGameDeals::GetProposedDeal(PlayerTypes eFromPlayer, PlayerTypes e
 #else
 	CvDeal* pDeal = m_pGameDeals->GetProposedDeal(eFromPlayer, eToPlayer);
 #endif
+	if (pDeal)
+		logdeal(__FUNCTION__ " deal", pDeal);
+	else
+		logdeal(__FUNCTION__ " NO DEAL");
 	return (NULL != pDeal)? new CvDllDeal(pDeal) : NULL;
 }
 //------------------------------------------------------------------------------

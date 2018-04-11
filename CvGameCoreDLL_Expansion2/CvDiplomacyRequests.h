@@ -45,6 +45,7 @@ public:
 	void ActivateAllFrom(PlayerTypes eFromPlayer);
 	void CheckRemainingNotifications();
 	void ClearAllRequests();
+	bool HasPendingRequestFrom(PlayerTypes eFromPlayer) const;
 #endif
 	bool Add(PlayerTypes ePlayerID, DiploUIStateTypes eDiploType, const char* pszMessage, LeaderheadAnimationTypes eAnimationType, int iExtraGameData = -1);
 
@@ -75,7 +76,10 @@ public:
 
 	// activated human players since last human diplo check.
 	static std::vector<PlayerTypes> s_aDiploHumans;
+
+	static bool HasPendingDiploRequestWithHuman(PlayerTypes eSourcePlayer);
 #endif
+	
 	static bool HasActiveDiploRequestWithHuman(PlayerTypes eSourcePlayer);
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------

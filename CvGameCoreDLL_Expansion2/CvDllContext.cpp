@@ -46,6 +46,7 @@
 #include "CvDllUnitCombatClassInfo.h"
 #include "CvDllVictoryInfo.h"
 #include "CvDllWorldBuilderMapLoader.h"
+#include "CvLocalizationLogger.h"
 
 CvDllGameContext* CvDllGameContext::s_pSingleton = NULL;
 HANDLE CvDllGameContext::s_hHeap = INVALID_HANDLE_VALUE;
@@ -703,6 +704,11 @@ bool CvDllGameContext::GetHexDebugLayerString(ICvPlot1* pPlot, const char* szLay
 void CvDllGameContext::Init()
 {
 	GC.init();
+
+	// I am sure this is the the place (or how to properly) to do this - best ask someone. This logger holds no resources.
+	static Localization::CvLocalizationLogger localizationLogger;
+	Localization::SetLogger(&localizationLogger); 
+	Localization::LogMessage("CvLocalizationLogger init!");
 }
 //------------------------------------------------------------------------------
 void CvDllGameContext::Uninit()

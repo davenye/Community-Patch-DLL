@@ -2897,13 +2897,16 @@ bool CvGameDeals::RemoveProposedDeal(PlayerTypes eFromPlayer, PlayerTypes eToPla
 	CvDeal* pDeal = GetProposedMPDeal(eFromPlayer, eToPlayer, latest);
 
 	if (!pDeal)
+	{
+		logdeal(CvString::format(__FUNCTION__ " not found"), NULL, eFromPlayer, eToPlayer);
 		return false;
+	}
 
 	if (pDealOut)
 	{
 		*pDealOut = *pDeal;
 	}
-
+	logdeal(CvString::format(__FUNCTION__ " erasing"), pDeal, eFromPlayer, eToPlayer);
 	m_ProposedDeals.erase(pDeal);
 
 	return true;
@@ -2931,9 +2934,11 @@ bool CvGameDeals::FinalizeMPDealLatest(PlayerTypes eFromPlayer, PlayerTypes eToP
 	CvDeal kDeal;
 	if (!RemoveProposedDeal(eFromPlayer, eToPlayer, &kDeal, latest))
 	{
+		logdeal(__FUNCTION__ " failed", &kDeal, eFromPlayer, eToPlayer);
 		LogDealFailed(NULL, false, !bAccepted, false);
 		return false;
 	}
+	logdeal(__FUNCTION__ " success", &kDeal, eFromPlayer, eToPlayer);
 	return FinalizeMPDeal(kDeal, bAccepted);
 }
 
@@ -2968,9 +2973,14 @@ bool CvGameDeals::FinalizeMPDeal(CvDeal kDeal, bool bAccepted)
 	
 	FinalizeDealNotify(eFromPlayer, eToPlayer, veNowAtPeacePairs);
 
+	if (bFoundIt)
+		logdeal(__FUNCTION__ " bFoundIt", &kDeal);
+	if (bValid)
+		logdeal(__FUNCTION__ " bValid", &kDeal);
 	return bFoundIt && bValid;
 }
 
+//why is this even a thing?
 void CvGameDeals::FinalizeDealValidAndAccepted(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, CvDeal& kDeal, bool bAccepted, CvWeightedVector<TeamTypes, MAX_CIV_TEAMS, true>& veNowAtPeacePairs)
 {
 	// Determine total duration of the Deal
@@ -3585,7 +3595,7 @@ void CvGameDeals::FinalizeDealValidAndAccepted(PlayerTypes eFromPlayer, PlayerTy
 		// **** DO NOT PUT ANYTHING AFTER THIS LINE ****
 		//////////////////////////////////////////////////////////////////////
 	}
-
+	logdeal(__FUNCTION__ " complete", &kDeal, eFromPlayer, eToPlayer);
 	LogDealComplete(&kDeal);
 }
 
@@ -4188,7 +4198,7 @@ bool CvGameDeals::FinalizeDeal(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, b
 				// **** DO NOT PUT ANYTHING AFTER THIS LINE ****
 				//////////////////////////////////////////////////////////////////////
 			}
-
+			logdeal(__FUNCTION__ " LogDealComplete", &kDeal);
 			LogDealComplete(&kDeal);
 		}
 	}
@@ -4253,7 +4263,10 @@ bool CvGameDeals::FinalizeDeal(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, b
 			}
 		}
 	}
-
+	if(bFoundIt)
+		logdeal(__FUNCTION__ " bFoundIt");
+	if (bValid)
+		logdeal(__FUNCTION__ " bValid");
 	return bFoundIt && bValid;
 }
 
