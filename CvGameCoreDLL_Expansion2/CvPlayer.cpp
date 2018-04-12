@@ -11117,14 +11117,18 @@ void CvPlayer::doTurn()
 void CvPlayer::doTurnPostDiplomacy()
 {
 	CvGame& kGame = GC.getGame();
-
+	
 	if(isAlive())
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayer::doTurnPostDiplomacy(): " << GetID());
+
 		{
 			AI_PERF_FORMAT("AI-perf.csv", ("Plots/Danger, Turn %03d, %s", kGame.getElapsedGameTurns(), getCivilizationShortDescription()) );
 
 			UpdatePlots();
 			UpdateDangerPlots(false);
+			GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true); // Just do it now instead of maybe doing it at an unspecified point?
+			GetTacticalAI()->GetTacticalAnalysisMap()->Invalidate(); // Invalidating so that it will be updated even if already (possible erroneously) updated in UpdatdCityThreatCriteria with stale data.
 			UpdateMilitaryStats();
 			UpdateAreaEffectUnits();
 			UpdateAreaEffectPlots();

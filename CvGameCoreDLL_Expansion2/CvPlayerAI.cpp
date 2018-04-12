@@ -279,11 +279,13 @@ void CvPlayerAI::AI_unitUpdate()
 	// this was a !hasBusyUnit around the entire rest of the function, so I tried to make it a bit flatter.
 	if(hasBusyUnitOrCity())
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("CvPlayerAI::AI_unitUpdate() hasBusyUnitOrCity():" << GetID());
 		return;
 	}
 
 	//do this only after updating the danger plots (happens in CvPlayer::doTurnPostDiplomacy)
 	//despite the name, the tactical map is used by homeland AI as well.
+	//DN: If the above comment is still true then it sounds like there is an issue since CvPlayer::UpdateCityThreatCriteria is called just before doPostTurnDiplomacy and it refreshes the tacmamp
 	GetTacticalAI()->GetTacticalAnalysisMap()->Refresh();
 
 	//so that workers know where to build roads

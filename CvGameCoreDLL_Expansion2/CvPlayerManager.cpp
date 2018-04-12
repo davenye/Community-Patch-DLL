@@ -37,6 +37,9 @@ void CvPlayerManager::Refresh(bool bWarStateChanged)
 			kPlayer.UpdateDangerPlots(true);
 
 		if (bWarStateChanged)
+			kPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true);
+
+		if (bWarStateChanged)
 			GC.getGame().GetGameTrade()->UpdateTradePathCache(iPlayerCivLoop);
 	}
 }

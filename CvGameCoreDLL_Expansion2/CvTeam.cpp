@@ -1334,7 +1334,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bDefensivePact)
 #endif
 
 	CvPlayerManager::Refresh(true);
-
+	/*
 	//refresh tactical AI as well!
 	for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
 	{
@@ -1353,7 +1353,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bDefensivePact)
 				}
 			}
 		}
-	}
+	}*/
 }
 
 //	-----------------------------------------------------------------------------------------------
@@ -2197,7 +2197,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotificat
 	CvPlayerManager::Refresh(true);
 
 	//refresh tactical AI as well!
-	for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
+	/*for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
 	{
 		PlayerTypes eAttackingPlayer = (PlayerTypes)iAttackingPlayer;
 		CvPlayerAI& kAttackingPlayer = GET_PLAYER(eAttackingPlayer);
@@ -2214,7 +2214,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotificat
 				}
 			}
 		}
-	}
+	}*/
 }
 
 //	------------------------------------------------------------------------------------------------

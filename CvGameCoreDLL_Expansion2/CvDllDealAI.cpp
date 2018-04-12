@@ -116,6 +116,7 @@ bool CvDllDealAI::DoEqualizeDealWithHuman(ICvDeal1* pDeal, PlayerTypes eOtherPla
 {
 	CvDeal* pkDeal = (NULL != pDeal)? static_cast<CvDllDeal*>(pDeal)->GetInstance() : NULL;
 	logdealoth(__FUNCTION__ " equalize from DLL", pkDeal, m_pDealAI->GetPlayer()->GetID(), eOtherPlayer);
+	
 	return m_pDealAI->DoEqualizeDealWithHuman(pkDeal, eOtherPlayer, bDontChangeMyExistingItems, bDontChangeTheirExistingItems, bDealGoodToBeginWith, bCantMatchOffer);
 }
 //------------------------------------------------------------------------------

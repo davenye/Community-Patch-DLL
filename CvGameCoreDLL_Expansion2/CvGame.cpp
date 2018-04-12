@@ -1640,12 +1640,13 @@ void CvGame::update()
 {
 	if(IsWaitingForBlockingInput())
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("IsWaitingForBlockingInput()");
 		if(!GC.GetEngineUserInterface()->isDiploActive())
 		{
 #if defined(MOD_BALANCE_CORE)
 			GET_PLAYER(m_eWaitDiploPlayer).UpdateCityThreatCriteria();
 #endif
-			NET_MESSAGE_DEBUG_OSTR_ALWAYS("IsWaitingForBlockingInput()");
+			NET_MESSAGE_DEBUG_OSTR_ALWAYS("!isDiploActive()");
 			GET_PLAYER(m_eWaitDiploPlayer).doTurnPostDiplomacy();
 			SetWaitingForBlockingInput(NO_PLAYER);
 		}
@@ -9339,7 +9340,7 @@ void CvGame::updateMoves()
 				{
 					if(needsAIUpdate || !player.isHuman())
 					{
-						player.AI_unitUpdate();
+						player.	AI_unitUpdate();
 						NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player.AI_unitUpdate() called for player " << player.GetID() << " " << player.getName()); 
 					}
 

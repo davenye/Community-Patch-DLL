@@ -148,11 +148,13 @@ bool CvGameTrade::HavePotentialTradePath(bool bWater, CvCity* pOriginCity, CvCit
 
 void CvGameTrade::InvalidateTradePathCache(uint iPlayer)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("void CvGameTrade::InvalidateTradePathCache(" << iPlayer << ")");
 	m_lastTradePathUpdate[iPlayer] = -1;
 }
 
 void CvGameTrade::UpdateTradePathCache(uint iPlayer1)
 {
+	NET_MESSAGE_DEBUG_OSTR_ALWAYS("void CvGameTrade::UpdateTradePathCache(" << iPlayer1 << ")");
 	CvPlayer& kPlayer1 = GET_PLAYER((PlayerTypes)iPlayer1);
 	if (!kPlayer1.isAlive() || kPlayer1.isBarbarian())
 		return;

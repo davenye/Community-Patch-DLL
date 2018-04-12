@@ -394,11 +394,17 @@ bool CvTacticalAnalysisMap::IsUpToDate()
 	return (m_iTurnBuilt == GC.getGame().getGameTurn() && m_vCells.size()==GC.getMap().numPlots());
 }
 
-/// Fill the map with data for this AI player's turn
-void CvTacticalAnalysisMap::Refresh()
+void CvTacticalAnalysisMap::Invalidate()
 {
-	if(!IsUpToDate())
+	m_iTurnBuilt = -1;
+}
+
+/// Fill the map with data for this AI player's turn
+void CvTacticalAnalysisMap::Refresh(bool force)
+{
+	if(force || !IsUpToDate())
 	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("REfreshing(" << force << ") TacMap for " << m_ePlayer);
 		//can happen in the first turn ...
 		if (m_vCells.size()!=GC.getMap().numPlots())
 			Init(m_ePlayer);
@@ -438,6 +444,10 @@ void CvTacticalAnalysisMap::Refresh()
 
 		BuildEnemyUnitList();
 		MarkCellsNearEnemy();
+	}
+	else
+	{
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS("NOT REfreshing(" << force << ") TacMap for " << m_ePlayer);
 	}
 }
 
