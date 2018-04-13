@@ -84,16 +84,16 @@ private:
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 
 #if MAX_MAJOR_CIVS <= 32
-	typedef unsigned long MetCivsBitArray;
+	typedef unsigned long KnownCivsBitArray;
 #elif MAX_MAJOR_CIVS <= 64
-	typedef unsigned long long MetCivsBitArray;
+	typedef unsigned long long KnownCivsBitArray;
 #else
 	// In the highly unlikely event...
 #error need different storage for CvPreGame::s_metCivs now that MAX_MAJOR_CIVS is > 64
 #endif
 
 	// this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
-	std::vector<MetCivsBitArray> m_aiKnownPlayersTable;
+	std::vector<KnownCivsBitArray> m_aiKnownPlayersTable;
 #endif
 
 };

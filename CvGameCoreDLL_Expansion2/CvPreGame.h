@@ -301,9 +301,9 @@ int										 getActiveSlotCount();
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 
 #if MAX_MAJOR_CIVS <= 32
-typedef unsigned long MetCivsBitArray;
+typedef unsigned long KnownCivsBitArray;
 #elif MAX_MAJOR_CIVS <= 64
-typedef unsigned long long MetCivsBitArray;
+typedef unsigned long long KnownCivsBitArray;
 #else
 // In the highly unlikely event...
 #error need different storage for CvPreGame::s_metCivs now that MAX_MAJOR_CIVS is > 64
@@ -314,9 +314,9 @@ typedef unsigned long long MetCivsBitArray;
 int										 readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion);
 bool                                       isKnownPlayer(PlayerTypes eA, PlayerTypes eB); // only accurate if game option enabled, used in Staging Room to determine if other player details should be shown
 
-const std::vector<MetCivsBitArray>& GetKnownPlayersTable();
+const std::vector<KnownCivsBitArray>& GetKnownPlayersTable();
 
-void SetKnownPlayersTable(const std::vector<MetCivsBitArray>& aiKnownPlayersTable);
+void SetKnownPlayersTable(const std::vector<KnownCivsBitArray>& aiKnownPlayersTable);
 
 extern const std::vector<TeamTypes>& sr_TeamTypes;
 

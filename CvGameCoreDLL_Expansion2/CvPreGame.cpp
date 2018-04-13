@@ -282,16 +282,16 @@ PREGAMEVAR(std::vector<CvString>,              s_turnNotifyEmailAddress,    MAX_
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 
 #if MAX_MAJOR_CIVS <= 32
-typedef unsigned long MetCivsBitArray;
+typedef unsigned long KnownCivsBitArray;
 #elif MAX_MAJOR_CIVS <= 64
-typedef unsigned long long MetCivsBitArray;
+typedef unsigned long long KnownCivsBitArray;
 #else
 // In the highly unlikely event...
 #error need different storage for CvPreGame::s_metCivs now that MAX_MAJOR_CIVS is > 64
 #endif
 
 // this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
-std::vector<MetCivsBitArray> s_knownPlayersTable;
+std::vector<KnownCivsBitArray> s_knownPlayersTable;
 #endif
 
 typedef std::map<uint, uint> HashToOptionMap;
@@ -470,11 +470,11 @@ void writeSlotStatus(FDataStream& saveTo)
 	}
 }
 
-const std::vector<MetCivsBitArray>& GetKnownPlayersTable() {
+const std::vector<KnownCivsBitArray>& GetKnownPlayersTable() {
 	return s_knownPlayersTable;
 }
 
-void SetKnownPlayersTable(const std::vector<MetCivsBitArray>& aiKnownPlayersTable) {
+void SetKnownPlayersTable(const std::vector<KnownCivsBitArray>& aiKnownPlayersTable) {
 	s_knownPlayersTable = aiKnownPlayersTable;
 }
 
@@ -484,7 +484,7 @@ void updateKnownPlayersTable()
 	s_knownPlayersTable.clear();
 	s_knownPlayersTable.resize(MAX_MAJOR_CIVS);	
 	for (int i = 0; i < MAX_MAJOR_CIVS; i++) {
-		MetCivsBitArray bitarray = 0;
+		KnownCivsBitArray bitarray = 0;
 		const CvTeam& kTeam = GET_TEAM((TeamTypes)i);
 
 		for (int j = 0; j < MAX_MAJOR_CIVS; j++) {
@@ -569,7 +569,7 @@ static void loadSlotsHelper(
     std::vector<HandicapTypes>& handicapTypes,
 	std::vector<CvString>& civilizationKeys,
 	std::vector<CvString>& leaderKeys,
-	std::vector<MetCivsBitArray>& metCivs)
+	std::vector<KnownCivsBitArray>& metCivs)
 {
 	loadFrom >> gameSpeed;
 	loadFrom >> worldSize;
@@ -618,7 +618,7 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> dummyHandicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
-	std::vector<MetCivsBitArray> dummyKnownPlayersTable;
+	std::vector<KnownCivsBitArray> dummyKnownPlayersTable;
 
 	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyKnownPlayersTable);
 
@@ -642,7 +642,7 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> handicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
-	std::vector<MetCivsBitArray> knownPlayersTable;
+	std::vector<KnownCivsBitArray> knownPlayersTable;
 
 	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys, knownPlayersTable);
 
@@ -2251,7 +2251,7 @@ std::vector<GUID> s_savedLeaderPackageID(MAX_PLAYERS);
 std::vector<bool> s_savedLeaderKeysAvailable(MAX_PLAYERS);
 std::vector<PackageIDList> s_savedDLCPackagesAvailable(MAX_PLAYERS);
 
-std::vector<MetCivsBitArray> s_savedKnownPlayersTable;
+std::vector<KnownCivsBitArray> s_savedKnownPlayersTable;
 
 //	------------------------------------------------------------------------------------
 void restoreSlots()
