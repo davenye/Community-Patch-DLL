@@ -279,21 +279,6 @@ PREGAMEVAR(std::vector<bool>,                  s_turnNotifySteamInvite,        M
 PREGAMEVAR(std::vector<bool>,                  s_turnNotifyEmail,							MAX_PLAYERS);
 PREGAMEVAR(std::vector<CvString>,              s_turnNotifyEmailAddress,    MAX_PLAYERS);
 
-#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
-
-#if MAX_MAJOR_CIVS <= 32
-typedef unsigned long KnownCivsBitArray;
-#elif MAX_MAJOR_CIVS <= 64
-typedef unsigned long long KnownCivsBitArray;
-#else
-// In the highly unlikely event...
-#error need different storage for CvPreGame::s_metCivs now that MAX_MAJOR_CIVS is > 64
-#endif
-
-// this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
-std::vector<KnownCivsBitArray> s_knownPlayersTable;
-#endif
-
 typedef std::map<uint, uint> HashToOptionMap;
 
 HashToOptionMap s_GameOptionsHash;
@@ -326,6 +311,17 @@ std::vector<CvString> s_leaderNamesLocalized(MAX_PLAYERS);
 GameStartTypes	s_gameStartType;
 
 StorageLocation	s_loadFileStorage;
+
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+// only needed in this file, no need to be public since they are quite specific and kinda nasty
+void updateKnownPlayersTable();
+bool isKnownPlayerReq(PlayerTypes ePlayer);
+bool handleKnownPlayerReq(PlayerTypes ePlayer);
+bool isKnownPlayer(PlayerTypes eA, PlayerTypes eB); // only accurate if game option enabled, (indirectly) used in Staging Room to determine if other player details should be shown
+													
+std::vector<KnownCivsBitArray> s_knownPlayersTable;// this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
+#endif
+
 
 //	-----------------------------------------------------------------------
 //	Bind a leader head key to the leader head using the current leader head ID
@@ -470,31 +466,6 @@ void writeSlotStatus(FDataStream& saveTo)
 	}
 }
 
-const std::vector<KnownCivsBitArray>& GetKnownPlayersTable() {
-	return s_knownPlayersTable;
-}
-
-void SetKnownPlayersTable(const std::vector<KnownCivsBitArray>& aiKnownPlayersTable) {
-	s_knownPlayersTable = aiKnownPlayersTable;
-}
-
-void updateKnownPlayersTable()
-{
-	// Playing it safe here, don't want to introduce a bug due to not knowing all the code paths and trying to save a few cycles/bytes
-	s_knownPlayersTable.clear();
-	s_knownPlayersTable.resize(MAX_MAJOR_CIVS);	
-	for (int i = 0; i < MAX_MAJOR_CIVS; i++) {
-		KnownCivsBitArray bitarray = 0;
-		const CvTeam& kTeam = GET_TEAM((TeamTypes)i);
-
-		for (int j = 0; j < MAX_MAJOR_CIVS; j++) {
-			if (i == j || kTeam.isHasMet((TeamTypes)j))
-				bitarray |= 1 << j;
-		}
-		s_knownPlayersTable[i] = bitarray;
-	}
-}
-
 //	-----------------------------------------------------------------------
 void saveSlotHints(FDataStream& saveTo)
 {
@@ -514,11 +485,14 @@ void saveSlotHints(FDataStream& saveTo)
 	saveTo << s_civilizationKeys;
 	saveTo << s_leaderKeys;
 
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+	// didn't update version number as I am not sure what it means to update it when all the relevant code is stripped out by the preprocessor
 	int iKeepUnmet = 0;
 	GetGameOption(GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN, iKeepUnmet);
 	if(iKeepUnmet)
 		updateKnownPlayersTable();
 	saveTo << s_knownPlayersTable;
+#endif
 }
 
 void ReseatConnectedPlayers()
@@ -568,8 +542,11 @@ static void loadSlotsHelper(
     std::vector<TeamTypes>& teamTypes,
     std::vector<HandicapTypes>& handicapTypes,
 	std::vector<CvString>& civilizationKeys,
-	std::vector<CvString>& leaderKeys,
-	std::vector<KnownCivsBitArray>& metCivs)
+	std::vector<CvString>& leaderKeys
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+	, std::vector<KnownCivsBitArray>& metCivs
+#endif
+	)
 {
 	loadFrom >> gameSpeed;
 	loadFrom >> worldSize;
@@ -597,8 +574,9 @@ static void loadSlotsHelper(
 		civilizationKeys.clear();
 		leaderKeys.clear();
 	}
-
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 	loadFrom >> metCivs;
+#endif
 }
 
 int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
@@ -618,10 +596,12 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> dummyHandicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 	std::vector<KnownCivsBitArray> dummyKnownPlayersTable;
-
 	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyKnownPlayersTable);
-
+#else
+	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys);
+#endif
 	return calcActiveSlotCount(slotStatus, slotClaims);
 }
 
@@ -642,10 +622,12 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<HandicapTypes> handicapTypes;
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 	std::vector<KnownCivsBitArray> knownPlayersTable;
-
 	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys, knownPlayersTable);
-
+#else
+	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys);
+#endif
 	s_gameSpeed = gameSpeed;
 	s_worldSize = worldSize;
 	s_mapScriptName = mapScriptName;
@@ -688,7 +670,9 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 		PlayerTypes p = static_cast<PlayerTypes>(i);
 		setNickname(p, s_nicknames[i]); // fix display names
 	}
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 	s_knownPlayersTable = knownPlayersTable;
+#endif
 	ReseatConnectedPlayers();
 }
 
@@ -2059,9 +2043,9 @@ void resetGame()
 
 	s_privateGame = false;
 	s_isInternetGame = false;
-
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 	s_knownPlayersTable.clear();
-
+#endif
 	ResetMapOptions();
 	ResetGameOptions();
 }
@@ -2251,7 +2235,9 @@ std::vector<GUID> s_savedLeaderPackageID(MAX_PLAYERS);
 std::vector<bool> s_savedLeaderKeysAvailable(MAX_PLAYERS);
 std::vector<PackageIDList> s_savedDLCPackagesAvailable(MAX_PLAYERS);
 
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 std::vector<KnownCivsBitArray> s_savedKnownPlayersTable;
+#endif
 
 //	------------------------------------------------------------------------------------
 void restoreSlots()
@@ -2270,8 +2256,12 @@ void restoreSlots()
 	s_leaderPackageID = s_savedLeaderPackageID;
 	s_leaderKeysAvailable =  s_savedLeaderKeysAvailable;
 	s_DLCPackagesAvailable = s_savedDLCPackagesAvailable;
+
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+	//not sure if this is necessary but won't hurt
 	s_knownPlayersTable = s_savedKnownPlayersTable;
 	setActivePlayer(s_savedLocalPlayer);
+#endif
 }
 
 //	------------------------------------------------------------------------------------
@@ -2295,7 +2285,10 @@ void saveSlots()
 	s_savedLeaderKeysAvailable = s_leaderKeysAvailable;
 	s_savedDLCPackagesAvailable = s_DLCPackagesAvailable;
 
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+	//not sure if this is necessary but won't hurt
 	s_savedKnownPlayersTable = s_knownPlayersTable;
+#endif
 }
 
 SeaLevelTypes seaLevel()
@@ -3253,7 +3246,7 @@ WorldSizeTypes worldSize()
 
 void writeArchive(FDataStream& saveTo)
 {
-	uint uiVersion = 7;
+	uint uiVersion = 6;
 	saveTo << uiVersion;
 
 	saveTo << s_activePlayer;
@@ -3500,23 +3493,22 @@ void setCivilizationKey(PlayerTypes p, const CvString& szKey)
 }
 
 // Return true if the key for the players civilization is available on this machine
-// ALSO! Hijacked to allow checking if a player is known to the local human player. Seems difficult to expose stuff to the pregame Lua stuff (like the StagingRoom), sorry. This function was being used in exactly one place and has limited utility at least. 
+// ***ALSO*** hijacked to allow checking if a player is known to the local human player. Seems difficult to expose stuff to the pregame Lua stuff (like the StagingRoom), sorry. This function was being used in exactly one place and has limited utility at least. 
 bool civilizationKeyAvailable(PlayerTypes p)
 {
-	/////////////// HIJACKED /////////////////////////////////////
-	if (p < 0) // to differentiate I am passing in the player id as -(p+1), so player 0 would become player -1 which is an otherwise non-occuring input to the function (along with all other negative values)
-	{			
-		// Only makes sense for Network MP
-		CvAssertMsg(isNetworkMultiplayerGame(), "Checking known players table does not make sense outside of Network MP games!");
-		p = (PlayerTypes) (-p - 1);
-		
-		if (isKnownPlayer(p, activePlayer())) 
-		{
-			return true;
-		}
-		return false;
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+	///////////////////////////////////////
+	/////////////// HIJACKED //////////////
+	///////////////////////////////////////
+	if (isKnownPlayerReq(p))
+	{
+		return handleKnownPlayerReq(p);
 	}
-	///////////////////////////////////////////////////////////////
+	///////////////////////////////////////
+	//////////////////END//////////////////
+	///////////////////////////////////////
+#endif
+
 	if(p >= 0 && p < MAX_PLAYERS)
 	{
 		return s_civilizationKeysAvailable[p];
@@ -3563,12 +3555,56 @@ bool canReadyLocalPlayer()
 	return true;
 }
 
+#if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
+const std::vector<KnownCivsBitArray>& GetKnownPlayersTable() {
+	return s_knownPlayersTable;
+}
+
+void SetKnownPlayersTable(const std::vector<KnownCivsBitArray>& aiKnownPlayersTable) {
+	s_knownPlayersTable = aiKnownPlayersTable;
+}
+
+void updateKnownPlayersTable()
+{
+	// Playing it safe here, don't want to introduce a bug due to not knowing all the code paths and trying to save a few cycles/bytes
+	s_knownPlayersTable.clear();
+	s_knownPlayersTable.resize(MAX_MAJOR_CIVS);
+	for (int i = 0; i < MAX_MAJOR_CIVS; i++) {
+		KnownCivsBitArray bitarray = 0;
+		const CvTeam& kTeam = GET_TEAM((TeamTypes)i);
+
+		for (int j = 0; j < MAX_MAJOR_CIVS; j++) {
+			if (i == j || kTeam.isHasMet((TeamTypes)j))
+				bitarray |= 1 << j;
+		}
+		s_knownPlayersTable[i] = bitarray;
+	}
+}
+
+bool isKnownPlayerReq(PlayerTypes ePlayer)
+{
+	// to differentiate I am passing in the player id as -(p+1), so player 0 would become player -1 which is an otherwise non-occuring input to the function (along with all other negative values)
+	return ePlayer < 0;
+}
+
+bool handleKnownPlayerReq(PlayerTypes ePlayer)
+{
+	// Only makes sense for Network MP
+	CvAssertMsg(isNetworkMultiplayerGame(), "Checking known players table does not make sense outside of Network MP games!");
+	
+	// decode actual player ID - it was encoded as -(ePlayer+1), probably in StagingRoom.lua
+	ePlayer = (PlayerTypes)(-ePlayer - 1);
+
+	return isKnownPlayer(ePlayer, activePlayer());
+}
 
 bool isKnownPlayer(PlayerTypes eA, PlayerTypes eB) {
-	if (s_knownPlayersTable.empty()) return true; // only non-empty when we don't automatically already know everybody for these purposes
+	// table will be empty if GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN, i.e. not keeping track of unmet players and consider all to be met for the purposes of PreGame UI.
+	if (s_knownPlayersTable.empty()) return true;
 	if (eA < 0 || eB < 0) return true; // erring on the side of caution
 	if ((size_t)eA >= s_knownPlayersTable.size() || (size_t)eB >= s_knownPlayersTable.size()) return true; // erring on the side of caution
 	bool bKnown = s_knownPlayersTable[eA] & (1 << eB);
 	return bKnown;
 }
+#endif
 }

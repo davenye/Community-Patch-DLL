@@ -580,7 +580,12 @@ function RefreshPlayerList()
 end
 
 function ShouldShowCivDetails(playerID)
-  -- this nasty bit of code is actually asking if the local player has met this player. The player is transformed as such to differentiate from the normal proper usage of the function.
+  -- do we want to have "unmet players" for players we haven't met yet in the actual game?  
+  if(not PreGame.GetGameOption("GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN")) then
+  	return true;
+  end
+  -- this nasty bit of code is actually asking if the local player has met this player. The IsCivilizationKeyAvailable was hijacked since I couldn't seem to be able to add new functions to query PreGame
+  -- The player is transformed as such to differentiate from the normal proper usage of the function.
   -- will just return true regardless if the game does not have the GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN set
   return PreGame.IsCivilizationKeyAvailable( -(playerID+1) )
 end
