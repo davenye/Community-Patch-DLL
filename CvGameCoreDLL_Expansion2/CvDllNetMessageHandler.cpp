@@ -234,11 +234,32 @@ void CvDllNetMessageHandler::ResponseDestroyUnit(PlayerTypes ePlayer, int iUnitI
 		pkUnit->kill(true, ePlayer);
 	}
 }
+enum DiplomacyFromUISubmessageId 
+{
+	NO_DIPLOMACYFROMUI_SUBMESSAGEID = 0,
+	EVENT_DIPLOMACYFROMUI_SUBMESSAGEID = 0x1,
+	TRCACHEINVALIDATE_DIPLOMACYFROMUI_SUBMESSAGEID = 0x2,
+
+	PASSTHRU_DIPLOMACYFROMUI_SUBMESSAGEID = 0xFF, // This could be -1, probably not valid but might as well let it go through so as not change previous behaviour
+};
 //------------------------------------------------------------------------------
 void CvDllNetMessageHandler::ResponseDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2)
 {
+	DiplomacyFromUISubmessageId submessageId = DiplomacyFromUISubmessageId((eOtherPlayer >> 24) & 0x7F);
+	switch (submessageId)
+	{
+		case NO_DIPLOMACYFROMUI_SUBMESSAGEID:
+		case PASSTHRU_DIPLOMACYFROMUI_SUBMESSAGEID:
+			break;
+		case EVENT_DIPLOMACYFROMUI_SUBMESSAGEID:
+			break;
+		case TRCACHEINVALIDATE_DIPLOMACYFROMUI_SUBMESSAGEID:
+			break;
+		default:
+			break;
+	}
 	// hijacks message for MP events since it has a few args and is sent to everyone
-	if ((eOtherPlayer & 0xFF000000) == 0x80000000) {
+	if ((eOtherPlayer & 0xFF000000) == 0x80000000) {		
 		PlayerTypes eActualPlayer = static_cast<PlayerTypes>(eOtherPlayer & 0x7FFFFFFF);
 		CvPlayerAI& kActualPlayer = GET_PLAYER(eActualPlayer);
 		if (kActualPlayer.isHuman() || GET_PLAYER(ePlayer).isLocalPlayer()) // there will be a lot of msgs flying around. we only want to handle each choice once on each client
