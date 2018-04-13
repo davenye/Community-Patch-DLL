@@ -302,16 +302,16 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion);
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
 
 #if MAX_MAJOR_CIVS <= 32
-typedef unsigned long KnownCivsBitArray;
+typedef unsigned long KnownPlayersBitArray;
 #elif MAX_MAJOR_CIVS <= 64
-typedef unsigned long long KnownCivsBitArray;
+typedef unsigned long long KnownPlayersBitArray;
 #else
 // In the highly unlikely event...
 #error need different storage for CvPreGame::s_metCivs now that MAX_MAJOR_CIVS is > 64
 #endif
 
-void SetKnownPlayersTable(const std::vector<KnownCivsBitArray>& aiKnownPlayersTable);
-const std::vector<KnownCivsBitArray>& GetKnownPlayersTable();
+void SetKnownPlayersTable(const std::vector<KnownPlayersBitArray>& aiKnownPlayersTable);
+const std::vector<KnownPlayersBitArray>& GetKnownPlayersTable();
 
 #endif
 

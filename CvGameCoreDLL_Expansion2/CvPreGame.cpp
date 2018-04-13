@@ -319,7 +319,7 @@ bool isKnownPlayerReq(PlayerTypes ePlayer);
 bool handleKnownPlayerReq(PlayerTypes ePlayer);
 bool isKnownPlayer(PlayerTypes eA, PlayerTypes eB); // only accurate if game option enabled, (indirectly) used in Staging Room to determine if other player details should be shown
 													
-std::vector<KnownCivsBitArray> s_knownPlayersTable;// this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
+std::vector<KnownPlayersBitArray> s_knownPlayersTable;// this is not an FAutoVariable since it doesn't need syncing since it is just derived data.
 #endif
 
 
@@ -544,7 +544,7 @@ static void loadSlotsHelper(
 	std::vector<CvString>& civilizationKeys,
 	std::vector<CvString>& leaderKeys
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
-	, std::vector<KnownCivsBitArray>& metCivs
+	, std::vector<KnownPlayersBitArray>& metCivs
 #endif
 	)
 {
@@ -597,7 +597,7 @@ int readActiveSlotCountFromSaveGame(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
-	std::vector<KnownCivsBitArray> dummyKnownPlayersTable;
+	std::vector<KnownPlayersBitArray> dummyKnownPlayersTable;
 	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys, dummyKnownPlayersTable);
 #else
 	loadSlotsHelper(loadFrom, uiVersion, dummyGameSpeed, dummyWorldSize, dummyMapScriptName, dummyCivilizations, dummyNicknames, slotStatus, slotClaims, dummyTeamTypes, dummyHandicapTypes, civilizationKeys, leaderKeys);
@@ -623,7 +623,7 @@ void loadSlotHints(FDataStream& loadFrom, bool bReadVersion)
 	std::vector<CvString> civilizationKeys;
 	std::vector<CvString> leaderKeys;
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
-	std::vector<KnownCivsBitArray> knownPlayersTable;
+	std::vector<KnownPlayersBitArray> knownPlayersTable;
 	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys, knownPlayersTable);
 #else
 	loadSlotsHelper(loadFrom, uiVersion, gameSpeed, worldSize, mapScriptName, civilizations, nicknames, slotStatus, slotClaims, teamTypes, handicapTypes, civilizationKeys, leaderKeys);
@@ -2236,7 +2236,7 @@ std::vector<bool> s_savedLeaderKeysAvailable(MAX_PLAYERS);
 std::vector<PackageIDList> s_savedDLCPackagesAvailable(MAX_PLAYERS);
 
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
-std::vector<KnownCivsBitArray> s_savedKnownPlayersTable;
+std::vector<KnownPlayersBitArray> s_savedKnownPlayersTable;
 #endif
 
 //	------------------------------------------------------------------------------------
@@ -3556,11 +3556,11 @@ bool canReadyLocalPlayer()
 }
 
 #if defined(MOD_KEEP_CIVS_UNKNOWN_PREGAME)
-const std::vector<KnownCivsBitArray>& GetKnownPlayersTable() {
+const std::vector<KnownPlayersBitArray>& GetKnownPlayersTable() {
 	return s_knownPlayersTable;
 }
 
-void SetKnownPlayersTable(const std::vector<KnownCivsBitArray>& aiKnownPlayersTable) {
+void SetKnownPlayersTable(const std::vector<KnownPlayersBitArray>& aiKnownPlayersTable) {
 	s_knownPlayersTable = aiKnownPlayersTable;
 }
 
@@ -3570,7 +3570,7 @@ void updateKnownPlayersTable()
 	s_knownPlayersTable.clear();
 	s_knownPlayersTable.resize(MAX_MAJOR_CIVS);
 	for (int i = 0; i < MAX_MAJOR_CIVS; i++) {
-		KnownCivsBitArray bitarray = 0;
+		KnownPlayersBitArray bitarray = 0;
 		const CvTeam& kTeam = GET_TEAM((TeamTypes)i);
 
 		for (int j = 0; j < MAX_MAJOR_CIVS; j++) {
