@@ -351,10 +351,6 @@ foundRequest:
 		}
 		else
 		{						
-			if (kDeal.m_bConsideringForRenewal) {
-				kDeal.AddGoldPerTurnTrade(eTo, 30, 30);
-
-			}
 			CvDealAI* dealAI = GET_PLAYER(eFrom).GetDealAI();
 			int iTotalValueToMe = 0, iValueImOffering = 0, iValueTheyreOffering = 0;
 			int iAmountOverWeWillRequest = 0, iAmountUnderWeWillOffer = 0;
