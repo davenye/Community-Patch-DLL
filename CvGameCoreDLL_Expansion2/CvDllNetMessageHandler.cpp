@@ -12,6 +12,8 @@
 #include "CvDiplomacyAI.h"
 #include "CvTypes.h"
 #include "CvGameCoreUtils.h"
+#include "CvDllNetMessageExt.h"
+
 
 CvDllNetMessageHandler::CvDllNetMessageHandler()
 {
@@ -238,40 +240,8 @@ void CvDllNetMessageHandler::ResponseDestroyUnit(PlayerTypes ePlayer, int iUnitI
 void CvDllNetMessageHandler::ResponseDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2)
 {
 	// hijacks message for MP events since it has a few args and is sent to everyone
-	if ((eOtherPlayer & 0xFF000000) == 0x80000000) {
-		PlayerTypes eActualPlayer = static_cast<PlayerTypes>(eOtherPlayer & 0x7FFFFFFF);
-		CvPlayerAI& kActualPlayer = GET_PLAYER(eActualPlayer);
-		if (kActualPlayer.isHuman() || GET_PLAYER(ePlayer).isLocalPlayer()) // there will be a lot of msgs flying around. we only want to handle each choice once on each client
-		{
-			int iCityID = iArg1;
-			if (iCityID == -1)
-			{
-				EventTypes ePlayerEvent = static_cast<EventTypes>(eEvent);
-				EventChoiceTypes eEventChoice = static_cast<EventChoiceTypes>(iArg2);
-				kActualPlayer.DoEventChoice(eEventChoice, ePlayerEvent, false);
-
-			}
-			else
-			{
-
-				CityEventTypes eCityEvent = static_cast<CityEventTypes>(eEvent);
-				CityEventChoiceTypes eEventChoice = static_cast<CityEventChoiceTypes>(iArg2);
-
-				int iLoop;
-				CvCity* pLoopCity;
-				for (pLoopCity = kActualPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kActualPlayer.nextCity(&iLoop))
-				{
-					if (pLoopCity->GetID() == iCityID)
-					{
-						pLoopCity->DoEventChoice(eEventChoice, eCityEvent, false);
-						break;
-					}
-
-				}
-			}
-		}
+	if (NetMessageExt::Process::FromDiplomacyFromUI(ePlayer, eOtherPlayer, eEvent, iArg1, iArg2))
 		return;
-	}
 	GET_PLAYER(eOtherPlayer).GetDiplomacyAI()->DoFromUIDiploEvent(ePlayer, eEvent, iArg1, iArg2);
 }
 //------------------------------------------------------------------------------

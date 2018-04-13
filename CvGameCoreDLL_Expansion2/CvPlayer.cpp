@@ -66,6 +66,7 @@
 #endif
 #include "CvGoodyHuts.h"
 
+#include "CvDllNetMessageExt.h"
 // Include this after all other headers.
 #define LINT_WARNINGS_ONLY
 #include "LintFree.h"
@@ -8661,7 +8662,7 @@ void CvPlayer::DoEventSyncChoices(EventChoiceTypes eEventChoice, CvCity* pCity)
 void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent, bool bSendMsg)
 {
 	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && isHuman()) {
-		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | GetID()), (FromUIDiploEventTypes) eEvent, -1, eEventChoice);
+		NetMessageExt::Send::DoEventChoice(GetID(), eEventChoice, eEvent);
 		return;
 	}
 	if(eEventChoice != NO_EVENT_CHOICE)

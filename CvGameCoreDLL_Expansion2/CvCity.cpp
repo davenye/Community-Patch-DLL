@@ -44,6 +44,8 @@
 #if defined(MOD_BALANCE_CORE)
 #include "CvBarbarians.h"
 #endif
+
+#include "CvDllNetMessageExt.h"
 // include after all other headers
 #include "LintFree.h"
 
@@ -6096,7 +6098,7 @@ CvString CvCity::GetDisabledTooltip(CityEventChoiceTypes eChosenEventChoice)
 void CvCity::DoEventChoice(CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent, bool bSendMsg)
 {
 	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && GET_PLAYER(getOwner()).isHuman()) {
-		gDLL->sendFromUIDiploEvent(PlayerTypes((1 << 31) | getOwner()), (FromUIDiploEventTypes)eCityEvent, GetID(), eEventChoice);
+		NetMessageExt::Send::DoCityEventChoice(getOwner(), GetID(), eEventChoice, eCityEvent);
 		return;
 	}
 	if(eEventChoice != NO_EVENT_CHOICE)
