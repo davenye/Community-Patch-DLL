@@ -18,7 +18,7 @@ namespace NetMessageExt
 	namespace Process
 	{
 		bool FromDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2) {
-			Flags::FromDiplomacyFromUI flag = Flags::FromDiplomacyFromUI(ePlayer >> 24);
+			Flags::FromDiplomacyFromUI flag = Flags::FromDiplomacyFromUI((eOtherPlayer >> 24) & 0xFF);
 			switch (flag)
 			{
 				case Flags::None:
@@ -59,7 +59,7 @@ namespace NetMessageExt
 			CvAssertMsg(ePlayer & 0xFFFFFF00 == 0, "ePlayer representation outside of expected range");
 			CvAssertMsg(iCityID >= 0, "iCityID outside of expected range");
 			
-			gDLL->sendFromUIDiploEvent(PlayerTypes((Flags::DoEventChoice << 24) | ePlayer), (FromUIDiploEventTypes)eCityEvent, iCityID, eEventChoice);
+			gDLL->sendFromUIDiploEvent(PlayerTypes((Flags::DoCityEventChoice << 24) | ePlayer), (FromUIDiploEventTypes)eCityEvent, iCityID, eEventChoice);
 		}
 	}
 
