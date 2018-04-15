@@ -3583,8 +3583,8 @@ void updateKnownPlayersTable()
 
 bool isKnownPlayerReq(PlayerTypes ePlayer)
 {
-	// to differentiate I am passing in the player id as -(p+1), so player 0 would become player -1 which is an otherwise non-occuring input to the function (along with all other negative values)
-	return ePlayer < 0;
+	// to differentiate I am passing in the player id as -(p+2), so player 0 would become player -2 which is an otherwise non-occuring input to the function (along with all other negative values). 2 was used to that accident passing of NO_PLAYER wouldn't get picked up and become my problem.
+	return ePlayer < -1;
 }
 
 bool handleKnownPlayerReq(PlayerTypes ePlayer)
@@ -3592,8 +3592,8 @@ bool handleKnownPlayerReq(PlayerTypes ePlayer)
 	// Only makes sense for Network MP
 	CvAssertMsg(isNetworkMultiplayerGame(), "Checking known players table does not make sense outside of Network MP games!");
 	
-	// decode actual player ID - it was encoded as -(ePlayer+1), probably in StagingRoom.lua
-	ePlayer = (PlayerTypes)(-ePlayer - 1);
+	// decode actual player ID - it was encoded as -(ePlayer+2), probably in StagingRoom.lua
+	ePlayer = (PlayerTypes)(-ePlayer - 2);
 
 	return isKnownPlayer(ePlayer, activePlayer());
 }

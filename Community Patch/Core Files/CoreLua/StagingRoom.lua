@@ -585,9 +585,9 @@ function ShouldShowCivDetails(playerID)
   	return true;
   end
   -- this nasty bit of code is actually asking if the local player has met this player. The IsCivilizationKeyAvailable was hijacked since I couldn't seem to be able to add new functions to query PreGame
-  -- The player is transformed as such to differentiate from the normal proper usage of the function.
+  -- The player is transformed as such to differentiate from the normal proper usage of the function - playerids in the range of [0,MAX_CIV_PLAYERS) and possible bad values of -1 (NO_PLAYER)
   -- will just return true regardless if the game does not have the GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN set
-  return PreGame.IsCivilizationKeyAvailable( -(playerID+1) )
+  return PreGame.IsCivilizationKeyAvailable( -(playerID+2) )
 end
 -------------------------------------------------
 -------------------------------------------------
