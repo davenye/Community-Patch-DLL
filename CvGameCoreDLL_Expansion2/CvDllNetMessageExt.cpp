@@ -51,14 +51,14 @@ namespace NetMessageExt
 	{
 		void DoEventChoice(PlayerTypes ePlayer, EventChoiceTypes eEventChoice, EventTypes eEvent)
 		{
-			CvAssertMsg(ePlayer & 0xFFFFFF00 == 0, "ePlayer representation outside of expected range");
+			CvAssertMsg((ePlayer & 0xFFFFFF00) == 0, "ePlayer representation outside of expected range");
 
 			unsigned int uiMsgFlagAndPlayer = static_cast<unsigned int>(Flags::DoEventChoice << 24 | ePlayer);			
 			gDLL->sendFromUIDiploEvent(static_cast<PlayerTypes>(uiMsgFlagAndPlayer), static_cast<FromUIDiploEventTypes>(eEvent), -1, static_cast<int>(eEventChoice));
 		}
 		void DoCityEventChoice(PlayerTypes ePlayer, int iCityID, CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent)
 		{
-			CvAssertMsg(ePlayer & 0xFFFFFF00 == 0, "ePlayer representation outside of expected range");
+			CvAssertMsg((ePlayer & 0xFFFFFF00) == 0, "ePlayer representation outside of expected range");
 			CvAssertMsg(iCityID >= 0, "iCityID outside of expected range");
 			
 			unsigned int uiMsgFlagAndPlayer = static_cast<unsigned int>(Flags::DoCityEventChoice << 24 | ePlayer);
