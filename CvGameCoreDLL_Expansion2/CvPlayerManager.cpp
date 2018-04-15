@@ -37,6 +37,12 @@ void CvPlayerManager::Refresh(bool bWarDeclaration)
 			kPlayer.UpdateDangerPlots(true);
 
 		if (bWarDeclaration)
+		{
+			// Despite comments to the contrary, I think the cached trade path info might depend on war state. I may have read the code wrong.
+			GC.getGame().GetGameTrade()->InvalidateTradePathCache(iPlayerCivLoop);
+			// I am not 100% confident that the cache is asked to be updated often enough and may be invalid when read.
+			// However, during testing I was only calling update and therefore nothing much was probably happening, so all of this could just be a waste of time.
 			GC.getGame().GetGameTrade()->UpdateTradePathCache(iPlayerCivLoop);
+		}
 	}
 }
