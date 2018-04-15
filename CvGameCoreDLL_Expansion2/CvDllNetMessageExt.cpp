@@ -18,7 +18,7 @@ namespace NetMessageExt
 	namespace Process
 	{
 		bool FromDiplomacyFromUI(PlayerTypes ePlayer, PlayerTypes eOtherPlayer, FromUIDiploEventTypes eEvent, int iArg1, int iArg2) {
-			Flags::FromDiplomacyFromUI flag = Flags::FromDiplomacyFromUI((eOtherPlayer >> 24) & 0xFF);
+			Flags::FromDiplomacyFromUI flag = Flags::FromDiplomacyFromUI(static_cast<unsigned int>(eOtherPlayer) >> 24);
 			switch (flag)
 			{
 				case Flags::None:
@@ -52,14 +52,17 @@ namespace NetMessageExt
 		void DoEventChoice(PlayerTypes ePlayer, EventChoiceTypes eEventChoice, EventTypes eEvent)
 		{
 			CvAssertMsg(ePlayer & 0xFFFFFF00 == 0, "ePlayer representation outside of expected range");
-			gDLL->sendFromUIDiploEvent(PlayerTypes((Flags::DoEventChoice << 24) | ePlayer), (FromUIDiploEventTypes)eEvent, -1, eEventChoice);
+
+			unsigned int uiMsgFlagAndPlayer = static_cast<unsigned int>(Flags::DoEventChoice << 24 | ePlayer);			
+			gDLL->sendFromUIDiploEvent(static_cast<PlayerTypes>(uiMsgFlagAndPlayer), static_cast<FromUIDiploEventTypes>(eEvent), -1, static_cast<int>(eEventChoice));
 		}
 		void DoCityEventChoice(PlayerTypes ePlayer, int iCityID, CityEventChoiceTypes eEventChoice, CityEventTypes eCityEvent)
 		{
 			CvAssertMsg(ePlayer & 0xFFFFFF00 == 0, "ePlayer representation outside of expected range");
 			CvAssertMsg(iCityID >= 0, "iCityID outside of expected range");
 			
-			gDLL->sendFromUIDiploEvent(PlayerTypes((Flags::DoCityEventChoice << 24) | ePlayer), (FromUIDiploEventTypes)eCityEvent, iCityID, eEventChoice);
+			unsigned int uiMsgFlagAndPlayer = static_cast<unsigned int>(Flags::DoCityEventChoice << 24 | ePlayer);
+			gDLL->sendFromUIDiploEvent(static_cast<PlayerTypes>(uiMsgFlagAndPlayer), static_cast<FromUIDiploEventTypes>(eCityEvent), iCityID, static_cast<int>(eEventChoice));
 		}
 	}
 
