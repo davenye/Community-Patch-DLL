@@ -3593,7 +3593,7 @@ bool handleKnownPlayerReq(PlayerTypes ePlayer)
 	CvAssertMsg(isNetworkMultiplayerGame(), "Checking known players table does not make sense outside of Network MP games!");
 	
 	// decode actual player ID - it was encoded as -(ePlayer+2), probably in StagingRoom.lua
-	ePlayer = (PlayerTypes)(-ePlayer - 2);
+	ePlayer = static_cast<PlayerTypes>(-ePlayer - 2);
 
 	return isKnownPlayer(ePlayer, activePlayer());
 }
