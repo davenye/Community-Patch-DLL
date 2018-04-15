@@ -3959,11 +3959,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 
 	CvAssertMsg(pNewCity != NULL, "NewCity is not assigned a valid value");
 
-#ifdef _MSC_VER
-#pragma warning ( push )
-#pragma warning ( disable : 6011 ) 
-#endif
-
 	// For buyouts, set it up like a new city founded by this player, to avoid liberation later on etc.
 	if(bIsMinorCivBuyout)
 	{
@@ -4879,9 +4874,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 #if defined(MOD_API_EXTENSIONS)
 		return pNewCity;
 #endif
-#ifdef _MSC_VER
-#pragma warning ( pop ) // restore warning level suppressed for pNewCity null check
-#endif// _MSC_VER
 }
 
 
