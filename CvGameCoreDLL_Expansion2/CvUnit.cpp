@@ -29389,6 +29389,9 @@ void CvUnit::SetMissionTimer(int iNewValue)
 			else
 			{
 				CvNotifications* pNotifications = GET_PLAYER(GC.getGame().getActivePlayer()).GetNotifications();				
+				if (pNotifications) {
+					pNotifications->Add(NOTIFICATION_UNIT_PROMOTION, "Unit could be in bad state - consider loading earlier save and file bug report!", "MISSION TIMER BUG!", -1, -1, getUnitType(), GetID());
+				}
 			}
 		}
 	}
