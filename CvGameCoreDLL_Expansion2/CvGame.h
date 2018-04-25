@@ -708,6 +708,12 @@ public:
 	int GetClosestCityDistanceInPlots(const CvPlot* pPlot);
 	CvCity* GetClosestCityByPlots(const CvPlot* pPlot);
 
+
+	PlayerTypes GetPotentialFreeCityPlayer(CvCity* pCity = NULL);
+	TeamTypes GetPotentialFreeCityTeam(CvCity* pCity = NULL);
+	bool CreateFreeCityPlayer(CvCity* pCity, bool bJustChecking = false);
+	MinorCivTypes GetAvailableMinorCivType();
+
 	//------------------------------------------------------------
 	PlayerTypes GetAutoPlayReturnPlayer() const { return m_eAIAutoPlayReturnPlayer;	}
 	//------------------------------------------------------------
@@ -896,6 +902,7 @@ protected:
 	FTimer  m_timeSinceGameTurnStart;		//time since game turn started for human players
 	float	m_fCurrentTurnTimerPauseDelta;	//
 	bool    m_sentAutoMoves;
+	bool	m_processPlayerAutoMoves;
 	bool	m_bForceEndingTurn;
 
 #if defined(MOD_BALANCE_CORE_SPIES)

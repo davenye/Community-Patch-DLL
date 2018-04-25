@@ -44,6 +44,8 @@
 // Enables autosaving GameEvents and allows and extra autosave after Barbs/AI turn in
 #define MOD_SAVE_CONTROLLER	(true)
 
+// Enables not showing, during pregame, the details of the civs that have not been met by the local player, i.e. as it doesn't during the game
+#define MOD_KEEP_CIVS_UNKNOWN_PREGAME	(true)
 
 ///////////////////////
 // BATTLE ROYALE CODE
@@ -412,6 +414,7 @@
 #define MOD_BALANCE_CORE_QUEST_CHANGES				(MOD_COMMUNITY_PATCH && gCustomMods.isBALANCE_CORE_QUEST_CHANGES())
 #define MOD_BALANCE_CORE_PUPPET_CHANGES				(MOD_COMMUNITY_PATCH && gCustomMods.isBALANCE_CORE_PUPPET_CHANGES())
 #define MOD_BALANCE_CORE_CITY_DEFENSE_SWITCH		(MOD_COMMUNITY_PATCH && gCustomMods.isBALANCE_CORE_CITY_DEFENSE_SWITCH())
+#define MOD_BALANCE_CORE_ARCHAEOLOGY_FROM_GP		(MOD_COMMUNITY_PATCH && gCustomMods.isBALANCE_CORE_ARCHAEOLOGY_FROM_GP())
 #endif
 // activate eureka for tech cost bonus 'quest'
 #define MOD_CIV6_EUREKA								gCustomMods.isCIV6_EUREKAS()
@@ -968,6 +971,8 @@
 #define MOD_BUGFIX_MINOR_CIV_STRATEGIES				gCustomMods.isBUGFIX_MINOR_CIV_STRATEGIES()
 // Fixes the ExtraMissionarySpreads column to affect naturally born Prophets
 #define MOD_BUGFIX_EXTRA_MISSIONARY_SPREADS			gCustomMods.isBUGFIX_EXTRA_MISSIONARY_SPREADS()
+// Workaround for the first human turn after loading a MP game being skipped sometimes
+#define MOD_BUGFIX_SKIPPED_HUMAN_TURN_ON_MP_LOAD	(true)
 
 #endif // ACHIEVEMENT_HACKS
 
@@ -1519,6 +1524,7 @@ public:
 	MOD_OPT_DECL(BALANCE_CORE_QUEST_CHANGES);
 	MOD_OPT_DECL(BALANCE_CORE_PUPPET_CHANGES);
 	MOD_OPT_DECL(BALANCE_CORE_CITY_DEFENSE_SWITCH);
+	MOD_OPT_DECL(BALANCE_CORE_ARCHAEOLOGY_FROM_GP);
 
 	MOD_OPT_DECL(CIV6_WORKER);
 	MOD_OPT_DECL(CIV6_ROADS);

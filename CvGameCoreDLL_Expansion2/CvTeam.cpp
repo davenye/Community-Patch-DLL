@@ -1336,24 +1336,25 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bDefensivePact)
 	CvPlayerManager::Refresh(true);
 
 	//refresh tactical AI as well!
-	for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
+	// Refreshing all alive players in CvPlayerManager, so no need for this. However, refreshing all might not be required. Have checked in the commented code to show that the refresh needs to be forced.
+	/*for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
 	{
 		PlayerTypes eAttackingPlayer = (PlayerTypes)iAttackingPlayer;
 		CvPlayerAI& kAttackingPlayer = GET_PLAYER(eAttackingPlayer);
 		if (kAttackingPlayer.isAlive() && kAttackingPlayer.getTeam() == GetID())
 		{
-			kAttackingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh();
+			kAttackingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true);
 			for (int iDefendingPlayer = 0; iDefendingPlayer < MAX_MAJOR_CIVS; iDefendingPlayer++)
 			{
 				PlayerTypes eDefendingPlayer = (PlayerTypes)iDefendingPlayer;
 				CvPlayerAI& kDefendingPlayer = GET_PLAYER(eDefendingPlayer);
 				if (kDefendingPlayer.isAlive() && kDefendingPlayer.getTeam() == eTeam)
 				{
-					kDefendingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh();
+					kDefendingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true);
 				}
 			}
 		}
-	}
+	}*/
 }
 
 //	-----------------------------------------------------------------------------------------------
@@ -1654,6 +1655,11 @@ void CvTeam::DoDeclareWar(TeamTypes eTeam, bool bDefensivePact, bool bMinorAllyP
 
 	// Meet the team if we haven't already
 	meet(eTeam, false);
+
+#if defined(MOD_GLOBAL_STACKING_RULES)
+	// Bump Units out of places they shouldn't be
+	GC.getMap().verifyUnitValidPlot();
+#endif
 
 #else
 
@@ -2193,6 +2199,29 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits, bool bSuppressNotificat
 #else
 	DoMakePeace(eTeam, bBumpUnits, bSuppressNotification);
 #endif
+
+	CvPlayerManager::Refresh(true);
+
+	//refresh tactical AI as well!
+	// Refreshing all alive players in CvPlayerManager, so no need for this. However, refreshing all might not be required. Have checked in the commented code to show that the refresh needs to be forced.
+	/*for (int iAttackingPlayer = 0; iAttackingPlayer < MAX_MAJOR_CIVS; iAttackingPlayer++)
+	{
+		PlayerTypes eAttackingPlayer = (PlayerTypes)iAttackingPlayer;
+		CvPlayerAI& kAttackingPlayer = GET_PLAYER(eAttackingPlayer);
+		if (kAttackingPlayer.isAlive() && kAttackingPlayer.getTeam() == GetID())
+		{
+			kAttackingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true);
+			for (int iDefendingPlayer = 0; iDefendingPlayer < MAX_MAJOR_CIVS; iDefendingPlayer++)
+			{
+				PlayerTypes eDefendingPlayer = (PlayerTypes)iDefendingPlayer;
+				CvPlayerAI& kDefendingPlayer = GET_PLAYER(eDefendingPlayer);
+				if (kDefendingPlayer.isAlive() && kDefendingPlayer.getTeam() == eTeam)
+				{
+					kDefendingPlayer.GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true);
+				}
+			}
+		}
+	}*/
 }
 
 //	------------------------------------------------------------------------------------------------
@@ -3194,6 +3223,11 @@ void CvTeam::updateTeamStatus()
 	{
 		CvPlayer& kPlayer = GET_PLAYER(*iI);
 		if(kPlayer.isAlive())
+		{
+			m_bIsMinorTeam = kPlayer.isMinorCiv();
+			break;
+		}
+		else if (CvPreGame::isMinorCiv(*iI))
 		{
 			m_bIsMinorTeam = kPlayer.isMinorCiv();
 			break;
@@ -6559,6 +6593,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 		if(pkTechInfo->IsRepeat())
 		{
+			processTech(eIndex, 1);
 			GetTeamTechs()->IncrementTechCount(eIndex);
 
 			GetTeamTechs()->SetResearchProgress(eIndex, 0, ePlayer);

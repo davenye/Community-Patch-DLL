@@ -66,6 +66,7 @@
 #endif
 #include "CvGoodyHuts.h"
 
+#include "CvDllNetMessageExt.h"
 // Include this after all other headers.
 #define LINT_WARNINGS_ONLY
 #include "LintFree.h"
@@ -359,6 +360,7 @@ CvPlayer::CvPlayer() :
 	, m_bHasBetrayedMinorCiv("CvPlayer::m_bHasBetrayedMinorCiv", m_syncArchive)
 	, m_bAlive("CvPlayer::m_bAlive", m_syncArchive)
 	, m_bEverAlive("CvPlayer::m_bEverAlive", m_syncArchive)
+	, m_bPotentiallyAlive("CvPlayer::m_bPotentiallyAlive", m_syncArchive)
 	, m_bBeingResurrected("CvPlayer::m_bBeingResurrected", m_syncArchive, false, false)
 	, m_bTurnActive("CvPlayer::m_bTurnActive", m_syncArchive, false, true)
 	, m_bAutoMoves("CvPlayer::m_bAutoMoves", m_syncArchive, false, true)
@@ -891,12 +893,20 @@ void CvPlayer::init(PlayerTypes eID)
 	CvAssert(getTeam() != NO_TEAM);
 	GET_TEAM(getTeam()).changeNumMembers(1);
 
-#if defined(MOD_BALANCE_CORE)
-	GET_TEAM(getTeam()).addPlayer( GetID() );
-#endif
-
 	PlayerTypes p = GetID();
 	SlotStatus s = CvPreGame::slotStatus(p);
+
+#if defined(MOD_BALANCE_CORE)
+	GET_TEAM(getTeam()).addPlayer( GetID() );
+
+	//minors can become free cities...but we have to make sure the UI can know this.
+	if (eID >= MAX_MAJOR_CIVS && eID < MAX_CIV_PLAYERS && s == SS_CLOSED && CvPreGame::isMinorCiv(eID))
+	{
+		m_bPotentiallyAlive = true;
+	}
+#endif
+
+	
 	if((s == SS_TAKEN) || (s == SS_COMPUTER))
 	{
 		setAlive(true);
@@ -1764,6 +1774,7 @@ void CvPlayer::uninit()
 	m_bHasBetrayedMinorCiv = false;
 	m_bAlive = false;
 	m_bEverAlive = false;
+	m_bPotentiallyAlive = false;
 	m_bBeingResurrected = false;
 	m_bTurnActive = false;
 	m_bAutoMoves = false;
@@ -2907,6 +2918,10 @@ CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 			}
 			int iReligionSpreads = pNewUnit->getUnitInfo().GetReligionSpreads();
 			int iReligiousStrength = pNewUnit->getUnitInfo().GetReligiousStrength();
+#if defined(MOD_BALANCE_CORE)
+			iReligiousStrength *= (100 + GetPlayerTraits()->GetExtraMissionaryStrength());
+			iReligiousStrength /= 100;
+#endif
 			if(iReligionSpreads > 0 && eReligion > RELIGION_PANTHEON)
 			{
 #if defined(MOD_BUGFIX_EXTRA_MISSIONARY_SPREADS)
@@ -3132,6 +3147,12 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 			if(pOldCity->getNumWorldWonders() > 0)
 			{
 				iValue += (pOldCity->getNumWorldWonders() * /*100*/ GC.getWAR_DAMAGE_LEVEL_INVOLVED_CITY_POP_MULTIPLIER());
+			}
+
+			int iNumTimesOwned(pOldCity->GetNumTimesOwned(GetID()));
+			if (iNumTimesOwned > 1)
+			{
+				iValue /= (iNumTimesOwned * 3);
 			}
 #endif
 
@@ -6366,8 +6387,12 @@ bool CvPlayer::IsEventChoiceValid(EventChoiceTypes eChosenEventChoice, EventType
 	}
 
 	//Exploit checks.
-	if(isEndTurn())
-		return false;
+	if (isEndTurn())
+	{
+		// Not sure what the exploits are in particular but global events are fired outside of human turns so we can't return here
+		if(!GC.getGame().isNetworkMultiPlayer()) // check simul/hybrid turns instead maybe? not sure yet.
+			return false;
+	}
 
 	if(!IsEventActive(eParentEvent))
 		return false;
@@ -8654,8 +8679,12 @@ void CvPlayer::DoEventSyncChoices(EventChoiceTypes eEventChoice, CvCity* pCity)
 		}
 	}
 }
-void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent)
+void CvPlayer::DoEventChoice(EventChoiceTypes eEventChoice, EventTypes eEvent, bool bSendMsg)
 {
+	if (GC.getGame().isNetworkMultiPlayer() && bSendMsg && isHuman()) {
+		NetMessageExt::Send::DoEventChoice(GetID(), eEventChoice, eEvent);
+		return;
+	}
 	if(eEventChoice != NO_EVENT_CHOICE)
 	{
 		CvModEventChoiceInfo* pkEventChoiceInfo = GC.getEventChoiceInfo(eEventChoice);
@@ -11049,13 +11078,7 @@ void CvPlayer::doTurn()
 	{
 		if(GC.getGame().isOption(GAMEOPTION_EVENTS))
 		{
-			//Don't do events in MP
-			bool bDontShowRewardPopup = (GC.getGame().isReallyNetworkMultiPlayer() || GC.getGame().isNetworkMultiPlayer());
-
-			if (!bDontShowRewardPopup)
-			{
-				DoEvents();
-			}
+			DoEvents();
 		}
 	}
 #endif
@@ -11101,6 +11124,8 @@ void CvPlayer::doTurnPostDiplomacy()
 
 			UpdatePlots();
 			UpdateDangerPlots(false);
+			GetTacticalAI()->GetTacticalAnalysisMap()->Refresh(true); // Just do it now instead of maybe doing it at an unspecified point?
+			GetTacticalAI()->GetTacticalAnalysisMap()->Invalidate(); // Invalidating so that it will be updated even if already (possible erroneously) updated in UpdatdCityThreatCriteria with stale data.
 			UpdateMilitaryStats();
 			UpdateAreaEffectUnits();
 			UpdateAreaEffectPlots();
@@ -11206,6 +11231,7 @@ void CvPlayer::doTurnPostDiplomacy()
 
 	// Prevent exploits in turn timed MP games - no accumulation of culture if player hasn't picked yet
 	GetCulture()->SetLastTurnLifetimeCulture(GetJONSCultureEverGenerated());
+	GetCulture()->SetLastTurnCPT(GetJONSCultureEverGenerated() - GetCulture()->GetLastTurnLifetimeCulture());
 	if(kGame.isOption(GAMEOPTION_END_TURN_TIMER_ENABLED))
 	{
 		if(getJONSCulture() < getNextPolicyCost())
@@ -19623,7 +19649,7 @@ void CvPlayer::DoWarVictoryBonuses()
 						if(HasGlobalMonopoly(eResourceLoop) && pInfo->getMonopolyGALength() > 0)
 						{
 							int iTemp = pInfo->getMonopolyGALength();
-							iTemp += max(1, GetMonopolyModPercent());
+							iTemp += GetMonopolyModPercent();
 							iLengthModifier += iTemp;
 						}
 					}
@@ -20934,12 +20960,22 @@ void CvPlayer::DoUpdateCityRevolts()
 							pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
 						}
 					}
-					else
+					else if (GET_PLAYER(eRecipient).isEverAlive())
 					{
 						CvNotifications* pNotifications = GetNotifications();
 						if (pNotifications && isHuman())
 						{
 							Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP", GetCityRevoltCounter(), pMostUnhappyCity->getName(), GET_PLAYER(eRecipient).getCivilizationShortDescription());
+							Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_SUMMARY");
+							pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
+						}
+					}
+					else
+					{
+						CvNotifications* pNotifications = GetNotifications();
+						if (pNotifications && isHuman())
+						{
+							Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_FREE_CITY", GetCityRevoltCounter(), pMostUnhappyCity->getName());
 							Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_SUMMARY");
 							pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
 						}
@@ -20955,22 +20991,7 @@ void CvPlayer::DoUpdateCityRevolts()
 	}
 	else
 	{
-		int iTurns = /*5*/ GC.getREVOLT_COUNTER_MIN();
-		CvGame& theGame = GC.getGame();
-
-		// Game speed mod
-		int iMod = theGame.getGameSpeedInfo().getTrainPercent();
-		// Only LENGTHEN time between rebels
-		if (iMod > 100)
-		{
-			iTurns *= iMod;
-			iTurns /= 100;
-		}
-
-		if (iTurns <= 0)
-			iTurns = 1;
-
-		SetCityRevoltCounter(iTurns);
+		SetCityRevoltCounter(-1);
 	}
 }
 
@@ -21044,83 +21065,119 @@ void CvPlayer::DoResetCityRevoltCounter()
 
 	CvCity *pMostUnhappyCity = GetMostUnhappyCity();
 	PlayerTypes eRecipient = GetMostUnhappyCityRecipient(pMostUnhappyCity);
-	if(pMostUnhappyCity != NULL && eRecipient != NO_PLAYER && GET_PLAYER(eRecipient).isAlive())
+	if(pMostUnhappyCity != NULL && eRecipient != NO_PLAYER)
 	{
 		SetCityRevoltCounter(iTurns);
 
-		CvNotifications* pNotifications = GetNotifications();
-		if(pNotifications && isHuman())
+		if (GET_PLAYER(eRecipient).isAlive())
 		{
-			Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLT", iTurns, pMostUnhappyCity->getName(), GET_PLAYER(eRecipient).getCivilizationShortDescription());
-			Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLT_SUMMARY");
-			pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
+			CvNotifications* pNotifications = GetNotifications();
+			if (pNotifications && isHuman())
+			{
+				Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLT", iTurns, pMostUnhappyCity->getName(), GET_PLAYER(eRecipient).getCivilizationShortDescription());
+				Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLT_SUMMARY");
+				pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
+			}
+
+			if ((GC.getLogging() && GC.getAILogging()))
+			{
+				CvString strLogString;
+				strLogString.Format("CP - Countdown for City Revolt BEGINS - %s, will go to %s in %d turns.", pMostUnhappyCity->getName().GetCString(), GET_PLAYER(eRecipient).getCivilizationShortDescription(), iTurns);
+
+				CvString strTemp;
+
+				CvString strFileName = "CityRevolutions.csv";
+				FILogFile* pLog;
+				pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+
+				CvString strPlayerName;
+				strPlayerName = getCivilizationShortDescription();
+				strTemp += strPlayerName;
+				strTemp += ", ";
+
+				CvString strTurn;
+
+				strTurn.Format("%d, ", GC.getGame().getGameTurn()); // turn
+				strTemp += strTurn;
+
+				strTemp += strLogString;
+
+				pLog->Msg(strTemp);
+			}
 		}
-		
-		if ((GC.getLogging() && GC.getAILogging()))
+		else if (GET_PLAYER(eRecipient).isEverAlive())
 		{
-			CvString strLogString;
-			strLogString.Format("CP - Countdown for City Revolt BEGINS - %s, will go to %s in %d turns.", pMostUnhappyCity->getName().GetCString(), GET_PLAYER(eRecipient).getCivilizationShortDescription(), iTurns);
+			CvNotifications* pNotifications = GetNotifications();
+			if (pNotifications && isHuman())
+			{
+				Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP", iTurns, pMostUnhappyCity->getName(), GET_PLAYER(eRecipient).getCivilizationShortDescription());
+				Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_SUMMARY");
+				pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
+			}
 
-			CvString strTemp;
+			if ((GC.getLogging() && GC.getAILogging()))
+			{
+				CvString strLogString;
+				strLogString.Format("CP - Countdown for City Revolt BEGINS - %s, will go to DEAD PLAYER %s in %d turns.", pMostUnhappyCity->getName().GetCString(), GET_PLAYER(eRecipient).getName(), iTurns);
 
-			CvString strFileName = "CityRevolutions.csv";
-			FILogFile* pLog;
-			pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+				CvString strTemp;
 
-			CvString strPlayerName;
-			strPlayerName = getCivilizationShortDescription();
-			strTemp += strPlayerName;
-			strTemp += ", ";
+				CvString strFileName = "CityRevolutions.csv";
+				FILogFile* pLog;
+				pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
 
-			CvString strTurn;
+				CvString strPlayerName;
+				strPlayerName = getCivilizationShortDescription();
+				strTemp += strPlayerName;
+				strTemp += ", ";
 
-			strTurn.Format("%d, ", GC.getGame().getGameTurn()); // turn
-			strTemp += strTurn;
+				CvString strTurn;
 
-			strTemp += strLogString;
+				strTurn.Format("%d, ", GC.getGame().getGameTurn()); // turn
+				strTemp += strTurn;
 
-			pLog->Msg(strTemp);
+				strTemp += strLogString;
+
+				pLog->Msg(strTemp);
+			}
+		}
+		else
+		{
+			CvNotifications* pNotifications = GetNotifications();
+			if (pNotifications && isHuman())
+			{
+				Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_FREE_CITY", iTurns, pMostUnhappyCity->getName());
+				Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_SUMMARY");
+				pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
+			}
+
+			if ((GC.getLogging() && GC.getAILogging()))
+			{
+				CvString strLogString;
+				strLogString.Format("CP - Countdown for City Revolt BEGINS - %s, will go to FREE CITY PLAYER in %d turns.", pMostUnhappyCity->getName().GetCString(), iTurns);
+
+				CvString strTemp;
+
+				CvString strFileName = "CityRevolutions.csv";
+				FILogFile* pLog;
+				pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+
+				CvString strPlayerName;
+				strPlayerName = getCivilizationShortDescription();
+				strTemp += strPlayerName;
+				strTemp += ", ";
+
+				CvString strTurn;
+
+				strTurn.Format("%d, ", GC.getGame().getGameTurn()); // turn
+				strTemp += strTurn;
+
+				strTemp += strLogString;
+
+				pLog->Msg(strTemp);
+			}
 		}
 	}
-#if defined(MOD_BALANCE_CORE)
-	else if (pMostUnhappyCity && eRecipient != NO_PLAYER && !GET_PLAYER(eRecipient).isAlive())
-	{
-		SetCityRevoltCounter(iTurns);
-		CvNotifications* pNotifications = GetNotifications();
-		if(pNotifications && isHuman())
-		{
-			Localization::String strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP", iTurns, pMostUnhappyCity->getName(), GET_PLAYER(eRecipient).getCivilizationShortDescription());
-			Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_POSSIBLE_CITY_REVOLUTION_CP_SUMMARY");
-			pNotifications->Add(NOTIFICATION_CITY_REVOLT_POSSIBLE, strMessage.toUTF8(), strSummary.toUTF8(), pMostUnhappyCity->getX(), pMostUnhappyCity->getY(), -1);
-		}
-
-		if ((GC.getLogging() && GC.getAILogging()))
-		{
-			CvString strLogString;
-			strLogString.Format("CP - Countdown for City Revolt BEGINS - %s, will go to DEAD PLAYER %s in %d turns.", pMostUnhappyCity->getName().GetCString(), GET_PLAYER(eRecipient).getName(), iTurns);
-
-			CvString strTemp;
-
-			CvString strFileName = "CityRevolutions.csv";
-			FILogFile* pLog;
-			pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
-
-			CvString strPlayerName;
-			strPlayerName = getCivilizationShortDescription();
-			strTemp += strPlayerName;
-			strTemp += ", ";
-
-			CvString strTurn;
-
-			strTurn.Format("%d, ", GC.getGame().getGameTurn()); // turn
-			strTemp += strTurn;
-
-			strTemp += strLogString;
-
-			pLog->Msg(strTemp);
-		}
-	}
-#endif
 }
 
 //	--------------------------------------------------------------------------------
@@ -21135,11 +21192,58 @@ void CvPlayer::DoCityRevolt()
 		GAMEEVENTINVOKE_HOOK(GAMEEVENT_CityFlipped, pMostUnhappyCity, eRecipient, pMostUnhappyCity->getOwner());
 #endif
 		if (!GET_PLAYER(eRecipient).isAlive())
-		{
-			PlayerTypes eOldPlayer = pMostUnhappyCity->getOriginalOwner();
-			if (eOldPlayer != NO_PLAYER && !GET_PLAYER(eOldPlayer).isAlive())
+		{ 
+			if (GET_PLAYER(eRecipient).isEverAlive())
 			{
-				DoRevolutionPlayer(eOldPlayer, pMostUnhappyCity->GetID());
+				PlayerTypes eOldPlayer = pMostUnhappyCity->getOriginalOwner();
+				if (eOldPlayer != NO_PLAYER && !GET_PLAYER(eOldPlayer).isAlive())
+				{
+					DoRevolutionPlayer(eOldPlayer, pMostUnhappyCity->GetID());
+				}
+			}
+			else
+			{
+				const CvString strCityName = pMostUnhappyCity->getName();
+				const char* charCityName = pMostUnhappyCity->getName().GetCString();
+				if (GC.getGame().CreateFreeCityPlayer(pMostUnhappyCity))
+				{
+					CvPlayer &kRecipient = GET_PLAYER(eRecipient);
+					for (int iNotifyLoop = 0; iNotifyLoop < MAX_MAJOR_CIVS; ++iNotifyLoop){
+						PlayerTypes eNotifyPlayer = (PlayerTypes)iNotifyLoop;
+						CvPlayerAI& kCurNotifyPlayer = GET_PLAYER(eNotifyPlayer);
+						CvNotifications* pNotifications = kCurNotifyPlayer.GetNotifications();
+						if (pNotifications)
+						{
+							Localization::String strMessage;
+							if (eNotifyPlayer == GetID())
+							{
+								strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_REVOLT_FREE_CITY", strCityName, kRecipient.getCivilizationShortDescription());
+							}
+							else
+							{
+								strMessage = GetLocalizedText("TXT_KEY_NOTIFICATION_OTHER_PLAYER_CITY_REVOLT_FREE_CITY", getCivilizationAdjective(), strCityName, kRecipient.getCivilizationShortDescription());
+							}
+							Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_CITY_REVOLT_SUMMARY");
+							pNotifications->Add(NOTIFICATION_CITY_REVOLT, strMessage.toUTF8(), strSummary.toUTF8(), GET_PLAYER(eRecipient).getCapitalCity()->getX(), GET_PLAYER(eRecipient).getCapitalCity()->getY(), -1);
+						}
+					}
+
+					if (GC.getLogging() && GC.getAILogging() && pMostUnhappyCity != NULL)
+					{
+						CvString playerName;
+						FILogFile* pLog;
+						CvString strBaseString;
+						CvString strOutBuf;
+						CvString strFileName = "CityRevolutions.csv";
+						playerName = getCivilizationShortDescription();
+						pLog = LOGFILEMGR.GetLog(strFileName, FILogFile::kDontTimeStamp);
+						strBaseString.Format("%03d, ", GC.getGame().getElapsedGameTurns());
+						strBaseString += playerName + ", ";
+						strOutBuf.Format("Defection! %s ceded to new FREE CITY of %s", charCityName, kRecipient.getName());
+						strBaseString += strOutBuf;
+						pLog->Msg(strBaseString);
+					}
+				}
 			}
 		}
 		else
@@ -21284,6 +21388,14 @@ CvCity *CvPlayer::GetMostUnhappyCity()
 			if (pLoopCity->IsPuppet())
 				iUnhappiness *= 2;
 
+			int iCapitalDistance = plotDistance(pLoopCity->getX(), pLoopCity->getY(), getCapitalCity()->getX(), getCapitalCity()->getY());
+
+			int iDistanceFactor = 100 - iCapitalDistance;
+			if (iDistanceFactor <= 0)
+				iDistanceFactor = 1;
+
+			iUnhappiness += iDistanceFactor / 10;
+
 			int iModifier = 0;
 			if (GAMEEVENTINVOKE_VALUE(iModifier, GAMEEVENT_CityFlipChance, pLoopCity->GetID(), GetID()) == GAMEEVENTRETURN_VALUE) {
 				if (iModifier != 0) {
@@ -21313,7 +21425,21 @@ PlayerTypes CvPlayer::GetMostUnhappyCityRecipient(CvCity* pMostUnhappyCity)
 		if (!GET_PLAYER(pMostUnhappyCity->getOriginalOwner()).isAlive())
 			return pMostUnhappyCity->getOriginalOwner();
 
+		if (pMostUnhappyCity->getOriginalOwner() != pMostUnhappyCity->getOwner())
+			return pMostUnhappyCity->getOriginalOwner();
+
 		PolicyBranchTypes ePreferredIdeology = GetCulture()->GetPublicOpinionPreferredIdeology();
+
+		//doesn't happen if we're influenced by someone
+		if (ePreferredIdeology == NO_POLICY_BRANCH_TYPE || ePreferredIdeology == GetPlayerPolicies()->GetLateGamePolicyTree())
+		{
+			if (GC.getGame().CreateFreeCityPlayer(pMostUnhappyCity, true))
+			{
+				PlayerTypes ePotentialFreeCityPlayer = GC.getGame().GetPotentialFreeCityPlayer(pMostUnhappyCity);
+				if (ePotentialFreeCityPlayer != NO_PLAYER && GC.getGame().GetPotentialFreeCityTeam(pMostUnhappyCity) != NO_TEAM)
+					return ePotentialFreeCityPlayer;
+			}
+		}
 
 		// Look at each civ
 		for (int iLoopPlayer = 0; iLoopPlayer < MAX_MAJOR_CIVS; iLoopPlayer++)
@@ -21327,9 +21453,8 @@ PlayerTypes CvPlayer::GetMostUnhappyCityRecipient(CvCity* pMostUnhappyCity)
 						continue;
 
 					PublicOpinionTypes eOpinionInMyCiv = GetCulture()->GetPublicOpinionType();
-					bool bOriginalOwner = pMostUnhappyCity->getOriginalOwner() == kPlayer.GetID();
 					int iCulturalDominanceOverUs = kPlayer.GetCulture()->GetInfluenceLevel(GetID()) - GetCulture()->GetInfluenceLevel((PlayerTypes)iLoopPlayer);
-					if (eOpinionInMyCiv == PUBLIC_OPINION_REVOLUTIONARY_WAVE || (IsEmpireSuperUnhappy() && (iCulturalDominanceOverUs > 1 || bOriginalOwner)))
+					if (eOpinionInMyCiv == PUBLIC_OPINION_REVOLUTIONARY_WAVE || (IsEmpireSuperUnhappy() && iCulturalDominanceOverUs > 1))
 					{
 						int iValue = 1000;
 						if (iCulturalDominanceOverUs > 0)
@@ -21344,8 +21469,6 @@ PlayerTypes CvPlayer::GetMostUnhappyCityRecipient(CvCity* pMostUnhappyCity)
 						PolicyBranchTypes eOtherCivIdeology = kPlayer.GetPlayerPolicies()->GetLateGamePolicyTree();
 						if (eOtherCivIdeology != NO_POLICY_BRANCH_TYPE && eOtherCivIdeology == ePreferredIdeology)
 							iValue *= 3;
-						if (bOriginalOwner)
-							iValue *= 10;
 
 						int iModifier = 0;
 						if (GAMEEVENTINVOKE_VALUE(iModifier, GAMEEVENT_CityFlipRecipientChance, pMostUnhappyCity->GetID(), GetID(), (PlayerTypes)iLoopPlayer) == GAMEEVENTRETURN_VALUE) {
@@ -22181,7 +22304,12 @@ int CvPlayer::GetUnhappinessFromCityForUI(CvCity* pCity) const
 	}
 
 	if (pCity->IsPuppet() && MOD_BALANCE_CORE_PUPPET_CHANGES)
-		return 0;
+	{
+		if (pCity->IsRazing() || pCity->IsResistance())
+			return pCity->getPopulation() / 2;
+		else
+			return pCity->getPopulation() / max(1, GC.getBALANCE_HAPPINESS_PUPPET_THRESHOLD_MOD());
+	}
 
 #endif
 	int iNumCitiesUnhappinessTimes100 = 0;
@@ -22514,10 +22642,22 @@ int CvPlayer::GetUnhappinessFromCityPopulation(CvCity* pAssumeCityAnnexed, CvCit
 /// Unhappiness from Puppet City Population
 int CvPlayer::GetUnhappinessFromPuppetCityPopulation() const
 {
-	int iUnhappiness = 0;
-	int iUnhappinessPerPop = GC.getUNHAPPINESS_PER_POPULATION() * 100;
-
 	int iLoop = 0;
+	if (MOD_BALANCE_CORE_PUPPET_CHANGES)
+	{
+		int iTotal = 0;
+		for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+		{
+			if (pLoopCity->IsRazing() || pLoopCity->IsResistance())
+				continue;
+			else
+				iTotal += pLoopCity->getPopulation() / max(1, GC.getBALANCE_HAPPINESS_PUPPET_THRESHOLD_MOD());
+		}
+		return iTotal;
+	}
+
+	int iUnhappiness = 0;
+	int iUnhappinessPerPop = GC.getUNHAPPINESS_PER_POPULATION() * 100;	
 	for(const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		bool bCityValid = false;
@@ -24333,19 +24473,19 @@ void CvPlayer::doAdoptPolicy(PolicyTypes ePolicy)
 		GC.GetEngineUserInterface()->setDirty(Policies_DIRTY_BIT, true);
 	}
 #if defined(MOD_BALANCE_CORE)
+	CvCity* pCapital = getCapitalCity();
 	int iPolicyGEorGM = GetPlayerTraits()->GetPolicyGEorGM();
-	if(iPolicyGEorGM > 0)
+	if(iPolicyGEorGM > 0 && pCapital != NULL)
 	{
 		CvCity* pLoopCity;
-		CvCity* pCapital = getCapitalCity(); // JJ: Define capital
 		int iLoop;
-			int iEra = GetCurrentEra(); // JJ: Changed era scaling to match rest of VP
+			int iEra = GetCurrentEra();
 			if(iEra < 1)
 			{
 				iEra = 1;
 			}
-		int iValue = iPolicyGEorGM * iEra; // JJ: Changed formula
-		iValue *= GC.getGame().getGameSpeedInfo().getTrainPercent(); // JJ: Game speed mod (note that TrainPercent is a percentage value, will need to divide by 100)
+		int iValue = iPolicyGEorGM * iEra;
+		iValue *= GC.getGame().getGameSpeedInfo().getTrainPercent(); // Game speed mod (note that TrainPercent is a percentage value, will need to divide by 100)
 		SpecialistTypes eBestSpecialist = NO_SPECIALIST;
 		int iRandom = GC.getGame().getSmallFakeRandNum(10, GetEconomicMight()) * 10;
 		if(iRandom <= 33)
@@ -24376,18 +24516,18 @@ void CvPlayer::doAdoptPolicy(PolicyTypes ePolicy)
 				{
 					if(eBestSpecialist == (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_ENGINEER"))
 					{
-						pLoopCity->changeProduction((iValue * 2) / 100); // JJ: Production yield is 2x of science. Dividing by 100 here to minimise rounding error.
+						pLoopCity->changeProduction((iValue * 2) / 100); // Production yield is 2x of science. Dividing by 100 here to minimise rounding error.
 					}
 					else if(eBestSpecialist == (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_MERCHANT"))
 					{
-						this->GetTreasury()->ChangeGold((iValue * 4) / 100); // JJ: Gold yield is 4x of science, 2x of production. Dividing by 100 here to minimise rounding error.
+						this->GetTreasury()->ChangeGold((iValue * 4) / 100); // Gold yield is 4x of science, 2x of production. Dividing by 100 here to minimise rounding error.
 					}
 					else if(eBestSpecialist == (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_SCIENTIST"))
 					{
 						TechTypes eCurrentTech = GetPlayerTechs()->GetCurrentResearch();
 						if(eCurrentTech == NO_TECH)
 						{
-							changeOverflowResearch(iValue / 100); // JJ: Dividing by 100 here to minimise rounding error.
+							changeOverflowResearch(iValue / 100); // Dividing by 100 here to minimise rounding error.
 							if(getOverflowResearch() <= 0)
 							{
 								setOverflowResearch(0);
@@ -24395,23 +24535,15 @@ void CvPlayer::doAdoptPolicy(PolicyTypes ePolicy)
 						}
 						else
 						{
-							GET_TEAM(getTeam()).GetTeamTechs()->ChangeResearchProgress(eCurrentTech, (iValue / 100), GetID()); // JJ: Dividing by 100 here to minimise rounding error.
+							GET_TEAM(getTeam()).GetTeamTechs()->ChangeResearchProgress(eCurrentTech, (iValue / 100), GetID()); // Dividing by 100 here to minimise rounding error.
 							if(GET_TEAM(getTeam()).GetTeamTechs()->GetResearchProgress(eCurrentTech) <= 0)
 							{
 								GET_TEAM(getTeam()).GetTeamTechs()->SetResearchProgress(eCurrentTech, 0, GetID());
 							}
 						}
-					}
-				//CvSpecialistInfo* pkSpecialistInfo = GC.getSpecialistInfo(eBestSpecialist);
-				// JJ: Moved outside of for loop
-					//int iGPThreshold = pLoopCity->GetCityCitizens()->GetSpecialistUpgradeThreshold((UnitClassTypes)pkSpecialistInfo->getGreatPeopleUnitClass());
-					//iGPThreshold *= 100;
-					////Get % of threshold for test.
-					//iGPThreshold *= iPolicyGEorGM;
-					//iGPThreshold /= 100;
-				
+					}				
 					pLoopCity->GetCityCitizens()->ChangeSpecialistGreatPersonProgressTimes100(eBestSpecialist, iGPThreshold, true);
-					if(GetID() == GC.getGame().getActivePlayer()) // JJ: Change the popup to show the specific great person type's icon
+					if(GetID() == GC.getGame().getActivePlayer()) // The popup shows the specific great person type's icon
 					{
 						if(eBestSpecialist == (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_ENGINEER"))
 						{
@@ -24445,7 +24577,7 @@ void CvPlayer::doAdoptPolicy(PolicyTypes ePolicy)
 						}
 					}
 				} //end of for loop
-				if(GetID() == GC.getGame().getActivePlayer()) // JJ: Moved notification outside of for loop as it was flooding the screen
+				if(GetID() == GC.getGame().getActivePlayer()) // Moved notification outside of for loop as it was flooding the screen
 				{
 					CvNotifications* pNotification = GetNotifications();
 					if(pNotification)
@@ -25316,7 +25448,7 @@ int CvPlayer::getGoldenAgeLength() const
 					if(HasGlobalMonopoly(eResourceLoop) && pInfo->getMonopolyGALength() > 0)
 					{
 						int iTemp = pInfo->getMonopolyGALength();
-						iTemp += max(1, GetMonopolyModPercent());
+						iTemp += GetMonopolyModPercent();
 						iLengthModifier += iTemp;
 					}
 				}
@@ -25363,7 +25495,7 @@ int CvPlayer::getGoldenAgeLengthModifier() const // JJ: A way to get the golden 
 					if(HasGlobalMonopoly(eResourceLoop) && pInfo->getMonopolyGALength() > 0)
 					{
 						int iTemp = pInfo->getMonopolyGALength();
-						iTemp += max(1, GetMonopolyModPercent());
+						iTemp += GetMonopolyModPercent();
 						iLengthModifier += iTemp;
 					}
 				}
@@ -26578,12 +26710,17 @@ void CvPlayer::doInstantYield(InstantYieldType iType, bool bCityFaith, GreatPers
 
 							iValue += iTempValue;
 						}
+						CvCity* pCity = pPlot->getPlotCity();
+						if (pCity == NULL)
+						{
+							pCity = pPlot->GetAdjacentCity();
+						}
 						if (pCity != NULL)
 						{
 							if (eYield == YIELD_SCIENCE && iPassYield > 0)
 							{
 								ReligionTypes eCurrentReligion = pCity->GetCityReligions()->GetReligiousMajority();
-								if (eCurrentReligion != eReligion && eCurrentReligion != NO_RELIGION)
+								if (eCurrentReligion != eReligion)
 								{
 									iValue += (iPassYield * pReligion->m_Beliefs.GetSciencePerOtherReligionFollower(GetID(), pLoopCity, true));
 								}
@@ -43052,39 +43189,6 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	if (pPolicy->GetNewCityFreeBuilding() != NO_BUILDINGCLASS)
 	{
 		ChangeFreeChosenBuildingNewCity(pPolicy->GetNewCityFreeBuilding(), true);
-
-		CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(pPolicy->GetNewCityFreeBuilding());
-		if (pkBuildingClassInfo)
-		{
-			const BuildingTypes eBuilding = ((BuildingTypes)(getCivilizationInfo().getCivilizationBuildings(pkBuildingClassInfo->GetID())));
-			if (NO_BUILDING != eBuilding)
-			{
-				CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
-				if (pkBuildingInfo)
-				{
-					int iLoopTwo;
-					for (pLoopCity = firstCity(&iLoopTwo); pLoopCity != NULL; pLoopCity = nextCity(&iLoopTwo))
-					{
-						if (pLoopCity->isValidBuildingLocation(eBuilding))
-						{
-							if (pLoopCity->GetCityBuildings()->GetNumRealBuilding(eBuilding) > 0)
-							{
-								pLoopCity->GetCityBuildings()->SetNumRealBuilding(eBuilding, 0);
-							}
-
-							pLoopCity->GetCityBuildings()->SetNumFreeBuilding(eBuilding, 1);
-
-							if (pLoopCity->getFirstBuildingOrder(eBuilding) == 0)
-							{
-								pLoopCity->clearOrderQueue();
-								pLoopCity->chooseProduction();
-								// Send a notification to the user that what they were building was given to them, and they need to produce something else.
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 #endif
 
@@ -43132,7 +43236,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 						if(HasGlobalMonopoly(eResourceLoop) && pInfo->getMonopolyGALength() > 0)
 						{
 							int iTemp = pInfo->getMonopolyGALength();
-							iTemp += max(1, GetMonopolyModPercent());
+							iTemp += GetMonopolyModPercent();
 							iLengthModifier += iTemp;
 						}
 					}
@@ -43352,6 +43456,10 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 										}
 										int iReligionSpreads = pNewUnit->getUnitInfo().GetReligionSpreads();
 										int iReligiousStrength = pNewUnit->getUnitInfo().GetReligiousStrength();
+#if defined(MOD_BALANCE_CORE)
+										iReligiousStrength *= (100 + GetPlayerTraits()->GetExtraMissionaryStrength());
+										iReligiousStrength /= 100;
+#endif
 										if(iReligionSpreads > 0 && eReligion > RELIGION_PANTHEON)
 										{
 #if defined(MOD_BUGFIX_EXTRA_MISSIONARY_SPREADS)
@@ -44472,7 +44580,7 @@ void CvPlayer::Read(FDataStream& kStream)
 			m_pDiplomacyRequests->Uninit();
 
 		m_pDiplomacyRequests->Init(GetID());
-		//m_pDiplomacyRequests->Read(kStream);
+		m_pDiplomacyRequests->Read(kStream);
 	}
 
 	if(m_bTurnActive)
@@ -44647,7 +44755,10 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_strEmbarkedGraphicOverride;
 
 	m_kPlayerAchievements.Write(kStream);
-
+	
+	if (GetID() < MAX_MAJOR_CIVS)
+		m_pDiplomacyRequests->Write(kStream);	
+	
 #if defined(MOD_API_UNIFIED_YIELDS) && defined(MOD_API_PLOT_YIELDS)
 	// MOD_SERIALIZE_READ - v57/v58/v59 broke the save format  couldn't be helped, but don't make a habit of it!!!
 	kStream << m_ppiPlotYieldChange;
@@ -44757,6 +44868,8 @@ void CvPlayer::createGreatGeneral(UnitTypes eGreatPersonUnit, int iX, int iY)
 		ReligionTypes eReligion = GetReligions()->GetReligionCreatedByPlayer();
 		int iReligionSpreads = pGreatPeopleUnit->getUnitInfo().GetReligionSpreads();
 		int iReligiousStrength = pGreatPeopleUnit->getUnitInfo().GetReligiousStrength();
+		iReligiousStrength *= (100 + GetPlayerTraits()->GetExtraMissionaryStrength());
+		iReligiousStrength /= 100;
 		if(iReligionSpreads > 0 && eReligion > RELIGION_PANTHEON)
 		{
 			pGreatPeopleUnit->GetReligionData()->SetSpreadsLeft(iReligionSpreads);
@@ -44788,9 +44901,10 @@ void CvPlayer::createGreatGeneral(UnitTypes eGreatPersonUnit, int iX, int iY)
 			pNotifications->Add(NOTIFICATION_GENERIC, strText.toUTF8(), strSummary.toUTF8(), pGreatPeopleUnit->getX(), pGreatPeopleUnit->getY(), -1);
 		}
 	}
-	if(pGreatPeopleUnit->IsCombatUnit())
+	if(pGreatPeopleUnit->IsCombatUnit() && getCapitalCity() != NULL)
 	{
 		getCapitalCity()->addProductionExperience(pGreatPeopleUnit);
+		pGreatPeopleUnit->setOriginCity(getCapitalCity()->GetID());
 	}
 #endif
 	ChangeNumGreatPeople(1);
@@ -44832,7 +44946,7 @@ void CvPlayer::createGreatGeneral(UnitTypes eGreatPersonUnit, int iX, int iY)
 
 	// In rare cases we can gain the general from an embarked unit being attacked, or from a hovering unit over coast
 	// so if this plot is water, relocate the Great General
-	if (pPlot->isWater()) {
+	if (pPlot->isWater() || pGreatPeopleUnit->IsCombatUnit()) {
 		pGreatPeopleUnit->jumpToNearestValidPlot();
 	}
 #else
@@ -46403,9 +46517,9 @@ CvPlot* CvPlayer::GetBestSettlePlot(const CvUnit* pUnit, int iTargetArea, bool b
 		if (bNewContinent && !pPlot->isCoastalLand())
 			iScale = 1;
 
-		//if we want offshore expansion, distance doesn't matter
+		//if we want offshore expansion, distance is less important
 		if (bWantOffshore && bOffshore)
-			iScale = 100;
+			iScale = max(50,min(100,iScale*2));
 
 		//bonus if the plot is in a desirable (large) area
 		if (pPlot->getArea() == iBestArea)
@@ -48683,13 +48797,13 @@ int CvPlayer::CountAllWorkedFeature(FeatureTypes iFeatureType)
 	return iCount;
 }
 
-int CvPlayer::CountAllImprovement(ImprovementTypes iImprovementType)
+int CvPlayer::CountAllImprovement(ImprovementTypes iImprovementType, bool bOnlyCreated)
 {
 	int iCount = 0;
 	
 	int iLoop;
 	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop)) {
-		iCount += pLoopCity->CountImprovement(iImprovementType);
+		iCount += pLoopCity->CountImprovement(iImprovementType, bOnlyCreated);
 	}
 	
 	return iCount;

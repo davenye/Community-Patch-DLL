@@ -506,12 +506,20 @@ protected:
 	static int lGetContractUnits(lua_State* L);
 	static int lGetInactiveContractUnitList(lua_State* L);
 	static int lGetActiveContractUnitList(lua_State* L);
+
+	LUAAPIEXTN(DoSpawnFreeCity, void);
 #endif
 
 #if defined(MOD_BATTLE_ROYALE)
 	// Lua CSV Logging Functions
 	static int lDeleteCSV(lua_State* L);
 	static int lWriteCSV(lua_State* L);
+#endif
+
+#if defined(MOD_API_LUA_EXTENSIONS)
+	static int lIsPitbossHost(lua_State* L);
+	static int lIsHost(lua_State* L);
+	static int lGetTimeStringForYear(lua_State* L);
 #endif
 };
 

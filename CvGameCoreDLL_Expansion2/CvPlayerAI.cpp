@@ -284,6 +284,7 @@ void CvPlayerAI::AI_unitUpdate()
 
 	//do this only after updating the danger plots (happens in CvPlayer::doTurnPostDiplomacy)
 	//despite the name, the tactical map is used by homeland AI as well.
+	//DN: If the above comment is still true then it sounds like there is an issue since CvPlayer::UpdateCityThreatCriteria is called just before doPostTurnDiplomacy and it refreshes the tacmamp
 	GetTacticalAI()->GetTacticalAnalysisMap()->Refresh();
 
 	//so that workers know where to build roads
@@ -706,6 +707,9 @@ void CvPlayerAI::AI_considerAnnex()
 		if (pCity->IsRazing() && pCity->HasAnyWonder() && !IsEmpireVeryUnhappy())
 			unraze(pCity);
 
+		if (pCity->IsResistance())
+			continue;
+
 		//Original City and puppeted? Stop!
 		if(pCity->getOriginalOwner() == GetID() && pCity->IsPuppet())
 		{
@@ -713,8 +717,17 @@ void CvPlayerAI::AI_considerAnnex()
 			return;
 		}
 
-		if (pCity->IsResistance())
-			continue;
+		if (pCity->IsOriginalMajorCapital())
+		{
+			pCity->DoAnnex();
+			return;
+		}
+
+		if (pCity->IsBastion())
+		{
+			pCity->DoAnnex();
+			return;
+		}
 
 		CityAndProduction kEval;
 		kEval.pCity = pCity;
@@ -982,10 +995,15 @@ OperationSlot CvPlayerAI::PeekAtNextUnitToBuildForOperationSlot(CvCity* pCity, b
 		if(pThisOperation)
 		{
 #if defined(MOD_BALANCE_CORE)
+			bCitySameAsMuster = false;
+
 			CvPlot *pMusterPlot = pThisOperation->GetMusterPlot();
 
 			if (!pMusterPlot)
 				continue;
+
+			if (pCity == pMusterPlot->getWorkingCity())
+				bCitySameAsMuster = true;
 
 			if (pThisOperation->IsNavalOperation() && !pCity->isMatchingArea(pMusterPlot))
 			{
@@ -993,18 +1011,18 @@ OperationSlot CvPlayerAI::PeekAtNextUnitToBuildForOperationSlot(CvCity* pCity, b
 			}				
 #endif
 			thisSlot = pThisOperation->PeekAtNextUnitToBuild();
-			
-			if (thisSlot.m_iOperationID == -1)
+
+			if (!thisSlot.IsValid())
 				continue;
 
-			if (thisSlot.IsValid() && OperationalAIHelpers::IsSlotRequired(GetID(), thisSlot))
+			CvArmyAI* pThisArmy = GET_PLAYER(pCity->getOwner()).getArmyAI(thisSlot.m_iArmyID);
+
+			if (!pThisArmy || !pThisArmy->GetFormationSlot(thisSlot.m_iSlotID)->IsFree())
+				continue;
+
+			if (OperationalAIHelpers::IsSlotRequired(GetID(), thisSlot))
 			{
 				bestSlot = thisSlot;
-			}
-
-			if (pCity == pMusterPlot->getWorkingCity() && bestSlot == thisSlot)
-			{
-				bCitySameAsMuster = true;
 				break;
 			}
 		}
@@ -1126,6 +1144,12 @@ void CvPlayerAI::ProcessGreatPeople(void)
 		else if (pLoopUnit->IsCombatUnit() && pLoopUnit->getUnitInfo().GetUnitAIType(UNITAI_ENGINEER) && !IsAtWar())
 		{
 			pLoopUnit->SetGreatPeopleDirective(GREAT_PEOPLE_DIRECTIVE_USE_POWER);
+			continue;
+		}
+		// Pseudo Great People (units with missions from GP, but are not SPECIALUNIT_PEOPLE)
+		else if (pLoopUnit->getSpecialUnitType() != eSpecialUnitGreatPerson && pLoopUnit->getUnitInfo().GetUnitAIType(UNITAI_ARTIST) && pLoopUnit->getUnitInfo().GetGoldenAgeTurns() > 0 && pLoopUnit->getUnitInfo().IsGreatWorkUnit())
+		{
+			pLoopUnit->SetGreatPeopleDirective(GetDirectiveArtist(pLoopUnit));
 			continue;
 		}
 		else
@@ -1461,8 +1485,8 @@ GreatPeopleDirectiveTypes CvPlayerAI::GetDirectiveMerchant(CvUnit* pGreatMerchan
 	if(pTarget)
 		return GREAT_PEOPLE_DIRECTIVE_USE_POWER;
 
-	//failsafe
-	if(GC.getGame().getGameTurn() - pGreatMerchant->getGameTurnCreated() > GC.getAI_HOMELAND_GREAT_PERSON_TURNS_TO_WAIT())
+	//failsafe (wait until embarkation for barbarian-besieged venice)
+	if(GC.getGame().getGameTurn() - pGreatMerchant->getGameTurnCreated() > GC.getAI_HOMELAND_GREAT_PERSON_TURNS_TO_WAIT() && GET_TEAM(getTeam()).canEmbark())
 		return GREAT_PEOPLE_DIRECTIVE_CONSTRUCT_IMPROVEMENT;
 
 	return NO_GREAT_PEOPLE_DIRECTIVE_TYPE;
@@ -1806,8 +1830,8 @@ CvPlot* CvPlayerAI::FindBestMerchantTargetPlotForPuppet(CvUnit* pMerchant)
 				if (iScore > iBestScore)
 				{
 					iBestScore = iScore;
-					//unfortunately, we can't use the city plot itself as target ...
-					pBestTargetPlot = GC.getMap().plot( pMerchant->GetPathNodeArray().back().m_iX, pMerchant->GetPathNodeArray().back().m_iY );
+					//we can't use the city plot itself as target ... so with the approximate path flag this is our target
+					pBestTargetPlot = pMerchant->GetPathLastPlot();
 				}
 			}
 		}

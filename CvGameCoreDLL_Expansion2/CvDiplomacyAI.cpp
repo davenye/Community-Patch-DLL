@@ -26802,61 +26802,61 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 	// Human responds to AI action in a positive or negative way.
 	// *********************************************
 	case FROM_UI_DIPLO_EVENT_MEAN_RESPONSE:
-	{
-		if(bActivePlayer)
+	{		
+		if(!IsAtWar(eFromPlayer))
 		{
-			if(!IsAtWar(eFromPlayer))
+			// Does the AI declare war?
+			bool bDeclareWar = false;
+#if defined(MOD_EVENTS_WAR_AND_PEACE)
+			if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
+#else
+			if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
+#endif
 			{
-				// Does the AI declare war?
-				bool bDeclareWar = false;
-#if defined(MOD_EVENTS_WAR_AND_PEACE)
-				if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
-#else
-				if(GET_TEAM(GetTeam()).canDeclareWar(GET_PLAYER(eFromPlayer).getTeam(), GetPlayer()->GetID()))
-#endif
+				int iChance = 20;
+				if(GetMajorCivOpinion(eFromPlayer) >= MAJOR_CIV_OPINION_FAVORABLE)
 				{
-					int iChance = 20;
-					if(GetMajorCivOpinion(eFromPlayer) >= MAJOR_CIV_OPINION_FAVORABLE)
-					{
-						iChance = 40;
-					}
-					if (GC.getGame().getSmallFakeRandNum(10, eFromPlayer) > (iChance - GetMeanness() - GetBoldness()))
-					{
-						bDeclareWar = true;
-					}
+					iChance = 40;
+				}
+				if (GC.getGame().getSmallFakeRandNum(10, eFromPlayer) > (iChance - GetMeanness() - GetBoldness()))
+				{
+					bDeclareWar = true;
+				}
 #if defined(MOD_BALANCE_CORE)
-					if(bDeclareWar && IsDoFAccepted(eFromPlayer))
-					{
-						bDeclareWar = false;
-					}
-					if(bDeclareWar && GET_TEAM(GetTeam()).IsHasDefensivePact(GET_PLAYER(eFromPlayer).getTeam()))
-					{
-						bDeclareWar = false;
-					}
-					if (GET_TEAM(GetPlayer()->getTeam()).IsVassalOfSomeone())
-						bDeclareWar = false;
-#endif
-				}
-				if(bDeclareWar)
+				if(bDeclareWar && IsDoFAccepted(eFromPlayer))
 				{
+					bDeclareWar = false;
+				}
+				if(bDeclareWar && GET_TEAM(GetTeam()).IsHasDefensivePact(GET_PLAYER(eFromPlayer).getTeam()))
+				{
+					bDeclareWar = false;
+				}
+				if (GET_TEAM(GetPlayer()->getTeam()).IsVassalOfSomeone())
+					bDeclareWar = false;
+#endif
+			}
+			if(bDeclareWar)
+			{
 #if defined(MOD_EVENTS_WAR_AND_PEACE)
-					GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam(), false, GetPlayer()->GetID());
+				GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam(), false, GetPlayer()->GetID());
 #else
-					GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam());
+				GET_TEAM(GetTeam()).declareWar(GET_PLAYER(eFromPlayer).getTeam());
 #endif
-					m_pPlayer->GetCitySpecializationAI()->SetSpecializationsDirty(SPECIALIZATION_UPDATE_NOW_AT_WAR);
-					LogWarDeclaration(eFromPlayer);
+				m_pPlayer->GetCitySpecializationAI()->SetSpecializationsDirty(SPECIALIZATION_UPDATE_NOW_AT_WAR);
+				LogWarDeclaration(eFromPlayer);
 
-					GetPlayer()->GetMilitaryAI()->RequestBasicAttack(eFromPlayer, 3);
-				}
-				else
-				{
-					SetMajorCivApproach(eFromPlayer, MAJOR_CIV_APPROACH_NEUTRAL);
-					//If player is offended, AI should take note as penalty to assistance.
-					CvFlavorManager* pFlavorManager = GetPlayer()->GetFlavorManager();
-					int iFlavorOffense = pFlavorManager->GetPersonalityIndividualFlavor((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE"));
-					GetPlayer()->GetDiplomacyAI()->ChangeRecentAssistValue(eFromPlayer, (iFlavorOffense * 50));
-				}
+				GetPlayer()->GetMilitaryAI()->RequestBasicAttack(eFromPlayer, 3);
+			}
+			else
+			{
+				SetMajorCivApproach(eFromPlayer, MAJOR_CIV_APPROACH_NEUTRAL);
+				//If player is offended, AI should take note as penalty to assistance.
+				CvFlavorManager* pFlavorManager = GetPlayer()->GetFlavorManager();
+				int iFlavorOffense = pFlavorManager->GetPersonalityIndividualFlavor((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE"));
+				GetPlayer()->GetDiplomacyAI()->ChangeRecentAssistValue(eFromPlayer, (iFlavorOffense * 50));
+			}
+			if(bActivePlayer)
+			{
 				if(bDeclareWar)
 				{
 					strText = GetDiploStringForMessage(DIPLO_MESSAGE_WAR_RUDE_INSULT);
@@ -26868,7 +26868,10 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
 				}
 			}
-			else
+		}
+		else
+		{
+			if(bActivePlayer)
 			{
 				strText = GetDiploStringForMessage(DIPLO_MESSAGE_DOT_DOT_DOT);
 				gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_NEUTRAL_IDLE);
@@ -27501,27 +27504,27 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 					GET_PLAYER(eFromPlayer).GetDiplomacyAI()->SetShareOpinionCounter(eMyPlayer, 0);
 					bAcceptable = IsShareOpinionAcceptable(eFromPlayer);
 				}
-
-				if(bActivePlayer)
+				
+				// We've accepted
+				if(bAcceptable)
 				{
-					// We've accepted
-					if(bAcceptable)
+					PlayerTypes eTargetPlayer = (PlayerTypes) iArg1;
+					MajorCivApproachTypes eOurApproachWithOtherCiv;
+
+					eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, /*bHideTrueFeelings*/ true);
+
+					// True friends will tell us some more information
+					if(GetMajorCivOpinion(eFromPlayer) == MAJOR_CIV_OPINION_ALLY &&
+						GetMajorCivApproach(eFromPlayer, /*bHideTrueFeelings*/ false) == MAJOR_CIV_APPROACH_FRIENDLY)
 					{
-						PlayerTypes eTargetPlayer = (PlayerTypes) iArg1;
-						MajorCivApproachTypes eOurApproachWithOtherCiv;
+						eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, /*bHideTrueFeelings*/ false);
+					}
 
-						eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, /*bHideTrueFeelings*/ true);
+					SetShareOpinionAccepted(eFromPlayer, true);
+					GET_PLAYER(eFromPlayer).GetDiplomacyAI()->SetShareOpinionAccepted(eMyPlayer, true);
 
-						// True friends will tell us some more information
-						if(GetMajorCivOpinion(eFromPlayer) == MAJOR_CIV_OPINION_ALLY &&
-							GetMajorCivApproach(eFromPlayer, /*bHideTrueFeelings*/ false) == MAJOR_CIV_APPROACH_FRIENDLY)
-						{
-							eOurApproachWithOtherCiv = GetMajorCivApproach(eTargetPlayer, /*bHideTrueFeelings*/ false);
-						}
-
-						SetShareOpinionAccepted(eFromPlayer, true);
-						GET_PLAYER(eFromPlayer).GetDiplomacyAI()->SetShareOpinionAccepted(eMyPlayer, true);
-
+					if(bActivePlayer)
+					{
 						if(IsAtWar(eTargetPlayer))
 						{
 							strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_WAR, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
@@ -27530,36 +27533,38 @@ void CvDiplomacyAI::DoFromUIDiploEvent(PlayerTypes eFromPlayer, FromUIDiploEvent
 						{
 							switch(eOurApproachWithOtherCiv)
 							{
-								case MAJOR_CIV_APPROACH_FRIENDLY:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_FRIENDLY, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
-								case MAJOR_CIV_APPROACH_NEUTRAL:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_NEUTRAL, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
-								case MAJOR_CIV_APPROACH_GUARDED:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_GUARDED, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
-								case MAJOR_CIV_APPROACH_HOSTILE:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_HOSTILE, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
-								case MAJOR_CIV_APPROACH_AFRAID:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_AFRAID, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
-								case MAJOR_CIV_APPROACH_WAR:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_PLANNING_WAR, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
-								case MAJOR_CIV_APPROACH_DECEPTIVE:
-									strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_DECEPTIVE, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
-									break;
+							case MAJOR_CIV_APPROACH_FRIENDLY:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_FRIENDLY, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_NEUTRAL:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_NEUTRAL, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_GUARDED:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_GUARDED, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_HOSTILE:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_HOSTILE, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_AFRAID:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_AFRAID, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_WAR:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_PLANNING_WAR, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
+							case MAJOR_CIV_APPROACH_DECEPTIVE:
+								strText = GetDiploStringForMessage(DIPLO_MESSAGE_SHARE_OPINION_DECEPTIVE, NO_PLAYER, GET_PLAYER(eTargetPlayer).getNameKey());
+								break;
 							}
 						}
 						gDLL->GameplayDiplomacyAILeaderMessage(eMyPlayer, DIPLO_UI_STATE_DISCUSS_HUMAN_INVOKED, strText, LEADERHEAD_ANIM_POSITIVE);
 					}
-					// We've declined, tell them no.
-					else
+				}
+				// We've declined, tell them no.
+				else
+				{
+					SetShareOpinionAccepted(eFromPlayer, false);
+					if(bActivePlayer)
 					{
-						SetShareOpinionAccepted(eFromPlayer, false);
-				
 						if(IsActHostileTowardsHuman(eFromPlayer))
 						{
 							strText = GetDiploStringForMessage(DIPLO_MESSAGE_HOSTILE_SHARE_OPINION_NO);
@@ -29965,6 +29970,18 @@ void CvDiplomacyAI::ChangePlayerStopSpyingRequestCounter(PlayerTypes ePlayer, in
 {
 	SetPlayerStopSpyingRequestCounter(ePlayer, GetPlayerStopSpyingRequestCounter(ePlayer) + iChange);
 }
+#if defined(MOD_BALANCE_CORE)
+int CvDiplomacyAI::GetPlayerMadeNoSpyingPromise(PlayerTypes ePlayer)
+{
+	// Did this player ask us to stop spying on them?
+	if (!IsPlayerStopSpyingRequestAccepted(ePlayer))
+	{
+		return -1;
+	}
+	// this promise doesn't scale with game speed!
+	return std::max(/*50*/GC.getSTOP_SPYING_MEMORY_TURN_EXPIRATION() - GetPlayerStopSpyingRequestCounter(ePlayer), 0);
+}
+#endif
 
 #if defined(MOD_BALANCE_CORE)
 short CvDiplomacyAI::GetPlayerBackstabCounter(PlayerTypes ePlayer) const
@@ -30827,7 +30844,7 @@ bool CvDiplomacyAI::IsDenounceAcceptable(PlayerTypes ePlayer, bool bBias)
 
 	int iWeight = GetDenounceWeight(ePlayer, bBias);
 
-	if(iWeight >= 24)
+	if(iWeight > 25)
 		return true;
 
 	return false;
@@ -30993,9 +31010,6 @@ int CvDiplomacyAI::GetDenounceWeight(PlayerTypes ePlayer, bool bBias)
 		}
 #endif
 	}
-
-	// Rand: 0-5
-	iWeight += GC.getGame().getSmallFakeRandNum(5, ePlayer);
 
 	// Used when friends are asking us to denounce someone
 	if(bBias)
@@ -31672,7 +31686,7 @@ void CvDiplomacyAI::DoTestPromises()
 				ChangePlayerMilitaryPromiseCounter(eLoopPlayer, 1);
 
 				// Expired?
-				if(GetPlayerMilitaryPromiseCounter(eLoopPlayer) > 20)
+				if (GetPlayerMilitaryPromiseCounter(eLoopPlayer) > /*20*/GC.getMOVE_TROOPS_MEMORY_TURN_EXPIRATION())
 				{
 					SetPlayerMadeMilitaryPromise(eLoopPlayer, false);
 					SetPlayerMilitaryPromiseCounter(eLoopPlayer, -1);
@@ -31751,6 +31765,19 @@ void CvDiplomacyAI::DoTestPromises()
 		}
 	}
 }
+
+#if defined(MOD_BALANCE_CORE)
+int CvDiplomacyAI::GetPlayerMadeMilitaryPromise(PlayerTypes ePlayer)
+{
+	// Agreed to move?
+	if (!IsPlayerMadeMilitaryPromise(ePlayer))
+	{
+		return -1;
+	}
+	// this promise does not scale with gamespeed!
+	return std::max(/*20*/GC.getMOVE_TROOPS_MEMORY_TURN_EXPIRATION() - GetPlayerMilitaryPromiseCounter(ePlayer), 0);
+}
+#endif
 
 bool CvDiplomacyAI::IsPlayerMadeMilitaryPromise(PlayerTypes ePlayer)
 {
