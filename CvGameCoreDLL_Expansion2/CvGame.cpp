@@ -14276,11 +14276,12 @@ bool CvGame::CreateFreeCityPlayer(CvCity* pStartingCity, bool bJustChecking)
 	return true;
 }
 
+#endif
+#endif
+
 #if defined(MOD_SAVE_CONTROLLER)
 CvSaveController* CvGame::getSaveController()
 {
 	return m_pSaveController;
 }
-#endif
-#endif
 #endif
