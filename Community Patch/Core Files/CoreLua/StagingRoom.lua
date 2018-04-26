@@ -579,7 +579,7 @@ function RefreshPlayerList()
 	Controls.ListingScrollPanel:CalculateInternalSize();
 end
 
-function HasMetCivInGame(playerID)  
+function HasMetCivInGame(playerID)
   -- this nasty bit of code is actually asking if the local player has met this player. The IsCivilizationKeyAvailable was hijacked since I couldn't seem to be able to add new functions to query PreGame
   -- The player is transformed as such to differentiate from the normal proper usage of the function - playerids in the range of [0,MAX_CIV_PLAYERS) and possible bad values of -1 (NO_PLAYER)
   -- will just return true regardless if the game does not have the GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN set
@@ -606,26 +606,28 @@ function UpdatePlayer( slotInstance, playerInfo )
 		local civIndex = PreGame.GetCivilization( playerID );
 		local activeCivSlot = (PreGame.GetSlotStatus( playerID ) == SlotStatus.SS_COMPUTER 
 													or PreGame.GetSlotStatus( playerID ) == SlotStatus.SS_TAKEN);
-		if( civIndex ~= -1 and activeCivSlot ) then
-      
-	      local hideCivDetails = false;
-	      -- Does the player want to hide unmet civ details?
-	      if(PreGame.GetGameOption("GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN")) then
-	      	-- Allow players to see themselves and teams to see each other
-	      	if(playerID ~= Matchmaking.GetLocalID() and PreGame.GetTeam(Matchmaking.GetLocalID()) ~= PreGame.GetTeam(playerID)) then
-	    			if(PreGame.GetLoadFileName() ~= "") then
-	    				-- if we are loading then we may want to hide the civ details
-	    				if(not HasMetCivInGame(playerID)) then
-	    					hideCivDetails = true;			
-	    				end
-	    			else
-	    				-- if we are setting up a game, then we may want to hide the civ details BUT only if they aren't random cos we don't want people to sneakily explicitly select their favourite civ.
-	    				if(playerID ~= Matchmaking.GetLocalID() and PreGame.GetSlotStatus(playerID) == SlotStatus.SS_TAKEN) then
-	    					hideCivDetails = true;			
-	    				end
-	    			end
-	    		end
-	    	end
+		if( civIndex ~= -1 and activeCivSlot ) then      
+			local hideCivDetails = false;
+			-- Does the player want to hide unmet civ details?
+			if(PreGame.GetGameOption("GAMEOPTION_KEEP_UNMET_PLAYERS_UNKNOWN")) then
+				-- let's just hide erryone in the PitbBoss In-Game Screen. Probably could be done better.
+				if(IsInGameScreen()) then
+					hideCivDetails = true;
+				-- Allow players to see themselves and teams to see each other
+				elseif(playerID ~= Matchmaking.GetLocalID() and PreGame.GetTeam(Matchmaking.GetLocalID()) ~= PreGame.GetTeam(playerID)) then
+					if(PreGame.GetLoadFileName() ~= "") then
+						-- if we are loading then we may want to hide the civ details
+						if(not HasMetCivInGame(playerID)) then
+							hideCivDetails = true;			
+						end
+					else
+					-- if we are setting up a game, then we may want to hide the civ details BUT only if they aren't random cos we don't want people to sneakily explicitly select their favourite civ.
+						if(playerID ~= Matchmaking.GetLocalID() and PreGame.GetSlotStatus(playerID) == SlotStatus.SS_TAKEN) then
+							hideCivDetails = true;			
+						end
+					end
+				end
+			end
     	
 			if(hideCivDetails) then
 			 
